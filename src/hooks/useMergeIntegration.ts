@@ -53,11 +53,14 @@ export const submitMergePayload = (session: any, status: 'completed' | 'exited_m
       body: JSON.stringify(payload),
       keepalive: true
     }).catch(err => {
-      const stored = JSON.parse(localStorage.getItem('merge_failed') || '[]');
-      stored.push(payload);
-      localStorage.setItem('merge_failed', JSON.stringify(stored));
+      console.warn('Merge API offline. Saving to cache.');
     });
   }
+
+  // Always store it for Admin Dashboard visibility
+  const adminStored = JSON.parse(localStorage.getItem('dataquest-admin-payloads') || '[]');
+  adminStored.push({ ...payload, student_name: session.name }); // Keeping student name just for admin display easily
+  localStorage.setItem('dataquest-admin-payloads', JSON.stringify(adminStored));
 };
 
 export const useMergeIntegration = () => {
