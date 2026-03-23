@@ -7,6 +7,7 @@ import { postTestQuestions } from '../data/chapterData';
 import { GameQuestion } from '../components/GameQuestion';
 import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
+import { submitMergePayload } from '../hooks/useMergeIntegration';
 
 export default function PostTest() {
   const { session, updateSession } = useSessionStore();
@@ -52,6 +53,10 @@ export default function PostTest() {
       postTestScore: score,
       completed: true
     });
+    
+    if (session) {
+      submitMergePayload(session, 'completed', false);
+    }
 
     setCurrentStep('results');
     confetti({
@@ -64,6 +69,7 @@ export default function PostTest() {
 
   const score = (answers.filter(a => a).length / postTestQuestions.length) * 100;
   const correctCount = answers.filter(a => a).length;
+  const learningGain = Math.round(score - (session?.preTestScore || 0));
 
   return (
     <div className={cn(
@@ -192,12 +198,37 @@ export default function PostTest() {
                   <span className="font-bold text-slate-600">Learning Gain</span>
                   <span className={cn(
                     "font-black",
-                    score - (session.preTestScore || 0) > 0 ? "text-green-500" : "text-slate-400"
+                    learningGain > 0 ? "text-green-500" : "text-slate-400"
                   )}>
-                    +{Math.round(Math.max(0, score - (session.preTestScore || 0)))}%
+                    +{Math.round(Math.max(0, learningGain))}%
                   </span>
                 </div>
               </div>
+
+              {learningGain < 10 && (
+                <div className="mx-auto mb-12 max-w-md rounded-2xl bg-amber-50 p-6 text-center shadow-lg border-2 border-amber-200">
+                  <h3 className="mb-2 text-xl font-black text-amber-700">Needs Review</h3>
+                  <p className="font-medium text-amber-600">
+                    Your learning gain is a bit low. We recommend revisiting the module for a quick review!
+                  </p>
+                </div>
+              )}
+              {learningGain >= 10 && learningGain < 30 && (
+                <div className="mx-auto mb-12 max-w-md rounded-2xl bg-blue-50 p-6 text-center shadow-lg border-2 border-blue-200">
+                  <h3 className="mb-2 text-xl font-black text-blue-700">Good Progress</h3>
+                  <p className="font-medium text-blue-600">
+                    Solid effort! Keep it up.
+                  </p>
+                </div>
+              )}
+              {learningGain >= 30 && (
+                <div className="mx-auto mb-12 max-w-md rounded-2xl bg-green-50 p-6 text-center shadow-lg border-2 border-green-200">
+                  <h3 className="mb-2 text-xl font-black text-green-700">Excellent Progress</h3>
+                  <p className="font-medium text-green-600">
+                    Amazing job! You've mastered this topic.
+                  </p>
+                </div>
+              )}
 
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                 <button

@@ -8,14 +8,20 @@ import { useAdaptivePath } from '../hooks/useAdaptivePath';
 import { useSessionStore } from '../store/sessionStore';
 
 interface ConceptBlockProps {
+  moduleId: string;
   concept: Concept;
   path: LearningPath;
   onComplete: () => void;
 }
 
-export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onComplete }) => {
+export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, path, onComplete }) => {
   const { session } = useSessionStore();
-  const settings = session?.settings || { contentMode: 'video', assessmentTime: 'inModule' };
+  const rawSettings = session?.settings || ({} as any);
+  const settings = {
+    ...rawSettings,
+    contentMode: rawSettings.contentMode || 'video',
+    assessmentTime: rawSettings.assessmentTime || 'inModule',
+  };
   const { remediationAutoExpand } = useAdaptivePath();
   const [currentQuestionIdx, setCurrentQuestionIdx] = React.useState(0);
   const [isRemediationExpanded, setIsRemediationExpanded] = React.useState(false);
@@ -26,7 +32,32 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onCom
 
   const showQuestionsInBlock = settings.assessmentTime === 'inModule';
 
+  const [startTime, setStartTime] = React.useState(Date.now());
+  const [showRushingPrompt, setShowRushingPrompt] = React.useState(false);
+  const [contentReviewed, setContentReviewed] = React.useState(false);
+
+  React.useEffect(() => {
+    setStartTime(Date.now());
+    setContentReviewed(false);
+    setShowRushingPrompt(false);
+  }, [concept.id]);
+
+  const checkRushing = (): boolean => {
+    if (contentReviewed) return false;
+    const actualTime = Date.now() - startTime;
+    const expectedTime = Math.max(10000, (concept.textContent.length / 100) * 10000);
+    const timeRatio = actualTime / expectedTime;
+    
+    if (timeRatio < 0.3) {
+      setShowRushingPrompt(true);
+      return true;
+    }
+    setContentReviewed(true);
+    return false;
+  };
+
   const handleAnswer = (isCorrect: boolean) => {
+    if (checkRushing()) return;
     const result = onAnswer(isCorrect);
     if (result) {
       setIsCorrectAnswered(true);
@@ -42,6 +73,11 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onCom
     }
   };
 
+  const handleReadConcept = () => {
+    if (checkRushing()) return;
+    onComplete();
+  };
+
   // If no questions or questions are at end of module, and we are in-module, just show content
   React.useEffect(() => {
     if ((filteredQuestions.length === 0 || !showQuestionsInBlock)) {
@@ -51,7 +87,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onCom
   }, [filteredQuestions.length, showQuestionsInBlock]);
 
   const currentQuestion = filteredQuestions[currentQuestionIdx];
-  const { attempts, showRemediation, onAnswer } = useConstraintEngine(currentQuestion?.id || '');
+  const { attempts, showHint, showRemediation, onAnswer } = useConstraintEngine(currentQuestion?.id || '', moduleId);
 
   const showQuestions = showQuestionsInBlock && filteredQuestions.length > 0;
 
@@ -90,7 +126,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onCom
 
         {!showQuestions && (
           <button
-            onClick={onComplete}
+            onClick={handleReadConcept}
             className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
           >
             I've Read This Concept
@@ -98,7 +134,29 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onCom
         )}
       </motion.div>
 
-      {showQuestions && (
+      {showRushingPrompt && (
+        <motion.div
+           initial={{ opacity: 0, y: 10 }}
+           animate={{ opacity: 1, y: 0 }}
+           className="rounded-3xl bg-amber-50 p-8 shadow-xl border-2 border-amber-200"
+        >
+           <h3 className="text-2xl font-black text-amber-900 mb-4">Hold on! 🛑</h3>
+           <p className="text-amber-800 text-lg mb-6">
+             It looks like you went through that very quickly. Please take a moment to review the concept and worked examples carefully before continuing.
+           </p>
+           <button
+             onClick={() => {
+                setShowRushingPrompt(false);
+                setContentReviewed(true);
+             }}
+             className="w-full rounded-2xl bg-amber-600 py-4 text-white font-bold text-lg hover:bg-amber-700"
+           >
+             I have reviewed this rule
+           </button>
+        </motion.div>
+      )}
+
+      {showQuestions && !showRushingPrompt && (
         <div className="space-y-4">
           <GameQuestion
             key={currentQuestion.id}
@@ -121,6 +179,19 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ concept, path, onCom
               Next
               <span className="text-xl">→</span>
             </motion.button>
+          )}
+
+          {showHint && !showRemediation && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl bg-amber-50 p-6 border border-amber-200"
+            >
+              <p className="font-bold text-amber-800 flex items-center gap-2">
+                <span className="text-xl">💡</span> Hint
+              </p>
+              <p className="mt-2 text-amber-700">{currentQuestion.hint}</p>
+            </motion.div>
           )}
 
           {showRemediation && (

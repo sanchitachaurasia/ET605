@@ -18,6 +18,7 @@ export interface ModuleProgress {
   learningPath: LearningPath;
   masteryMap: Record<string, 'untried' | 'mastered' | 'masteredWithSupport' | 'struggling' | 'attempted'>;
   attemptsCount: Record<string, number>;
+  currentConceptIdx?: number;
 }
 
 export interface UserSettings {
@@ -32,6 +33,16 @@ export interface UserSettings {
 }
 
 export interface StudentSession {
+  chapterSessionId?: string;
+  chapterMetrics?: {
+    startTime: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    questionsAttempted: string[];
+    retryCount: number;
+    hintsUsed: number;
+  };
+  isStruggling?: boolean;
   studentId: string;
   pin: string;
   name: string;

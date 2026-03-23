@@ -18,14 +18,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   if (!session) return null;
 
+  const rawSettings = session.settings || ({} as any);
   const settings = {
-    darkMode: false,
-    enabledMechanics: [],
-    soundEnabled: true,
-    vfxEnabled: true,
-    themeColor: '#3b82f6',
-    assessmentStyle: 'balanced',
-    ...session.settings
+    ...rawSettings,
+    darkMode: rawSettings.darkMode || false,
+    enabledMechanics: rawSettings.enabledMechanics || [
+      GameFormat.RAINDROP,
+      GameFormat.DRAG_SORT,
+      GameFormat.SPIN_WHEEL,
+      GameFormat.BAR_BUILDER,
+      GameFormat.HOTSPOT,
+      GameFormat.PIE_SLICER,
+      GameFormat.TALLY_TAP
+    ],
+    soundEnabled: rawSettings.soundEnabled ?? true,
+    vfxEnabled: rawSettings.vfxEnabled ?? true,
+    themeColor: rawSettings.themeColor || '#3b82f6',
+    assessmentStyle: rawSettings.assessmentStyle || 'balanced',
+    contentMode: rawSettings.contentMode || 'video',
+    assessmentTime: rawSettings.assessmentTime || 'inModule',
   };
 
   const enabledMechanics = settings.enabledMechanics || [];

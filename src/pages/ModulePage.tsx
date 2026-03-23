@@ -12,31 +12,51 @@ import { ChevronLeft, ChevronRight, CheckCircle, Settings } from 'lucide-react';
 import { SettingsModal } from '../components/SettingsModal';
 import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
+import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
 
 export default function ModulePage() {
+  useMergeIntegration();
   const { moduleId } = useParams();
   const navigate = useNavigate();
   const { session, updateSession } = useSessionStore();
+  const moduleProgress = session?.moduleProgress?.find(p => p.moduleId === moduleId);
+  const path = moduleProgress?.learningPath || session?.learningPath || 'B';
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentConceptIdx, setCurrentConceptIdx] = useState(0);
+  const [currentConceptIdx, setCurrentConceptIdx] = useState(() => moduleProgress?.currentConceptIdx || 0);
   const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(0);
+
+  useEffect(() => {
+    setCurrentConceptIdx(moduleProgress?.currentConceptIdx || 0);
+  }, [moduleId]);
   
   const module = chapterData.find(m => m.id === moduleId);
 
   if (!module || !session) return <div>Module not found</div>;
 
-  const moduleProgress = session.moduleProgress?.find(p => p.moduleId === moduleId);
-  const path = moduleProgress?.learningPath || session.learningPath || 'B';
-
   const filteredConcepts = module.concepts.filter(c => !c.path || c.path === path);
-  const settings = session.settings || { darkMode: false, assessmentTime: 'inModule' };
+  const rawSettings = session?.settings || ({} as any);
+  const settings = {
+    ...rawSettings,
+    darkMode: rawSettings.darkMode || false,
+    assessmentTime: rawSettings.assessmentTime || 'inModule',
+  };
   const currentConcept = filteredConcepts[currentConceptIdx];
   const progress = showFinalAssessment 
     ? 100 
     : ((currentConceptIdx + 1) / filteredConcepts.length) * 100;
 
   const allQuestions = filteredConcepts.flatMap(c => c.questions.filter(q => !q.path || q.path === path));
+
+  const handleExitClick = () => {
+    if (window.confirm("Are you sure you want to exit? Your session progress will be recorded.")) {
+      if (session) {
+        submitMergePayload(session, 'exited_midway', false);
+      }
+      navigate('/dashboard');
+    }
+  };
 
   const handleModuleComplete = () => {
     // Module Complete
@@ -72,8 +92,27 @@ export default function ModulePage() {
 
   const handleConceptComplete = () => {
     if (currentConceptIdx < filteredConcepts.length - 1) {
-      setCurrentConceptIdx(prev => prev + 1);
+      const nextIdx = currentConceptIdx + 1;
+      setCurrentConceptIdx(nextIdx);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      const newProgress = [...(session?.moduleProgress || [])];
+      const modIdx = newProgress.findIndex(p => p.moduleId === moduleId);
+      if (modIdx >= 0) {
+        newProgress[modIdx] = { ...newProgress[modIdx], currentConceptIdx: nextIdx };
+      } else {
+        newProgress.push({
+          moduleId: moduleId!,
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: path,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: nextIdx
+        });
+      }
+      updateSession({ moduleProgress: newProgress });
     } else {
       if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
         setShowFinalAssessment(true);
@@ -88,7 +127,7 @@ export default function ModulePage() {
   const [isRemediationExpanded, setIsRemediationExpanded] = useState(false);
 
   const currentFinalQuestion = allQuestions[finalAssessmentIdx];
-  const { attempts, showRemediation, onAnswer: onFinalAnswer } = useConstraintEngine(currentFinalQuestion?.id || 'final');
+  const { attempts, showHint, showRemediation, onAnswer: onFinalAnswer } = useConstraintEngine(currentFinalQuestion?.id || 'final', moduleId);
 
   const handleFinalQuestionComplete = () => {
     setIsFinalCorrect(false);
@@ -112,7 +151,7 @@ export default function ModulePage() {
       )}>
         <div className="mx-auto max-w-4xl flex items-center justify-between gap-8">
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={handleExitClick}
             className={cn(
               "flex h-10 w-10 items-center justify-center rounded-full transition-colors",
               settings.darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -158,6 +197,7 @@ export default function ModulePage() {
               transition={{ duration: 0.4 }}
             >
               <ConceptBlock 
+                moduleId={moduleId!}
                 concept={currentConcept} 
                 path={path}
                 onComplete={handleConceptComplete}
@@ -190,6 +230,19 @@ export default function ModulePage() {
                   }
                 }}
               />
+
+              {showHint && !showRemediation && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-2xl bg-amber-50 p-6 border border-amber-200"
+                >
+                  <p className="font-bold text-amber-800 flex items-center gap-2">
+                    <span className="text-xl">💡</span> Hint
+                  </p>
+                  <p className="mt-2 text-amber-700">{allQuestions[finalAssessmentIdx].hint}</p>
+                </motion.div>
+              )}
 
               {showRemediation && (
                 <RemediationBlock

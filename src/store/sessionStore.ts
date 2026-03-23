@@ -27,6 +27,7 @@ interface SessionState {
   users: StudentSession[];
   setSession: (session: StudentSession | null) => void;
   updateSession: (updates: Partial<StudentSession>) => void;
+  updateMetrics: (updates: Partial<NonNullable<StudentSession["chapterMetrics"]>>) => void;
   updateSettings: (updates: Partial<UserSettings>) => void;
   addUser: (user: StudentSession) => void;
   clearSession: () => void;
@@ -67,6 +68,24 @@ export const useSessionStore = create<SessionState>()(
           session: state.session ? { ...state.session, ...updates } : null,
           users: state.users.map(u => u.studentId === state.session?.studentId ? { ...u, ...updates } : u)
         })),
+      updateMetrics: (updates) =>
+        set((state) => {
+          if (!state.session) return state;
+          const current = state.session.chapterMetrics || {
+            startTime: Date.now(),
+            correctAnswers: 0,
+            wrongAnswers: 0,
+            questionsAttempted: [],
+            retryCount: 0,
+            hintsUsed: 0,
+          };
+          const next = { ...current, ...updates };
+          const newSession = { ...state.session, chapterMetrics: next };
+          return {
+            session: newSession,
+            users: state.users.map(u => u.studentId === newSession.studentId ? newSession : u)
+          };
+        }),
       updateSettings: (updates) =>
         set((state) => {
           if (!state.session) return state;

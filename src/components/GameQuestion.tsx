@@ -27,7 +27,20 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   image,
 }) => {
   const { session, updateSettings } = useSessionStore();
-  const settings = session?.settings || { darkMode: false, enabledMechanics: [] };
+  const rawSettings = session?.settings || ({} as any);
+  const settings = {
+    ...rawSettings,
+    darkMode: rawSettings.darkMode || false,
+    enabledMechanics: rawSettings.enabledMechanics || [
+      GameFormat.RAINDROP,
+      GameFormat.DRAG_SORT,
+      GameFormat.SPIN_WHEEL,
+      GameFormat.BAR_BUILDER,
+      GameFormat.HOTSPOT,
+      GameFormat.PIE_SLICER,
+      GameFormat.TALLY_TAP
+    ],
+  };
 
   // Determine the active format and data
   const [activeFormat, setActiveFormat] = useState(format);
@@ -46,34 +59,26 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       return;
     }
 
-    const isCurrentEnabled = settings.enabledMechanics?.includes(format);
-    if (isCurrentEnabled) {
-      setActiveFormat(format);
-      setActiveData({ questionText, options, correctAnswer, image });
-    } else if (styles) {
-      // Find another enabled style
-      const fallbackFormat = Object.keys(styles).find(f => 
-        settings.enabledMechanics?.includes(f as GameFormat)
-      ) as GameFormat | undefined;
+    let nextFormat = format;
+    if (settings.enabledMechanics && settings.enabledMechanics.length > 0) {
+      // Pick a random format from enabled mechanics
+      nextFormat = settings.enabledMechanics[Math.floor(Math.random() * settings.enabledMechanics.length)];
+    }
 
-      if (fallbackFormat) {
-        setActiveFormat(fallbackFormat);
-        setActiveData({
-          questionText: styles[fallbackFormat].text || questionText,
-          options: styles[fallbackFormat].options || options,
-          correctAnswer: styles[fallbackFormat].correctAnswer || correctAnswer,
-          image: styles[fallbackFormat].image || image,
-        });
-      } else {
-        // None enabled, show the "Mechanic Disabled" screen for the original format
-        setActiveFormat(format);
-        setActiveData({ questionText, options, correctAnswer, image });
-      }
+    setActiveFormat(nextFormat);
+    
+    if (styles && styles[nextFormat]) {
+      setActiveData({
+        questionText: styles[nextFormat].text || questionText,
+        options: styles[nextFormat].options || options,
+        correctAnswer: styles[nextFormat].correctAnswer || correctAnswer,
+        image: styles[nextFormat].image || image,
+      });
     } else {
-      setActiveFormat(format);
       setActiveData({ questionText, options, correctAnswer, image });
     }
-  }, [format, styles, settings.enabledMechanics, isPreTest, questionText, options, correctAnswer, image]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [format, styles, isPreTest, questionText, correctAnswer, image]);
 
   if (!session) return null;
   const isEnabled = isPreTest || (settings.enabledMechanics?.includes(activeFormat) ?? true);
@@ -208,28 +213,44 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
           "flex items-end justify-around gap-4 h-64 border-b-2 pb-2",
           settings.darkMode ? "border-slate-700" : "border-slate-300"
         )}>
-          {activeData.options.map((opt, i) => (
-            <div key={i} className="flex flex-col items-center gap-2 w-full">
-              <div className={cn(
-                "relative w-full rounded-t-xl overflow-hidden h-48",
-                settings.darkMode ? "bg-slate-800" : "bg-slate-100"
-              )}>
-                <motion.div
-                  drag="y"
-                  dragConstraints={{ top: 0, bottom: 0 }}
-                  onDrag={(_, info) => {
-                    const newHeight = Math.max(0, Math.min(100, (selected?.[i] || 0) - info.delta.y / 2));
-                    const newSelected = [...(selected || activeData.options.map(() => 0))];
-                    newSelected[i] = newHeight;
-                    setSelected(newSelected);
-                  }}
-                  className="absolute bottom-0 w-full bg-brand cursor-ns-resize"
-                  style={{ height: `${selected?.[i] || 20}%` }}
-                />
+          {activeData.options.map((opt, i) => {
+            const isArrayTarget = Array.isArray(activeData.correctAnswer);
+            return (
+              <div key={i} className="flex flex-col items-center gap-2 w-full">
+                <div 
+                  className={cn(
+                    "relative w-full rounded-t-xl overflow-hidden h-48 transition-all",
+                    settings.darkMode ? "bg-slate-800" : "bg-slate-100",
+                    !isArrayTarget && "cursor-pointer hover:bg-slate-200",
+                    !isArrayTarget && selected === opt && (settings.darkMode ? "ring-4 ring-brand bg-slate-700" : "ring-4 ring-brand bg-slate-200")
+                  )}
+                  onClick={() => !isArrayTarget && setSelected(opt)}
+                >
+                  {isArrayTarget ? (
+                    <motion.div
+                      drag="y"
+                      dragConstraints={{ top: 0, bottom: 0 }}
+                      onDrag={(_, info) => {
+                        const newHeight = Math.max(0, Math.min(100, (selected?.[i] || 0) - info.delta.y / 2));
+                        const newSelected = [...(selected || activeData.options.map(() => 0))];
+                        newSelected[i] = newHeight;
+                        setSelected(newSelected);
+                      }}
+                      className="absolute bottom-0 w-full bg-brand cursor-ns-resize"
+                      style={{ height: `${selected?.[i] || 20}%` }}
+                    />
+                  ) : (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: `${20 + ((i % 3) * 20)}%` }} // decorative height 
+                      className={cn("absolute bottom-0 w-full transition-colors", selected === opt ? "bg-brand" : "bg-brand/40")}
+                    />
+                  )}
+                </div>
+                <span className="text-xs font-bold text-slate-500 text-center">{opt}</span>
               </div>
-              <span className="text-xs font-bold text-slate-500">{opt}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

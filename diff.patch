@@ -1,0 +1,20 @@
+diff --git a/src/types/index.ts b/src/types/index.ts
+index 0ad85ea..371a737 100644
+--- a/src/types/index.ts
++++ b/src/types/index.ts
+@@ -32,6 +32,15 @@ export interface UserSettings {
+ }
+ 
+ export interface StudentSession {
++  chapterSessionId?: string;
++  chapterMetrics?: {
++    startTime: number;
++    correctAnswers: number;
++    wrongAnswers: number;
++    questionsAttempted: string[];
++    retryCount: number;
++    hintsUsed: number;
++  };
+   studentId: string;
+   pin: string;
+   name: string;
