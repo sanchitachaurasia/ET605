@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: var(--theme-color, #3b82f6);
+  --color-brand-dark: color-mix(in srgb, var(--theme-color, #3b82f6), black 20%);
+}
+
+body {
+  @apply bg-slate-50 text-slate-700 antialiased;
+}
+
+.card-gradient {
+  @apply bg-gradient-to-br from-white to-slate-50;
+}
