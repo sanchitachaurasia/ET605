@@ -1,0 +1,114 @@
+{
+  "grade": 8,
+  "chapter_name": "Data Handling",
+  "chapter_id": "grade8_data_handling",
+  "chapter_url": "/module",
+  "expected_completion_time_seconds": 3600,
+  "number_of_subtopics": 4,
+  "subtopics": [
+    {
+      "subtopic_id": "grade8_data_handling_pictographs",
+      "subtopic_name": "Pictographs",
+      "subtopic_difficulty": 0.4
+    },
+    {
+      "subtopic_id": "grade8_data_handling_bar_graphs",
+      "subtopic_name": "Bar Graphs",
+      "subtopic_difficulty": 0.5
+    },
+    {
+      "subtopic_id": "grade8_data_handling_pie_charts",
+      "subtopic_name": "Pie Charts",
+      "subtopic_difficulty": 0.6
+    },
+    {
+      "subtopic_id": "grade8_data_handling_probability",
+      "subtopic_name": "Probability",
+      "subtopic_difficulty": 0.7
+    }
+  ],
+  "prerequisite_chapter_ids": [
+    "grade7_data_handling"
+  ],
+  "session_tracking": {
+    "captures_student_id": true,
+    "generates_unique_session_id": true,
+    "session_id_format": "s_{student_id}_{chapter_id}_{timestamp}",
+    "generates_session_per_session": true,
+    "timestamp_format": "UTC ISO 8601",
+    "session_status_support": [
+      "completed",
+      "exited_midway",
+      "in_progress"
+    ],
+    "exit_confirmation_popup": true,
+    "failed_payload_retry": true,
+    "max_retry_attempts": 3,
+    "retry_delay_exponential_backoff": true
+  },
+  "tracked_metrics": {
+    "correct_answers": {
+      "tracked": true,
+      "description": "Number of correct responses"
+    },
+    "wrong_answers": {
+      "tracked": true,
+      "description": "Number of incorrect responses"
+    },
+    "questions_attempted": {
+      "tracked": true,
+      "description": "Count of unique questions attempted"
+    },
+    "total_questions": {
+      "tracked": true,
+      "description": "Total questions available in chapter"
+    },
+    "retry_count": {
+      "tracked": true,
+      "description": "Number of times questions were retried"
+    },
+    "hints_used": {
+      "tracked": true,
+      "description": "Number of hints viewed"
+    },
+    "total_hints_embedded": {
+      "tracked": true,
+      "description": "Total hints available in chapter"
+    },
+    "time_spent_active": {
+      "tracked": true,
+      "unit": "seconds",
+      "description": "Active learning time (excludes idle)"
+    },
+    "topic_completion_ratio": {
+      "tracked": true,
+      "range": "0-1",
+      "description": "Fraction of topics completed"
+    }
+  },
+  "data_validation_rules": {
+    "correct_plus_wrong_le_attempted": "correct_answers + wrong_answers ≤ questions_attempted",
+    "attempted_le_total": "questions_attempted ≤ total_questions",
+    "hints_used_le_total_hints": "hints_used ≤ total_hints_embedded",
+    "ratios_range": "topic_completion_ratio must be between 0 and 1",
+    "missing_value_handling": "null or explicitly flagged as 0"
+  },
+  "payload_submission": {
+    "when_submitted": "On completion of the chapter/topic or confirmed exit by user",
+    "one_final_payload": true,
+    "duplicate_submission_handling": "Reuse session_id for idempotency, detect via session_id tracking",
+    "payload_format": "JSON with UTF-8 encoding",
+    "required_fields": [
+      "student_id",
+      "session_id",
+      "chapter_id",
+      "timestamp",
+      "session_status",
+      "correct_answers",
+      "wrong_answers",
+      "questions_attempted",
+      "total_questions",
+      "time_spent_seconds"
+    ]
+  }
+}

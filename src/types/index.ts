@@ -10,6 +10,31 @@ export enum GameFormat {
 
 export type LearningPath = 'A' | 'B' | 'C';
 
+// Session tracking and validation
+export type SessionStatus = 'completed' | 'exited_midway' | 'in_progress';
+
+export interface SessionMetrics {
+  startTime: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  questionsAttempted: string[]; // unique question IDs
+  retryCount: number;
+  hintsUsed: number;
+  totalHintsEmbedded: number;
+  activeTimeSpent: number; // in seconds
+  lastActivityTime: number;
+}
+
+export interface PayloadRetryQueue {
+  payloadId: string;
+  payload: any;
+  attempts: number;
+  maxAttempts: number;
+  lastAttempted: string; // ISO 8601 timestamp
+  nextRetryAt: string; // ISO 8601 timestamp
+  error?: string;
+}
+
 export interface ModuleProgress {
   moduleId: string;
   completed: boolean;
@@ -34,14 +59,9 @@ export interface UserSettings {
 
 export interface StudentSession {
   chapterSessionId?: string;
-  chapterMetrics?: {
-    startTime: number;
-    correctAnswers: number;
-    wrongAnswers: number;
-    questionsAttempted: string[];
-    retryCount: number;
-    hintsUsed: number;
-  };
+  chapterMetrics?: SessionMetrics;
+  sessionStatus?: SessionStatus;
+  exitConfirmed?: boolean;
   isStruggling?: boolean;
   studentId: string;
   pin: string;

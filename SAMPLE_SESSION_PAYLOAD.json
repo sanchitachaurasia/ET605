@@ -1,0 +1,117 @@
+{
+  "session_payload_example": {
+    "student_id": "demo-id",
+    "session_id": "s_demo-id_grade8_data_handling_1711264800000",
+    "chapter_id": "grade8_data_handling",
+    "timestamp": "2026-03-24T12:00:00.000Z",
+    "session_status": "completed",
+    "correct_answers": 18,
+    "wrong_answers": 7,
+    "questions_attempted": 25,
+    "total_questions": 30,
+    "retry_count": 3,
+    "hints_used": 5,
+    "total_hints_embedded": 30,
+    "time_spent_seconds": 2847,
+    "topic_completion_ratio": 0.87,
+    "validation_passed": true,
+    "validation_errors": []
+  },
+  "session_payload_with_errors_example": {
+    "student_id": "student-123",
+    "session_id": "s_student-123_grade8_data_handling_1711264900000",
+    "chapter_id": "grade8_data_handling",
+    "timestamp": "2026-03-24T12:15:00.000Z",
+    "session_status": "exited_midway",
+    "correct_answers": 5,
+    "wrong_answers": 8,
+    "questions_attempted": 10,
+    "total_questions": 30,
+    "retry_count": 1,
+    "hints_used": 12,
+    "total_hints_embedded": 30,
+    "time_spent_seconds": 1200,
+    "topic_completion_ratio": 0.33,
+    "validation_passed": false,
+    "validation_errors": [
+      "Constraint violated: hints_used (12) > total_hints (30) - ACTUALLY THIS IS VALID, hints_used must be <= total_hints"
+    ]
+  },
+  "exited_midway_example": {
+    "student_id": "student-456",
+    "session_id": "s_student-456_grade8_data_handling_1711264950000",
+    "chapter_id": "grade8_data_handling",
+    "timestamp": "2026-03-24T12:20:00.000Z",
+    "session_status": "exited_midway",
+    "correct_answers": 8,
+    "wrong_answers": 3,
+    "questions_attempted": 11,
+    "total_questions": 30,
+    "retry_count": 0,
+    "hints_used": 2,
+    "total_hints_embedded": 30,
+    "time_spent_seconds": 589,
+    "topic_completion_ratio": 0.37,
+    "validation_passed": true,
+    "validation_errors": []
+  },
+  "validation_rules_applied": {
+    "rule_1": "correct + wrong ≤ attempted",
+    "rule_1_example": "18 + 7 = 25 ≤ 25 ✓",
+    "rule_2": "attempted ≤ total",
+    "rule_2_example": "25 ≤ 30 ✓",
+    "rule_3": "hints_used ≤ total_hints",
+    "rule_3_example": "5 ≤ 30 ✓",
+    "rule_4": "completion_ratio between 0-1",
+    "rule_4_example": "0.87 ∈ [0, 1] ✓"
+  },
+  "metadata_for_admin_dashboard": {
+    "displayed_fields": [
+      "student_name",
+      "student_id",
+      "session_id",
+      "chapter_id",
+      "session_status",
+      "correct_answers",
+      "wrong_answers",
+      "time_spent_seconds",
+      "topic_completion_ratio",
+      "submission_result",
+      "timestamp"
+    ],
+    "storage_location": "localStorage['dataquest-admin-payloads']",
+    "format": "JSON array of session payloads"
+  },
+  "retry_queue_structure_example": {
+    "payloadId": "payload_1711264800000_abc123def",
+    "payload": {
+      "student_id": "student-789",
+      "session_id": "s_student-789_grade8_data_handling_1711264800000",
+      "chapter_id": "grade8_data_handling",
+      "timestamp": "2026-03-24T12:00:00.000Z",
+      "session_status": "completed",
+      "correct_answers": 20,
+      "wrong_answers": 5,
+      "questions_attempted": 25,
+      "total_questions": 30,
+      "retry_count": 2,
+      "hints_used": 3,
+      "total_hints_embedded": 30,
+      "time_spent_seconds": 3100,
+      "topic_completion_ratio": 0.92
+    },
+    "attempts": 1,
+    "maxAttempts": 3,
+    "lastAttempted": "2026-03-24T12:01:00.000Z",
+    "nextRetryAt": "2026-03-24T12:01:05.000Z",
+    "error": "Network timeout"
+  },
+  "duplicate_submission_handling": {
+    "scenario": "Same student session retried",
+    "session_id": "s_student-101_grade8_data_handling_1711264800000",
+    "resubmission_count": 2,
+    "logic": "Checks isDuplicateSubmission(session_id) before allowing resubmission",
+    "storage": "localStorage['dataquest-submitted-sessions'] tracks all submitted session IDs",
+    "idempotency": "Multiple submissions with same session_id are accepted and reuse same session_id"
+  }
+}
