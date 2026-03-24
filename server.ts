@@ -1,12 +1,18 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
+import authRoutes from "./src/backend/authRoutes";
+import sessionRoutes from "./src/backend/sessionRoutes";
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
 
   app.use(express.json());
+  
+  // Mount auth and session routes
+  app.use("/api/auth", authRoutes);
+  app.use("/api/session", sessionRoutes);
 
   // Chapter Metadata API
   app.get("/api/chapter/metadata", (req, res) => {
