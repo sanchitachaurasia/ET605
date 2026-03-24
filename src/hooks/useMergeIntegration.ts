@@ -42,7 +42,7 @@ export const submitMergePayload = (session: any, status: 'completed' | 'exited_m
     }
   );
 
-  const endpoint = 'https://merge.dataquest.local/api/session';
+  const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://merge.dataquest.local/api/session';
   
   if (isSync && navigator.sendBeacon) {
     navigator.sendBeacon(endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));

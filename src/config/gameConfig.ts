@@ -33,7 +33,7 @@ export const gameConfig = {
     },
   },
   admin: {
-    username: 'admin',
-    password: 'admin',
+    username: import.meta.env.VITE_ADMIN_USERNAME || 'admin',
+    password: import.meta.env.VITE_ADMIN_PASSWORD || 'admin',
   }
 };
