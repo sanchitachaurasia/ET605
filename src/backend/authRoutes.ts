@@ -74,13 +74,31 @@ router.post('/signup', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Signup error:', error);
 
-    if (error.code === 'auth/email-already-exists') {
+    const errorCode = error.code || error.errorInfo?.code;
+
+    if (errorCode === 'auth/email-already-exists') {
       return res.status(400).json({
+        success: false,
         error: 'Email already registered'
       });
     }
 
-    res.status(500).json({
+    if (errorCode === 'auth/invalid-password') {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters'
+      });
+    }
+
+    if (errorCode === 'auth/invalid-email') {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email address'
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
       error: error.message || 'Signup failed'
     });
   }
@@ -124,13 +142,24 @@ router.post('/login', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Login error:', error);
 
-    if (error.code === 'auth/user-not-found') {
+    const errorCode = error.code || error.errorInfo?.code;
+
+    if (errorCode === 'auth/user-not-found') {
       return res.status(401).json({
-        error: 'User not found'
+        success: false,
+        error: 'User not found. Please check your email or sign up.'
       });
     }
 
-    res.status(500).json({
+    if (errorCode === 'auth/invalid-password') {
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid email or password'
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
       error: error.message || 'Login failed'
     });
   }
@@ -146,6 +175,7 @@ router.post('/login-pin', async (req: Request, res: Response) => {
 
     if (!email || !pin) {
       return res.status(400).json({
+        success: false,
         error: 'Email and PIN required'
       });
     }
@@ -159,6 +189,7 @@ router.post('/login-pin', async (req: Request, res: Response) => {
 
     if (!studentData || studentData.pin !== pin) {
       return res.status(401).json({
+        success: false,
         error: 'Invalid PIN'
       });
     }
@@ -179,7 +210,17 @@ router.post('/login-pin', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('PIN login error:', error);
 
+    const errorCode = error.code || error.errorInfo?.code;
+
+    if (errorCode === 'auth/user-not-found') {
+      return res.status(401).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
     res.status(500).json({
+      success: false,
       error: error.message || 'PIN login failed'
     });
   }
