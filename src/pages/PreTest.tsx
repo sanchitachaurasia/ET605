@@ -110,10 +110,10 @@ export default function PreTest() {
     const path26 = 'B'; // Data ethics - intermediate
 
     // Initial Personalization Logic (can be overridden by preferences)
-    let style: 'gamified' | 'traditional' | 'balanced' = 'balanced';
+    let assessmentStyle: 'gamified' | 'traditional' | 'balanced' = 'balanced';
     let contentMode: 'text' | 'video' = 'video';
     let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
-    let rec = `${style.charAt(0).toUpperCase() + style.slice(1)} Learner (${finalScore}% Mastery)`;
+    let rec = `${assessmentStyle.charAt(0).toUpperCase() + assessmentStyle.slice(1)} Learner (${finalScore}% Mastery)`;
     
     // Disable mechanics with low feedback (<= 2)
     const enabledMechanics = Object.values(GameFormat).filter(f => {
@@ -122,11 +122,11 @@ export default function PreTest() {
     });
 
     if (avgFeedback >= 4) {
-      style = 'gamified';
+      assessmentStyle = 'gamified';
       contentMode = 'video';
       rec = '✨ Gamified & Interactive (High Engagement)';
     } else if (avgFeedback <= 2.5) {
-      style = 'traditional';
+      assessmentStyle = 'traditional';
       contentMode = 'text';
       rec = '📖 Traditional & Focused (Minimal Distractions)';
     }
@@ -165,7 +165,7 @@ export default function PreTest() {
         { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
       ],
       enabledMechanics,
-      style
+      style: assessmentStyle
     };
     (window as any)._tempPreTestResults = tempResults;
   };
