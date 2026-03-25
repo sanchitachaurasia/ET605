@@ -1108,7 +1108,7 @@ export const chapterData: Module[] = [
           {
             level: 2,
             title: 'Deeper Explanation: The Psychology of Deception',
-            content: 'Humans judge visuals emotionally before reading numbers. A tall bar FEELS significant, even if it's just a 2% change. Advertisers know this. They exploit it to sell products. By understanding HOW manipulation works, you develop immunity to it. You become hard to fool!'
+            content: 'Humans judge visuals emotionally before reading numbers. A tall bar FEELS significant, even if it\'s just a 2% change. Advertisers know this. They exploit it to sell products. By understanding HOW manipulation works, you develop immunity to it. You become hard to fool!'
           },
           {
             level: 3,

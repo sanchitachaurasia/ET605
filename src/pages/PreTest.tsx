@@ -91,6 +91,8 @@ export default function PreTest() {
         const path22 = getPath(m22Correct, 2);
         const path23 = m23Correct === 1 ? 'C' : 'A';
         const path24 = m24Correct === 1 ? 'C' : 'A';
+        const path25 = 'B'; // Real-world applications - intermediate
+        const path26 = 'B'; // Data ethics - intermediate
 
         // Initial Personalization Logic (can be overridden by preferences)
         let style: 'gamified' | 'traditional' | 'balanced' = 'balanced';
@@ -135,7 +137,9 @@ export default function PreTest() {
             { moduleId: '2.1', completed: false, score: 0, stars: 0, learningPath: path21, masteryMap: {}, attemptsCount: {} },
             { moduleId: '2.2', completed: false, score: 0, stars: 0, learningPath: path22, masteryMap: {}, attemptsCount: {} },
             { moduleId: '2.3', completed: false, score: 0, stars: 0, learningPath: path23, masteryMap: {}, attemptsCount: {} },
-            { moduleId: '2.4', completed: false, score: 0, stars: 0, learningPath: path24, masteryMap: {}, attemptsCount: {} }
+            { moduleId: '2.4', completed: false, score: 0, stars: 0, learningPath: path24, masteryMap: {}, attemptsCount: {} },
+            { moduleId: '2.5', completed: false, score: 0, stars: 0, learningPath: path25, masteryMap: {}, attemptsCount: {} },
+            { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
           ],
           enabledMechanics,
           style
@@ -276,10 +280,25 @@ export default function PreTest() {
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-2xl">
-        {/* Header with Logout and Skip Options */}
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-xl font-black text-slate-900">Diagnostic Mission</h1>
-          <div className="flex items-center gap-3">
+        {/* Header with Profile Details, Logout and Skip Options */}
+        <div className="mb-8">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900">Diagnostic Mission</h1>
+              <p className="mt-1 text-sm text-slate-600">Welcome, <span className="font-bold text-brand">{session?.name}</span>! Let's find your perfect learning path.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="rounded-lg bg-slate-50 px-4 py-3 text-right">
+                <p className="text-xs font-bold uppercase text-slate-500">School</p>
+                <p className="font-semibold text-slate-800">{session?.school}</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-4 py-3 text-right">
+                <p className="text-xs font-bold uppercase text-slate-500">Class</p>
+                <p className="font-semibold text-slate-800">{session?.class}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-3">
             <button
               onClick={() => setShowSkipConfirm(true)}
               className="flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 font-semibold text-amber-700 transition-all hover:bg-amber-100 active:scale-95"
@@ -289,7 +308,7 @@ export default function PreTest() {
             </button>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 font-semibold text-slate-600 transition-all hover:bg-slate-200 active:scale-95"
+              className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-95"
             >
               <LogOut size={16} />
               Logout
