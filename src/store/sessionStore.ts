@@ -46,6 +46,14 @@ export const DEMO_USER: StudentSession = {
   preTestScore: 0,
   preTestDone: false,
   learningPath: 'B',
+  learnerProfile: {
+    preferredStyle: 'visual',
+    accessibilityNeeds: 'standard',
+    contentPreference: 'mixed',
+    pacePref: 'medium',
+    feedbackStyle: 'immediate',
+    distractionLevel: 'moderate'
+  },
   settings: DEFAULT_SETTINGS,
   moduleProgress: [],
   badgesEarned: [],

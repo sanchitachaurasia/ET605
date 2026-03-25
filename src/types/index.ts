@@ -9,6 +9,18 @@ export enum GameFormat {
 }
 
 export type LearningPath = 'A' | 'B' | 'C';
+export type LearningStyle = 'visual' | 'auditory' | 'readWrite' | 'kinesthetic' | 'mixed';
+export type AccessibilityLevel = 'standard' | 'highContrast' | 'dyslexia' | 'colorblind';
+
+// Learner profile for personalization
+export interface LearnerProfile {
+  preferredStyle: LearningStyle;
+  accessibilityNeeds: AccessibilityLevel;
+  contentPreference: 'images' | 'videos' | 'text' | 'interactive' | 'mixed';
+  pacePref: 'slow' | 'medium' | 'fast';
+  feedbackStyle: 'immediate' | 'summary' | 'delayed';
+  distractionLevel: 'sensitive' | 'moderate' | 'resilient';
+}
 
 // Session tracking and validation
 export type SessionStatus = 'completed' | 'exited_midway' | 'in_progress';
@@ -73,6 +85,7 @@ export interface StudentSession {
   preTestFeedback?: number;
   recommendedStyle?: string;
   learningPath: LearningPath;
+  learnerProfile?: LearnerProfile;
   settings: UserSettings;
   moduleProgress: ModuleProgress[];
   badgesEarned: string[];

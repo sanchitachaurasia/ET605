@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogOut, ChevronRight } from 'lucide-react';
 import { GameQuestion } from '../components/GameQuestion';
+import { LearningStyleQuiz } from '../components/LearningStyleQuiz';
 import { preTestQuestions } from '../data/chapterData';
 import { useSessionStore } from '../store/sessionStore';
 import { trackEvent } from '../analytics/tracker';
 import { logout } from '../lib/firebaseAuth';
-import { GameFormat } from '../types';
+import { GameFormat, LearningStyle } from '../types';
 import { cn } from '../lib/utils';
+import { useResponsive } from '../components/ResponsiveLayout';
 
 export default function PreTest() {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -16,6 +18,8 @@ export default function PreTest() {
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
   const [showFeedback, setShowFeedback] = useState(false);
   const [formatFeedbacks, setFormatFeedbacks] = useState<Record<string, number>>({});
+  const [showLearningStyleQuiz, setShowLearningStyleQuiz] = useState(false);
+  const [learningStyle, setLearningStyle] = useState<LearningStyle>('mixed');
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
   const [recommendation, setRecommendation] = useState('');
@@ -24,6 +28,7 @@ export default function PreTest() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { isMobile } = useResponsive();
   
   const { session, updateSession, clearSession } = useSessionStore();
   const navigate = useNavigate();
@@ -69,84 +74,100 @@ export default function PreTest() {
       if (currentIdx < preTestQuestions.length - 1) {
         setCurrentIdx(i => i + 1);
       } else {
-        // Calculate Final Results
-        const finalScore = Math.round((score / preTestQuestions.length) * 100);
-        const feedbacks = Object.values(newFormatFeedbacks) as number[];
-        const avgFeedback = feedbacks.length > 0 ? feedbacks.reduce((a, b) => a + b, 0) / feedbacks.length : 3;
-        
-        // Per-Module Path Logic
-        const getPath = (correctCount: number, total: number): 'A' | 'B' | 'C' => {
-          const ratio = correctCount / total;
-          if (ratio < 0.4) return 'A';
-          if (ratio < 0.75) return 'B';
-          return 'C';
-        };
-
-        const m21Correct = [0, 1, 3, 4].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-        const m22Correct = [0, 6].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-        const m23Correct = [5].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-        const m24Correct = [2].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-
-        const path21 = getPath(m21Correct, 4);
-        const path22 = getPath(m22Correct, 2);
-        const path23 = m23Correct === 1 ? 'C' : 'A';
-        const path24 = m24Correct === 1 ? 'C' : 'A';
-        const path25 = 'B'; // Real-world applications - intermediate
-        const path26 = 'B'; // Data ethics - intermediate
-
-        // Initial Personalization Logic (can be overridden by preferences)
-        let style: 'gamified' | 'traditional' | 'balanced' = 'balanced';
-        let contentMode: 'text' | 'video' = 'video';
-        let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
-        let rec = 'Balanced & Adaptive (Mixed Style)';
-        
-        // Disable mechanics with low feedback (<= 2)
-        const enabledMechanics = Object.values(GameFormat).filter(f => {
-          const fbk = newFormatFeedbacks[f];
-          return fbk === undefined || fbk > 2;
-        });
-
-        if (avgFeedback >= 4) {
-          style = 'gamified';
-          contentMode = 'video';
-          rec = 'Gamified & Interactive (High Engagement)';
-        } else if (avgFeedback <= 2.5) {
-          style = 'traditional';
-          contentMode = 'text';
-          rec = 'Traditional & Focused (Minimal Distractions)';
-        }
-
-        if (finalScore >= 80) {
-          assessmentTime = 'endOfModule';
-        } else {
-          assessmentTime = 'inModule';
-        }
-        
-        setRecommendation(rec);
-        setPrefContentMode(contentMode);
-        setPrefAssessmentTime(assessmentTime);
-        setShowRecommendation(true);
-        
-        // We don't updateSession yet, we wait for preferences
-        const tempResults = {
-          preTestScore: finalScore, 
-          learningPath: path21, 
-          preTestFeedback: avgFeedback,
-          recommendedStyle: rec,
-          moduleProgress: [
-            { moduleId: '2.1', completed: false, score: 0, stars: 0, learningPath: path21, masteryMap: {}, attemptsCount: {} },
-            { moduleId: '2.2', completed: false, score: 0, stars: 0, learningPath: path22, masteryMap: {}, attemptsCount: {} },
-            { moduleId: '2.3', completed: false, score: 0, stars: 0, learningPath: path23, masteryMap: {}, attemptsCount: {} },
-            { moduleId: '2.4', completed: false, score: 0, stars: 0, learningPath: path24, masteryMap: {}, attemptsCount: {} },
-            { moduleId: '2.5', completed: false, score: 0, stars: 0, learningPath: path25, masteryMap: {}, attemptsCount: {} },
-            { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
-          ],
-          enabledMechanics,
-          style
-        };
-        (window as any)._tempPreTestResults = tempResults;
+        // Show learning style quiz before recommendations
+        setShowLearningStyleQuiz(true);
       }
     }, 800);
+  };
+
+  const handleLearningStyleComplete = (style: LearningStyle, profile: any) => {
+    setLearningStyle(style);
+    setShowLearningStyleQuiz(false);
+    
+    // Calculate Final Results after learning style is determined
+    const finalScore = Math.round((score / preTestQuestions.length) * 100);
+    const feedbacks = Object.values(formatFeedbacks) as number[];
+    const avgFeedback = feedbacks.length > 0 ? feedbacks.reduce((a, b) => a + b, 0) / feedbacks.length : 3;
+    
+    // Per-Module Path Logic
+    const getPath = (correctCount: number, total: number): 'A' | 'B' | 'C' => {
+      const ratio = correctCount / total;
+      if (ratio < 0.4) return 'A';
+      if (ratio < 0.75) return 'B';
+      return 'C';
+    };
+
+    const m21Correct = [0, 1, 3, 4].filter(i => correctAnswers[preTestQuestions[i].id]).length;
+    const m22Correct = [0, 6].filter(i => correctAnswers[preTestQuestions[i].id]).length;
+    const m23Correct = [5].filter(i => correctAnswers[preTestQuestions[i].id]).length;
+    const m24Correct = [2].filter(i => correctAnswers[preTestQuestions[i].id]).length;
+
+    const path21 = getPath(m21Correct, 4);
+    const path22 = getPath(m22Correct, 2);
+    const path23 = m23Correct === 1 ? 'C' : 'A';
+    const path24 = m24Correct === 1 ? 'C' : 'A';
+    const path25 = 'B'; // Real-world applications - intermediate
+    const path26 = 'B'; // Data ethics - intermediate
+
+    // Initial Personalization Logic (can be overridden by preferences)
+    let style: 'gamified' | 'traditional' | 'balanced' = 'balanced';
+    let contentMode: 'text' | 'video' = 'video';
+    let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
+    let rec = `${style.charAt(0).toUpperCase() + style.slice(1)} Learner (${finalScore}% Mastery)`;
+    
+    // Disable mechanics with low feedback (<= 2)
+    const enabledMechanics = Object.values(GameFormat).filter(f => {
+      const fbk = formatFeedbacks[f];
+      return fbk === undefined || fbk > 2;
+    });
+
+    if (avgFeedback >= 4) {
+      style = 'gamified';
+      contentMode = 'video';
+      rec = '✨ Gamified & Interactive (High Engagement)';
+    } else if (avgFeedback <= 2.5) {
+      style = 'traditional';
+      contentMode = 'text';
+      rec = '📖 Traditional & Focused (Minimal Distractions)';
+    }
+
+    if (finalScore >= 80) {
+      assessmentTime = 'endOfModule';
+    } else {
+      assessmentTime = 'inModule';
+    }
+    
+    setRecommendation(rec);
+    setPrefContentMode(contentMode);
+    setPrefAssessmentTime(assessmentTime);
+    setShowRecommendation(true);
+    
+    // Store results for finish handler
+    const tempResults = {
+      preTestScore: finalScore, 
+      learningPath: path21, 
+      preTestFeedback: avgFeedback,
+      recommendedStyle: rec,
+      learnerProfile: {
+        preferredStyle: style,
+        secondaryStyle: profile.secondaryStyle,
+        contentPreference: 'mixed',
+        feedbackStyle: 'immediate',
+        pacePref: 'medium',
+        distractionLevel: 'moderate'
+      },
+      moduleProgress: [
+        { moduleId: '2.1', completed: false, score: 0, stars: 0, learningPath: path21, masteryMap: {}, attemptsCount: {} },
+        { moduleId: '2.2', completed: false, score: 0, stars: 0, learningPath: path22, masteryMap: {}, attemptsCount: {} },
+        { moduleId: '2.3', completed: false, score: 0, stars: 0, learningPath: path23, masteryMap: {}, attemptsCount: {} },
+        { moduleId: '2.4', completed: false, score: 0, stars: 0, learningPath: path24, masteryMap: {}, attemptsCount: {} },
+        { moduleId: '2.5', completed: false, score: 0, stars: 0, learningPath: path25, masteryMap: {}, attemptsCount: {} },
+        { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
+      ],
+      enabledMechanics,
+      style
+    };
+    (window as any)._tempPreTestResults = tempResults;
   };
 
   const handleFinish = () => {
@@ -159,6 +180,7 @@ export default function PreTest() {
       preTestDone: true,
       preTestFeedback: results.preTestFeedback,
       recommendedStyle: results.recommendedStyle,
+      learnerProfile: results.learnerProfile,
       moduleProgress: results.moduleProgress,
       settings: {
         ...(session?.settings || {}),
@@ -190,13 +212,41 @@ export default function PreTest() {
     }, 1000);
   };
 
+  if (showLearningStyleQuiz) {
+    return (
+      <div className={cn(
+        "min-h-screen flex items-center justify-center transition-colors",
+        "p-4 sm:p-6 lg:p-8",
+        "bg-gradient-to-br from-slate-50 to-blue-50"
+      )}>
+        <div className={cn(
+          "w-full max-w-2xl"
+        )}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <LearningStyleQuiz onComplete={handleLearningStyleComplete} />
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   if (showRecommendation) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
+      <div className={cn(
+        "flex min-h-screen items-center justify-center transition-colors",
+        "p-4 sm:p-6 lg:p-8",
+        "bg-gradient-to-br from-slate-50 to-blue-50"
+      )}>
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl"
+          className={cn(
+            "w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-xl",
+            "border border-slate-100"
+          )}
         >
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
             <span className="text-3xl">🚀</span>
@@ -206,32 +256,35 @@ export default function PreTest() {
           
           <div className="mb-8 rounded-2xl bg-brand/10 p-4 border-2 border-brand/20 text-center">
             <p className="text-xs font-bold text-brand uppercase tracking-wider mb-1">Your Learning Profile</p>
-            <p className="text-lg font-black text-brand-dark">{recommendation}</p>
+            <p className="text-base sm:text-lg font-black text-brand-dark">{recommendation}</p>
           </div>
 
-          <div className="space-y-6">
+          <div className={cn(
+            "space-y-6",
+            isMobile && "space-y-4"
+          )}>
             <section>
               <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Learning Mode</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setPrefContentMode('video')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
                     prefContentMode === 'video' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
-                  <span className="text-xl">📺</span>
-                  <span className="font-bold text-sm">Video</span>
+                  <span className="text-lg sm:text-xl">📺</span>
+                  <span className="font-bold text-xs sm:text-sm">Video</span>
                 </button>
                 <button
                   onClick={() => setPrefContentMode('text')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
                     prefContentMode === 'text' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
-                  <span className="text-xl">📖</span>
-                  <span className="font-bold text-sm">Text</span>
+                  <span className="text-lg sm:text-xl">📖</span>
+                  <span className="font-bold text-xs sm:text-sm">Text</span>
                 </button>
               </div>
             </section>
@@ -242,32 +295,32 @@ export default function PreTest() {
                 <button
                   onClick={() => setPrefAssessmentTime('inModule')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
                     prefAssessmentTime === 'inModule' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
-                  <span className="text-xl">⏱️</span>
-                  <span className="font-bold text-xs">After each part</span>
+                  <span className="text-lg sm:text-xl">⏱️</span>
+                  <span className="font-bold text-xs text-center">After each part</span>
                 </button>
                 <button
                   onClick={() => setPrefAssessmentTime('endOfModule')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all",
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
                     prefAssessmentTime === 'endOfModule' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
-                  <span className="text-xl">🏁</span>
-                  <span className="font-bold text-xs">At the end</span>
+                  <span className="text-lg sm:text-xl">🏁</span>
+                  <span className="font-bold text-xs text-center">At the end</span>
                 </button>
               </div>
             </section>
 
             <button
               onClick={handleFinish}
-              className="w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2"
+              className="w-full rounded-2xl bg-brand py-3 sm:py-4 text-base sm:text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95"
             >
               Start My Journey
-              <span className="text-xl">→</span>
+              <span>→</span>
             </button>
           </div>
         </motion.div>
@@ -278,37 +331,61 @@ export default function PreTest() {
   const q = preTestQuestions[currentIdx];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-2xl">
+    <div className={cn(
+      "min-h-screen transition-colors",
+      "p-4 sm:p-6 lg:p-8",
+      "bg-gradient-to-br from-slate-50 to-blue-50"
+    )}>
+      <div className={cn(
+        "mx-auto w-full",
+        isMobile ? "max-w-full" : "max-w-2xl"
+      )}>
         {/* Header with Profile Details, Logout and Skip Options */}
-        <div className="mb-8">
-          <div className="mb-5 flex items-center justify-between">
+        <div className="mb-6 sm:mb-8">
+          <div className={cn(
+            "mb-4 sm:mb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4",
+            isMobile && "flex-col items-start"
+          )}>
             <div>
-              <h1 className="text-2xl font-black text-slate-900">Diagnostic Mission</h1>
-              <p className="mt-1 text-sm text-slate-600">Welcome, <span className="font-bold text-brand">{session?.name}</span>! Let's find your perfect learning path.</p>
+              <h1 className={cn(
+                "font-black text-slate-900",
+                isMobile ? "text-xl" : "text-2xl"
+              )}>Diagnostic Mission</h1>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600">Welcome, <span className="font-bold text-brand">{session?.name}</span>! Let's find your perfect learning path.</p>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-slate-50 px-4 py-3 text-right">
-                <p className="text-xs font-bold uppercase text-slate-500">School</p>
-                <p className="font-semibold text-slate-800">{session?.school}</p>
+            {!isMobile && (
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="rounded-lg bg-white px-3 sm:px-4 py-2 sm:py-3 text-right shadow-sm border border-slate-200">
+                  <p className="text-xs font-bold uppercase text-slate-500">School</p>
+                  <p className="font-semibold text-xs sm:text-sm text-slate-800">{session?.school}</p>
+                </div>
+                <div className="rounded-lg bg-white px-3 sm:px-4 py-2 sm:py-3 text-right shadow-sm border border-slate-200">
+                  <p className="text-xs font-bold uppercase text-slate-500">Class</p>
+                  <p className="font-semibold text-xs sm:text-sm text-slate-800">{session?.class}</p>
+                </div>
               </div>
-              <div className="rounded-lg bg-slate-50 px-4 py-3 text-right">
-                <p className="text-xs font-bold uppercase text-slate-500">Class</p>
-                <p className="font-semibold text-slate-800">{session?.class}</p>
-              </div>
-            </div>
+            )}
           </div>
-          <div className="flex items-center justify-end gap-3">
+          <div className={cn(
+            "flex gap-2 sm:gap-3",
+            "flex-col-reverse sm:flex-row sm:items-center sm:justify-end"
+          )}>
             <button
               onClick={() => setShowSkipConfirm(true)}
-              className="flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 font-semibold text-amber-700 transition-all hover:bg-amber-100 active:scale-95"
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-lg bg-amber-50 px-3 sm:px-4 py-2 font-semibold text-amber-700 transition-all hover:bg-amber-100 active:scale-95",
+                isMobile && "w-full"
+              )}
             >
               Skip for now
               <ChevronRight size={16} />
             </button>
             <button
               onClick={() => setShowLogoutConfirm(true)}
-              className="flex items-center gap-2 rounded-lg bg-red-50 px-4 py-2 font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-95"
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-lg bg-red-50 px-3 sm:px-4 py-2 font-semibold text-red-600 transition-all hover:bg-red-100 active:scale-95",
+                isMobile && "w-full"
+              )}
             >
               <LogOut size={16} />
               Logout
@@ -316,29 +393,35 @@ export default function PreTest() {
           </div>
         </div>
 
-        <div className="mb-8 flex items-center justify-between">
-          <span className="font-bold text-slate-500">Question {currentIdx + 1} of {preTestQuestions.length}</span>
+        <div className="mb-6 sm:mb-8 flex items-center justify-between">
+          <span className="text-xs sm:text-sm font-bold text-slate-500">Question {currentIdx + 1} of {preTestQuestions.length}</span>
+          <span className="text-xs sm:text-sm font-bold text-brand">{Math.round(((currentIdx + 1) / preTestQuestions.length) * 100)}%</span>
         </div>
 
-        <div className="mb-8 h-2 w-full rounded-full bg-slate-200">
+        <div className="mb-6 sm:mb-8 h-2 w-full rounded-full bg-slate-200 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${((currentIdx + 1) / preTestQuestions.length) * 100}%` }}
-            className="h-full rounded-full bg-brand"
+            className="h-full rounded-full bg-gradient-to-r from-brand to-purple-500"
           />
         </div>
 
-        <GameQuestion
-          key={q.id}
-          questionText={q.text}
-          options={q.options}
-          correctAnswer={q.correctAnswer}
-          format={q.format}
-          styles={q.styles}
-          image={q.image}
-          isPreTest={true}
-          onAnswer={handleAnswer}
-        />
+        <div className={cn(
+          "rounded-3xl bg-white shadow-lg border border-slate-100",
+          "p-4 sm:p-6 lg:p-8"
+        )}>
+          <GameQuestion
+            key={q.id}
+            questionText={q.text}
+            options={q.options}
+            correctAnswer={q.correctAnswer}
+            format={q.format}
+            styles={q.styles}
+            image={q.image}
+            isPreTest={true}
+            onAnswer={handleAnswer}
+          />
+        </div>
 
         <AnimatePresence>
           {showFeedback && (
