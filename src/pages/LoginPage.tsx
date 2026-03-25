@@ -2,69 +2,59 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { useSessionStore, DEFAULT_SETTINGS, DEMO_USER } from '../store/sessionStore';
-import { v4 as uuidv4 } from 'uuid';
+import { useSessionStore, DEFAULT_SETTINGS } from '../store/sessionStore';
+import { signUp, login } from '../lib/firebaseAuth';
 import { StudentSession } from '../types';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
-  const { setSession, addUser, users } = useSessionStore();
+  const { setSession } = useSessionStore();
   const navigate = useNavigate();
 
-  const onSubmit = (data: any) => {
-    if (isLogin) {
-      const user = users.find(u => 
-        u.name.trim().toLowerCase() === data.name.trim().toLowerCase() && 
-        u.pin === data.pin
-      );
-      if (user) {
-        setSession(user);
-        navigate(user.preTestDone ? '/dashboard' : '/pre-test');
+  const onSubmit = async (data: any) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      if (isLogin) {
+        // Login with Firebase
+        const result = await login(data.email, data.password);
+        if (result.success && result.student) {
+          // Convert to StudentSession format
+          const session: StudentSession = {
+            ...result.student,
+            settings: result.student.settings || DEFAULT_SETTINGS,
+            moduleProgress: result.student.moduleProgress || [],
+            badgesEarned: result.student.badgesEarned || [],
+          };
+          setSession(session);
+          navigate(result.student.preTestDone ? '/dashboard' : '/pre-test');
+        } else {
+          setError(result.error || 'Login failed');
+        }
       } else {
-        alert('User not found. Please check your name and PIN or Sign Up.');
+        // Sign up with Firebase
+        const result = await signUp(data.email, data.password, data.name, data.school, data.class);
+        if (result.success && result.student) {
+          const session: StudentSession = {
+            ...result.student,
+            settings: result.student.settings || DEFAULT_SETTINGS,
+            moduleProgress: result.student.moduleProgress || [],
+            badgesEarned: result.student.badgesEarned || [],
+          };
+          setSession(session);
+          navigate('/pre-test');
+        } else {
+          setError(result.error || 'Signup failed');
+        }
       }
-    } else {
-      const newSession: StudentSession = {
-        studentId: uuidv4(),
-        pin: data.pin,
-        name: data.name,
-        school: data.school,
-        class: data.class,
-        preTestScore: 0,
-        preTestDone: false,
-        learningPath: 'B',
-        settings: DEFAULT_SETTINGS,
-        moduleProgress: [],
-        badgesEarned: [],
-        postTestScore: null,
-        journeyComplete: false,
-        lives: 5,
-        xp: 0,
-        coins: 0,
-        streak: 0,
-      };
-      addUser(newSession);
-      setSession(newSession);
-      navigate('/pre-test');
-    }
-  };
-
-  const handleDemoLogin = () => {
-    let demoUser = users.find(u => u.studentId === 'demo-id');
-    if (!demoUser) {
-      // If demo user is missing from persisted state, add it back
-      addUser(DEMO_USER);
-      demoUser = DEMO_USER;
-    }
-    setSession(demoUser);
-    navigate('/pre-test');
-  };
-
-  const handleResetAll = () => {
-    if (confirm('Are you sure you want to reset all data? This will clear all accounts and progress.')) {
-      useSessionStore.getState().resetAll();
-      alert('All data has been reset.');
+    } catch (err: any) {
+      setError(err.message || 'An error occurred');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -99,6 +89,12 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {error && (
+            <div className="rounded-xl bg-red-50 p-3 text-sm font-bold text-red-600">
+              {error}
+            </div>
+          )}
+
           <AnimatePresence mode="wait">
             <motion.div
               key={isLogin ? 'login' : 'signup'}
@@ -108,20 +104,33 @@ export default function LoginPage() {
               className="space-y-4"
             >
               <div>
-                <label className="block text-sm font-bold text-slate-700">Student Name</label>
+                <label className="block text-sm font-bold text-slate-700">Email</label>
                 <input
-                  {...register('name', { required: true })}
+                  type="email"
+                  {...register('email', { required: true })}
                   className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
-                  placeholder="Enter your name"
+                  placeholder="your@email.com"
                 />
+                {errors.email && <span className="text-xs text-red-600">Email is required</span>}
               </div>
+
+              {!isLogin && (
+                <div>
+                  <label className="block text-sm font-bold text-slate-700">Student Name</label>
+                  <input
+                    {...register('name', { required: !isLogin })}
+                    className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                    placeholder="Enter your name"
+                  />
+                </div>
+              )}
 
               {!isLogin && (
                 <>
                   <div>
                     <label className="block text-sm font-bold text-slate-700">School Name</label>
                     <input
-                      {...register('school', { required: true })}
+                      {...register('school', { required: !isLogin })}
                       className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
                       placeholder="Enter your school"
                     />
@@ -129,7 +138,7 @@ export default function LoginPage() {
                   <div>
                     <label className="block text-sm font-bold text-slate-700">Class & Section</label>
                     <input
-                      {...register('class', { required: true })}
+                      {...register('class', { required: !isLogin })}
                       className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
                       placeholder="e.g. 8-A"
                     />
@@ -138,49 +147,34 @@ export default function LoginPage() {
               )}
 
               <div>
-                <label className="block text-sm font-bold text-slate-700">{isLogin ? 'PIN' : 'Create PIN'}</label>
+                <label className="block text-sm font-bold text-slate-700">Password</label>
                 <input
                   type="password"
-                  {...register('pin', { required: true, minLength: 4 })}
+                  {...register('password', { required: true, minLength: 6 })}
                   className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
-                  placeholder="4-6 digits"
+                  placeholder="Enter password (min 6 characters)"
                 />
+                {errors.password && <span className="text-xs text-red-600">Password must be at least 6 characters</span>}
               </div>
             </motion.div>
           </AnimatePresence>
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            disabled={loading}
+            className="mt-6 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
           >
-            {isLogin ? 'Login to Mission' : 'Start Your Mission'}
+            {loading ? 'Processing...' : (isLogin ? 'Login to Mission' : 'Start Your Mission')}
           </button>
         </form>
 
-        <div className="mt-6 space-y-3 text-center">
+        <div className="mt-6 text-center">
           <button
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={() => { setIsLogin(!isLogin); reset(); setError(''); }}
             className="text-sm font-bold text-brand hover:underline"
           >
             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
           </button>
-          
-          {isLogin && (
-            <div className="space-y-3">
-              <button
-                onClick={handleDemoLogin}
-                className="block w-full text-xs font-medium text-slate-400 hover:text-brand"
-              >
-                Try Demo Account (Demo Student / 1234)
-              </button>
-              <button
-                onClick={handleResetAll}
-                className="block w-full text-[10px] font-medium text-slate-300 hover:text-red-400"
-              >
-                Reset All App Data
-              </button>
-            </div>
-          )}
         </div>
       </motion.div>
     </div>
