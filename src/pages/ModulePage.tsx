@@ -58,7 +58,7 @@ export default function ModulePage() {
     }
   };
 
-  const handleModuleComplete = () => {
+  const handleModuleComplete = async () => {
     // Module Complete
     confetti({
       particleCount: 200,
@@ -83,7 +83,18 @@ export default function ModulePage() {
       });
     }
     
-    updateSession({ moduleProgress: newProgress, xp: (session?.xp || 0) + 500 });
+    updateSession({ moduleProgress: newProgress, xp: (session?.xp || 0) + 500, sessionStatus: 'completed' });
+    
+    // Submit completion payload to Merge Team
+    if (session) {
+      try {
+        await submitMergePayload(session, 'completed', { isSync: false });
+        console.log('✓ Completion payload submitted to Merge Team');
+      } catch (error) {
+        console.error('Error submitting completion payload:', error);
+        // Continue to dashboard even if submission fails (retry will be handled)
+      }
+    }
     
     setTimeout(() => {
       navigate('/dashboard');

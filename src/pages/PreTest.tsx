@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { LogOut, ChevronRight } from 'lucide-react';
 import { GameQuestion } from '../components/GameQuestion';
 import { preTestQuestions } from '../data/chapterData';
 import { useSessionStore } from '../store/sessionStore';
 import { trackEvent } from '../analytics/tracker';
+import { logout } from '../lib/firebaseAuth';
 import { GameFormat } from '../types';
 import { cn } from '../lib/utils';
 
@@ -19,8 +21,11 @@ export default function PreTest() {
   const [recommendation, setRecommendation] = useState('');
   const [prefContentMode, setPrefContentMode] = useState<'text' | 'video'>('video');
   const [prefAssessmentTime, setPrefAssessmentTime] = useState<'inModule' | 'endOfModule'>('inModule');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
-  const { session, updateSession } = useSessionStore();
+  const { session, updateSession, clearSession } = useSessionStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,6 +33,30 @@ export default function PreTest() {
       navigate('/dashboard');
     }
   }, [session, navigate]);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    const result = await logout();
+    if (result.success) {
+      clearSession();
+      navigate('/login');
+    }
+    setIsLoggingOut(false);
+  };
+
+  const handleSkipAndGoDashboard = () => {
+    // Skip pretest but mark that user can still take it later
+    // Modules will be locked until pretest is done
+    trackEvent({
+      type: 'pretest_skipped',
+      timestamp: new Date().toISOString(),
+      data: {
+        questionsAttempted: currentIdx,
+        phase: 'pre-test'
+      }
+    });
+    navigate('/dashboard');
+  };
 
   const handleFeedback = (val: number) => {
     const currentFormat = preTestQuestions[currentIdx].format;
@@ -247,8 +276,28 @@ export default function PreTest() {
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-2xl">
+        {/* Header with Logout and Skip Options */}
         <div className="mb-8 flex items-center justify-between">
           <h1 className="text-xl font-black text-slate-900">Diagnostic Mission</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSkipConfirm(true)}
+              className="flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-2 font-semibold text-amber-700 transition-all hover:bg-amber-100 active:scale-95"
+            >
+              Skip for now
+              <ChevronRight size={16} />
+            </button>
+            <button
+              onClick={() => setShowLogoutConfirm(true)}
+              className="flex items-center gap-2 rounded-lg bg-slate-100 px-4 py-2 font-semibold text-slate-600 transition-all hover:bg-slate-200 active:scale-95"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-8 flex items-center justify-between">
           <span className="font-bold text-slate-500">Question {currentIdx + 1} of {preTestQuestions.length}</span>
         </div>
 
@@ -309,6 +358,87 @@ export default function PreTest() {
                 >
                   Skip Feedback
                 </button>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Skip Confirmation Modal */}
+        <AnimatePresence>
+          {showSkipConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-2xl">
+                  ⚠️
+                </div>
+                <h3 className="mb-3 text-xl font-black text-slate-900">Skip Diagnostic?</h3>
+                <p className="mb-6 text-sm text-slate-600">
+                  You can go to the dashboard now, but you'll need to complete this diagnostic mission before you can access the learning modules. You can always come back and do it later!
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowSkipConfirm(false)}
+                    className="flex-1 rounded-lg border-2 border-slate-200 py-3 font-bold text-slate-700 transition-all hover:border-slate-300 active:scale-95"
+                  >
+                    Keep Going
+                  </button>
+                  <button
+                    onClick={handleSkipAndGoDashboard}
+                    className="flex-1 rounded-lg bg-amber-500 py-3 font-bold text-white transition-all hover:bg-amber-600 active:scale-95"
+                  >
+                    Skip for Now
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Logout Confirmation Modal */}
+        <AnimatePresence>
+          {showLogoutConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="w-full max-w-sm rounded-3xl bg-white p-8 shadow-2xl"
+              >
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-2xl">
+                  👋
+                </div>
+                <h3 className="mb-3 text-xl font-black text-slate-900">Logout?</h3>
+                <p className="mb-6 text-sm text-slate-600">
+                  Are you sure you want to logout? You'll be signed out of your account and sent back to the login page.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="flex-1 rounded-lg border-2 border-slate-200 py-3 font-bold text-slate-700 transition-all hover:border-slate-300 active:scale-95"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="flex-1 rounded-lg bg-red-500 py-3 font-bold text-white transition-all hover:bg-red-600 active:scale-95 disabled:opacity-50"
+                  >
+                    {isLoggingOut ? 'Logging out...' : 'Logout'}
+                  </button>
+                </div>
               </motion.div>
             </motion.div>
           )}

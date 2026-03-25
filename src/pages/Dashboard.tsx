@@ -20,6 +20,11 @@ export default function Dashboard() {
   const modules = chapterData;
 
   const isModuleLocked = (index: number) => {
+    // If pretest not done, all modules are locked
+    if (!session.preTestDone) {
+      return true;
+    }
+    // Otherwise, lock if previous module not completed
     if (index === 0) return false;
     const prevModule = modules[index - 1];
     return !session.moduleProgress.some(p => p.moduleId === prevModule.id && p.completed);
@@ -78,6 +83,28 @@ export default function Dashboard() {
       </header>
 
       <main className="mx-auto mt-8 max-w-4xl px-6">
+        {/* Pre-test Required Banner */}
+        {!session.preTestDone && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 rounded-2xl bg-gradient-to-r from-blue-500/10 to-brand/10 border-2 border-blue-500/30 p-6"
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h3 className="mb-1 text-lg font-black text-slate-900">🎯 Diagnostic Mission Awaits!</h3>
+                <p className="text-sm text-slate-600">Complete the diagnostic mission to unlock all learning modules and get personalized recommendations.</p>
+              </div>
+              <button
+                onClick={() => navigate('/pre-test')}
+                className="flex-shrink-0 rounded-lg bg-brand px-6 py-2 font-bold text-white transition-all hover:opacity-90 active:scale-95 whitespace-nowrap"
+              >
+                Take Now →
+              </button>
+            </div>
+          </motion.div>
+        )}
+        
         <div className="mb-6 flex items-center justify-between">
           <h2 className={cn(
             "text-xl font-bold",

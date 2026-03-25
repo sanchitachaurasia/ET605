@@ -100,17 +100,35 @@ export interface Question {
   styles?: Record<string, any>;
 }
 
+export interface RemediationLevel {
+  level: 1 | 2 | 3;
+  title: string; // e.g., "Gentle Review", "Deeper Explanation", "Interactive Practice"
+  content: string;
+  examples?: string[];
+}
+
 export interface Concept {
   id: string;
   title: string;
   textContent: string;
   videoUrl: string;
+  storyNarrative?: {
+    title: string;
+    scenario: string;
+    realWorldConnection: string;
+    studentChallenge: string;
+  };
   workedExamples: {
     steps: string[];
     explanation: string;
   }[];
+  remediationLevels?: RemediationLevel[];
   questions: Question[];
   path?: LearningPath;
+  difficulty?: 'easy' | 'medium' | 'hard';
+  estimatedTimeSeconds?: number;
+  prerequisiteReview?: string; // ID of prerequisite concept
+  realWorldApplications?: string[]; // Real-world examples
 }
 
 export interface Module {

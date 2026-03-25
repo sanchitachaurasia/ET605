@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMergeTeamIntegration } from '../hooks/useMergeTeamIntegration';
 
 export interface ExitConfirmationProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationProps> = ({
   onResume
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
+  const { submitToMergeTeam, status: mergeStatus } = useMergeTeamIntegration();
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
@@ -53,14 +56,23 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationProps> = ({
 
         <div className="space-y-3">
           <button
-            onClick={() => {
+            onClick={async () => {
               setIsConfirming(true);
+              setIsSaving(true);
+              try {
+                // Submit session to Merge Team before exiting
+                await submitToMergeTeam('exited_midway');
+              } catch (error) {
+                console.error('Error submitting session to Merge Team:', error);
+              } finally {
+                setIsSaving(false);
+              }
               setTimeout(() => onConfirmExit(), 500);
             }}
-            disabled={isConfirming}
+            disabled={isConfirming || isSaving}
             className="w-full px-4 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition disabled:bg-red-300 disabled:cursor-not-allowed"
           >
-            {isConfirming ? 'Exiting...' : 'Yes, Exit Chapter'}
+            {isSaving ? 'Saving...' : isConfirming ? 'Exiting...' : 'Yes, Exit Chapter'}
           </button>
 
           <button

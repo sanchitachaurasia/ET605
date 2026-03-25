@@ -1,0 +1,58 @@
+{
+  "session_completed_example": {
+    "student_id": "student-8347-dataquest",
+    "session_id": "s_student-8347-dataquest_grade8_data_handling_probability_1711448400000",
+    "chapter_id": "grade8_data_handling_probability",
+    "timestamp": "2026-03-26T10:00:00.000Z",
+    "session_status": "completed",
+    "correct_answers": 22,
+    "wrong_answers": 8,
+    "questions_attempted": 30,
+    "total_questions": 50,
+    "retry_count": 3,
+    "hints_used": 5,
+    "total_hints_embedded": 100,
+    "time_spent_seconds": 5847,
+    "topic_completion_ratio": 0.85,
+    "_notes": "Student completed all topics and passed final assessment. Submitted via chapter completion handler."
+  },
+  "session_exited_midway_example": {
+    "student_id": "student-9125-dataquest",
+    "session_id": "s_student-9125-dataquest_grade8_data_handling_probability_1711439600000",
+    "chapter_id": "grade8_data_handling_probability",
+    "timestamp": "2026-03-26T08:15:00.000Z",
+    "session_status": "exited_midway",
+    "correct_answers": 8,
+    "wrong_answers": 5,
+    "questions_attempted": 13,
+    "total_questions": 50,
+    "retry_count": 1,
+    "hints_used": 2,
+    "total_hints_embedded": 100,
+    "time_spent_seconds": 1289,
+    "topic_completion_ratio": 0.35,
+    "_notes": "Student exited after completing 2 of 6 subtopics. Submitted via exit confirmation modal."
+  },
+  "validation_rules_applied": {
+    "rule_1": "correct_answers + wrong_answers <= questions_attempted",
+    "rule_1_example_1": "22 + 8 = 30 <= 30 ✓",
+    "rule_1_example_2": "8 + 5 = 13 <= 13 ✓",
+    "rule_2": "questions_attempted <= total_questions",
+    "rule_2_example_1": "30 <= 50 ✓",
+    "rule_2_example_2": "13 <= 50 ✓",
+    "rule_3": "hints_used <= total_hints_embedded",
+    "rule_3_example_1": "5 <= 100 ✓",
+    "rule_3_example_2": "2 <= 100 ✓",
+    "rule_4": "topic_completion_ratio between 0-1",
+    "rule_4_example_1": "0.85 ∈ [0, 1] ✓",
+    "rule_4_example_2": "0.35 ∈ [0, 1] ✓"
+  },
+  "technical_notes": {
+    "timestamp_format": "UTC ISO 8601 (2026-03-26T10:00:00.000Z)",
+    "session_id_format": "s_{student_id}_{chapter_id}_{timestamp_ms}",
+    "student_id_source": "From Firebase Auth UID or platform session",
+    "session_status_values": ["completed", "exited_midway"],
+    "retry_mechanism": "Same session_id allowed for failed sends; prevents duplicates",
+    "network_failure_handling": "Store locally in localStorage merge_retry_queue; retry with exponential backoff (1s → 2s → 4s)"
+  }
+}
