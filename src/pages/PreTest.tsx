@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogOut, ChevronRight } from 'lucide-react';
@@ -8,11 +8,13 @@ import { preTestQuestions } from '../data/chapterData';
 import { useSessionStore } from '../store/sessionStore';
 import { trackEvent } from '../analytics/tracker';
 import { logout } from '../lib/firebaseAuth';
-import { GameFormat, LearningStyle } from '../types';
+import { GameFormat, LearningStyle, PreTestProgress } from '../types';
 import { cn } from '../lib/utils';
 import { useResponsive } from '../components/ResponsiveLayout';
 
 export default function PreTest() {
+  const isRestoringRef = useRef(false);
+  const lastPersistedRef = useRef('');
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
@@ -36,6 +38,79 @@ export default function PreTest() {
       navigate('/dashboard');
     }
   }, [session, navigate]);
+
+  useEffect(() => {
+    if (!session || session.preTestDone || !session.preTestProgress) {
+      return;
+    }
+
+    const saved = session.preTestProgress;
+    isRestoringRef.current = true;
+
+    setCurrentIdx(saved.currentIdx ?? 0);
+    setScore(saved.score ?? 0);
+    setCorrectAnswers(saved.correctAnswers ?? {});
+    setPreferredQuestionIds(saved.preferredQuestionIds ?? []);
+    setLearningStyle(saved.learningStyle ?? 'mixed');
+    setRecommendation(saved.recommendation ?? '');
+    setPrefContentMode(saved.prefContentMode ?? 'video');
+    setPrefAssessmentTime(saved.prefAssessmentTime ?? 'inModule');
+    setShowLearningStyleQuiz(saved.stage === 'learningStyle');
+    setShowRecommendation(saved.stage === 'personalization');
+
+    if (saved.pendingResults) {
+      (window as any)._tempPreTestResults = saved.pendingResults;
+    }
+
+    window.setTimeout(() => {
+      isRestoringRef.current = false;
+    }, 0);
+  }, [session]);
+
+  useEffect(() => {
+    if (!session || session.preTestDone || isRestoringRef.current) {
+      return;
+    }
+
+    const stage: PreTestProgress['stage'] = showRecommendation
+      ? 'personalization'
+      : showLearningStyleQuiz
+        ? 'learningStyle'
+        : 'questions';
+
+    const payload: PreTestProgress = {
+      stage,
+      currentIdx,
+      score,
+      correctAnswers,
+      preferredQuestionIds,
+      learningStyle,
+      recommendation,
+      prefContentMode,
+      prefAssessmentTime,
+      pendingResults: (window as any)._tempPreTestResults || null,
+    };
+
+    const serialized = JSON.stringify(payload);
+    if (serialized === lastPersistedRef.current) {
+      return;
+    }
+    lastPersistedRef.current = serialized;
+    updateSession({ preTestProgress: payload });
+  }, [
+    session,
+    currentIdx,
+    score,
+    correctAnswers,
+    preferredQuestionIds,
+    learningStyle,
+    recommendation,
+    prefContentMode,
+    prefAssessmentTime,
+    showLearningStyleQuiz,
+    showRecommendation,
+    updateSession,
+  ]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -268,6 +343,7 @@ export default function PreTest() {
       preTestScore: results.preTestScore, 
       learningPath: results.learningPath, 
       preTestDone: true,
+      preTestProgress: null,
       preTestFeedback: results.preTestFeedback,
       recommendedStyle: results.recommendedStyle,
       learnerProfile: results.learnerProfile,
