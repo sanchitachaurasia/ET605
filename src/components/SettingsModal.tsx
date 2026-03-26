@@ -331,15 +331,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 {activeCategory === 'accessibility' && (
                   <section>
                     <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.accessibility.headingClass}`}>Accessibility</h3>
-                    <div className="grid grid-cols-1 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {[
-                        { id: 'highContrast', label: 'High Contrast', icon: <Eye size={18} /> },
-                        { id: 'dyslexia', label: 'Dyslexia Mode', icon: <Type size={18} /> },
-                        { id: 'colorblind', label: 'Color-Blind Mode', icon: <Palette size={18} /> },
-                        { id: 'reducedMotion', label: 'Reduced Motion', icon: <span className="text-base">🐢</span> },
-                        { id: 'boldText', label: 'Bold Text', icon: <span className="text-base font-black">B</span> },
-                        { id: 'underlineLinks', label: 'Underline Links', icon: <span className="text-base">🔗</span> },
-                        { id: 'sepia', label: 'Sepia Reading', icon: <span className="text-base">📜</span> },
+                        { id: 'highContrast', label: 'High Contrast', icon: <Eye size={18} />, description: 'Increases contrast for better readability.' },
+                        { id: 'dyslexia', label: 'Dyslexia Mode', icon: <Type size={18} />, description: 'Uses easier-to-read spacing and typography.' },
+                        { id: 'colorblind', label: 'Color-Blind Mode', icon: <Palette size={18} />, description: 'Adjusts colors for better distinguishability.' },
+                        { id: 'reducedMotion', label: 'Reduced Motion', icon: <span className="text-base">🐢</span>, description: 'Minimizes animations and motion effects.' },
+                        { id: 'boldText', label: 'Bold Text', icon: <span className="text-base font-black">B</span>, description: 'Makes text weight stronger for clarity.' },
+                        { id: 'underlineLinks', label: 'Underline Links', icon: <span className="text-base">🔗</span>, description: 'Always underlines links to spot them quickly.' },
+                        { id: 'sepia', label: 'Sepia Reading', icon: <span className="text-base">📜</span>, description: 'Applies a warm tone for eye comfort.' },
                       ].map((mode, idx) => {
                         const selected = accessibilityModes.includes(mode.id);
                         return (
@@ -351,13 +351,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                               }
                             }}
                             onClick={() => toggleAccessibilityMode(mode.id as AccessibilityMode)}
-                            className={`flex items-center justify-between rounded-2xl border-2 p-3 transition-all ${selected ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-600'}`}
+                            className={`flex min-h-[104px] items-center justify-center rounded-2xl border-2 p-3 text-center transition-all ${selected ? 'border-brand bg-brand/10 text-brand shadow-sm' : 'border-slate-100 bg-white text-slate-600 hover:border-slate-200'}`}
                           >
-                            <span className="flex items-center gap-2 text-sm font-bold">
-                              {mode.icon}
-                              {mode.label}
+                            <span className="flex flex-col items-center justify-center gap-2">
+                              <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${selected ? 'bg-brand/20' : 'bg-slate-100'}`}>
+                                {mode.icon}
+                              </span>
+                              <span className="text-sm font-bold">{mode.label}</span>
+                              <span className="text-xs font-medium text-slate-500">{mode.description}</span>
                             </span>
-                            <span className={`h-5 w-5 rounded-full border-2 ${selected ? 'border-brand bg-brand' : 'border-slate-300'}`} />
                           </button>
                         );
                       })}
