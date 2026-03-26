@@ -13,7 +13,6 @@ export default function Dashboard() {
   const { session } = useSessionStore();
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsSection, setSettingsSection] = useState<'profile' | 'accessibility' | 'experience' | 'assessment' | 'mechanics' | 'account'>('profile');
   const { isMobile, isTablet } = useResponsive();
 
   if (!session) return null;
@@ -80,10 +79,7 @@ export default function Dashboard() {
                 <span className="font-bold text-sm">{session.xp} XP</span>
               </div>
               <button
-                onClick={() => {
-                  setSettingsSection('experience');
-                  setIsSettingsOpen(true);
-                }}
+                onClick={() => setIsSettingsOpen(true)}
                 className={cn(
                   "flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95",
                   settings.darkMode ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"
@@ -103,24 +99,6 @@ export default function Dashboard() {
 
       <main className="mx-auto mt-6 sm:mt-8 px-4 sm:px-6 lg:px-8">
         <ResponsiveContainer>
-          <div className="mb-8">
-            <button
-              onClick={() => {
-                setSettingsSection('profile');
-                setIsSettingsOpen(true);
-              }}
-              className={cn(
-                "w-full rounded-2xl border-2 p-4 text-left transition-all",
-                settings.darkMode
-                  ? "border-slate-700 bg-slate-900 hover:border-brand"
-                  : "border-slate-200 bg-slate-100 hover:border-brand"
-              )}
-            >
-              <p className={cn("text-base font-black", settings.darkMode ? "text-slate-100" : "text-slate-900")}>Personalization & Mission Settings</p>
-              <p className={cn("mt-1 text-xs", settings.darkMode ? "text-slate-300" : "text-slate-600")}>Single unified settings hub with left menu navigation and auto section sync while scrolling.</p>
-            </button>
-          </div>
-
           {/* Pre-test Required Banner */}
           {!session.preTestDone && (
             <motion.div
@@ -254,7 +232,7 @@ export default function Dashboard() {
         </ResponsiveContainer>
       </main>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} initialSection={settingsSection} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );
 }
