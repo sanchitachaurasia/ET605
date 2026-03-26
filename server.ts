@@ -7,10 +7,19 @@ import sessionRoutes from "./src/backend/sessionRoutes";
 async function startServer() {
   const app = express();
   const PORT = process.env.PORT || 3000;
-  const allowedOrigin = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
+  const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
   app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", allowedOrigin);
+    const requestOrigin = req.headers.origin;
+
+    if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+      res.header("Access-Control-Allow-Origin", requestOrigin || allowedOrigins[0]);
+    }
+
+    res.header("Vary", "Origin");
     res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
     res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
 
