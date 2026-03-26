@@ -331,12 +331,12 @@ export default function PreTest() {
     return (
       <div className={cn(
         "min-h-screen transition-colors",
-        "p-4 sm:p-6 lg:p-8",
+        "px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3 lg:px-6 lg:pb-6 lg:pt-4",
         "bg-gradient-to-br from-slate-50 to-blue-50"
       )}>
         <div className="mx-auto w-full max-w-none">
-          <div className="mb-6 sm:mb-8">
-            <h1 className={cn("font-black text-slate-900", isMobile ? "text-xl" : "text-2xl")}>Diagnostic Mission</h1>
+          <div className="mb-3 sm:mb-4">
+            <h1 className={cn("font-black text-slate-900", isMobile ? "text-lg" : "text-xl")}>Diagnostic Mission</h1>
             <p className="mt-1 text-xs sm:text-sm text-slate-600">Mission complete. Finalize your personalized setup below.</p>
           </div>
 
@@ -344,28 +344,28 @@ export default function PreTest() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             className={cn(
-              "w-full rounded-3xl bg-white p-5 sm:p-6 lg:p-8 shadow-xl",
+              "w-full rounded-3xl bg-white p-4 sm:p-5 lg:p-6 shadow-xl",
               "border border-slate-100"
             )}
           >
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
-            <span className="text-3xl">🚀</span>
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600">
+            <span className="text-2xl">🚀</span>
           </div>
-          <h2 className="mb-2 text-2xl text-center font-black text-slate-900">Mission Complete!</h2>
-          <p className="mb-6 text-center text-slate-500">We've personalized your journey based on your results.</p>
+          <h2 className="mb-1 text-xl text-center font-black text-slate-900">Mission Complete!</h2>
+          <p className="mb-3 text-center text-sm text-slate-500">We've personalized your journey based on your results.</p>
           
-          <div className="mb-8 rounded-2xl bg-brand/10 p-4 border-2 border-brand/20 text-center">
+          <div className="mb-4 rounded-2xl bg-brand/10 p-3 border-2 border-brand/20 text-center">
             <p className="text-xs font-bold text-brand uppercase tracking-wider mb-1">Your Learning Profile</p>
             <p className="text-base sm:text-lg font-black text-brand-dark">{recommendation}</p>
           </div>
 
           <div className={cn(
-            "space-y-6",
-            isMobile && "space-y-4"
+            "space-y-4",
+            isMobile && "space-y-3"
           )}>
             <section>
-              <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
-              <p className="mb-3 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>
+              <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
+              <p className="mb-2 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
                 {preTestPreferenceOptions.map((option) => {
                   const selected = preferredQuestionIds.includes(option.id);
@@ -374,34 +374,34 @@ export default function PreTest() {
                       key={option.id}
                       onClick={() => togglePreferredQuestion(option.id)}
                       className={cn(
-                        "w-full rounded-xl border p-3 text-left transition-all",
+                        "w-full rounded-xl border p-2 text-left transition-all",
                         selected
                           ? "border-brand bg-brand/10"
                           : "border-slate-200 bg-white hover:border-slate-300"
                       )}
                     >
-                      <div className="mb-2 flex items-center justify-between">
+                      <div className="mb-1 flex items-center justify-between">
                         <div>{getFormatPreview(option.format)}</div>
                         <div className={cn('h-4 w-4 rounded-full border-2', selected ? 'border-brand bg-brand' : 'border-slate-300')} />
                       </div>
                       <p className="text-[11px] font-black uppercase tracking-wide text-brand">{getFormatLabel(option.format)}</p>
-                      <p className="mt-1 text-xs font-semibold text-slate-700">{option.label}</p>
+                      <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-slate-700">{option.label}</p>
                     </button>
                   );
                 })}
               </div>
-              <p className="mt-2 text-xs font-semibold text-slate-500">
+              <p className="mt-1 text-xs font-semibold text-slate-500">
                 Selected: {preferredQuestionIds.length} (minimum 1 required)
               </p>
             </section>
 
             <section>
-              <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Learning Mode</h3>
+              <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-slate-400">Learning Mode</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setPrefContentMode('video')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
+                    "flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 sm:p-3 transition-all",
                     prefContentMode === 'video' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
@@ -411,7 +411,7 @@ export default function PreTest() {
                 <button
                   onClick={() => setPrefContentMode('text')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
+                    "flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 sm:p-3 transition-all",
                     prefContentMode === 'text' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
@@ -422,12 +422,12 @@ export default function PreTest() {
             </section>
 
             <section>
-              <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Assessment Timing</h3>
+              <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-slate-400">Assessment Timing</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setPrefAssessmentTime('inModule')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
+                    "flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 sm:p-3 transition-all",
                     prefAssessmentTime === 'inModule' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
@@ -437,7 +437,7 @@ export default function PreTest() {
                 <button
                   onClick={() => setPrefAssessmentTime('endOfModule')}
                   className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl border-2 p-3 sm:p-4 transition-all",
+                    "flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 sm:p-3 transition-all",
                     prefAssessmentTime === 'endOfModule' ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-400"
                   )}
                 >
@@ -450,7 +450,7 @@ export default function PreTest() {
             <button
               onClick={handleFinish}
               disabled={preferredQuestionIds.length === 0}
-              className="w-full rounded-2xl bg-brand py-3 sm:py-4 text-base sm:text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-2xl bg-brand py-2.5 sm:py-3 text-sm sm:text-base font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Start My Journey
               <span>→</span>
