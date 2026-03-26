@@ -15,8 +15,10 @@ async function startServer() {
 
   app.use((req, res, next) => {
     const requestOrigin = req.headers.origin;
+    const isLocalDevOrigin = !!requestOrigin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin);
+    const isAllowedOrigin = !!requestOrigin && (allowedOrigins.includes(requestOrigin) || isLocalDevOrigin);
 
-    if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+    if (!requestOrigin || isAllowedOrigin) {
       res.header("Access-Control-Allow-Origin", requestOrigin || allowedOrigins[0]);
     }
 

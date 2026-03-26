@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSessionStore } from './store/sessionStore';
+import { saveStudentProgressToCloud } from './lib/firebaseAuth';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import PreTest from './pages/PreTest';
@@ -23,6 +24,37 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [session?.settings?.themeColor, session?.settings?.darkMode]);
+
+  useEffect(() => {
+    if (!session?.studentId || session.studentId === 'demo-id') {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      saveStudentProgressToCloud({
+        preTestScore: session.preTestScore,
+        preTestDone: session.preTestDone,
+        learningPath: session.learningPath,
+        preTestFeedback: session.preTestFeedback,
+        recommendedStyle: session.recommendedStyle,
+        learnerProfile: session.learnerProfile,
+        moduleProgress: session.moduleProgress,
+        badgesEarned: session.badgesEarned,
+        postTestScore: session.postTestScore,
+        journeyComplete: session.journeyComplete,
+        settings: session.settings,
+        lives: session.lives,
+        xp: session.xp,
+        coins: session.coins,
+        streak: session.streak,
+        sessionStatus: session.sessionStatus,
+        exitConfirmed: session.exitConfirmed,
+        isStruggling: session.isStruggling,
+      });
+    }, 800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [session]);
 
   return (
     <Routes>

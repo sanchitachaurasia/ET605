@@ -125,6 +125,9 @@ export interface Concept {
   title: string;
   textContent: string;
   videoUrl: string;
+  videoStartSeconds?: number;
+  videoEndSeconds?: number;
+  videoCheckpointPrompt?: string;
   storyNarrative?: {
     title: string;
     scenario: string;

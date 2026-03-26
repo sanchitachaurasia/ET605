@@ -127,6 +127,57 @@ router.post('/payload', verifyToken, async (req: Request, res: Response) => {
 });
 
 /**
+ * POST /api/session/profile
+ * Persist student progress/profile fields for login resume
+ */
+router.post('/profile', verifyToken, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const progress = req.body?.progress || {};
+
+    const allowedKeys = [
+      'preTestScore',
+      'preTestDone',
+      'learningPath',
+      'preTestFeedback',
+      'recommendedStyle',
+      'learnerProfile',
+      'moduleProgress',
+      'badgesEarned',
+      'postTestScore',
+      'journeyComplete',
+      'lives',
+      'xp',
+      'coins',
+      'streak',
+      'settings',
+      'sessionStatus',
+      'exitConfirmed',
+      'isStruggling'
+    ];
+
+    const sanitized: Record<string, any> = {};
+    for (const key of allowedKeys) {
+      if (progress[key] !== undefined) {
+        sanitized[key] = progress[key];
+      }
+    }
+
+    sanitized.updatedAt = admin.firestore.Timestamp.now();
+
+    await db.collection('students').doc(user.uid).set(sanitized, { merge: true });
+
+    res.json({
+      success: true,
+      message: 'Student progress synced'
+    });
+  } catch (error: any) {
+    console.error('Profile sync error:', error);
+    res.status(500).json({ error: error.message || 'Failed to sync profile' });
+  }
+});
+
+/**
  * GET /api/session/all
  * Fetch all sessions for a student
  */

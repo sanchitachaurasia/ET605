@@ -284,3 +284,35 @@ export const saveSessionPayload = async (payload: any) => {
     return { success: false, error: error.message };
   }
 };
+
+/**
+ * Persist student profile/progress fields for login resume
+ */
+export const saveStudentProgressToCloud = async (progress: any) => {
+  try {
+    const user = firebaseAuth.currentUser;
+    if (!user) throw new Error('Not authenticated');
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`${API_BASE}/api/session/profile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`
+      },
+      body: JSON.stringify({ progress })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to sync progress');
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Progress sync error:', error);
+    return { success: false, error: error.message };
+  }
+};

@@ -14,6 +14,8 @@ import { inline_2_3_q1, inline_2_3_q2, inline_2_3_q3, inline_2_3_q4 } from './qu
 import { inline_2_4_q1, inline_2_4_q2, inline_2_4_q3, inline_2_4_q4, inline_2_4_q5 } from './questions/inline_2_4';
 import { post_q1, post_q2, post_q3, post_q4, post_q5, post_q6, post_q7, post_q8, post_q9, post_q10 } from './questions/post_test';
 
+const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
+
 export const chapterData: Module[] = [
   {
     id: '2.1',
@@ -31,7 +33,10 @@ export const chapterData: Module[] = [
           realWorldConnection: 'Netflix uses data organisation to find your favourite shows. Google uses it to understand search trends. Amazon uses it to find popular products. Your school cafeteria uses it to plan menus. Without organisation, data is just noise!',
           studentChallenge: 'You are now like Raj. By the end of this module, you\'ll be able to take messy data and turn it into clear graphs that answer questions instantly.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder1',
+        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+        videoStartSeconds: 0,
+        videoEndSeconds: 40,
+        videoCheckpointPrompt: 'Pause and answer: What problem did raw data create for Raj?',
         workedExamples: [
           {
             explanation: 'Example 1: The Problem That Graphs Solve',
@@ -115,7 +120,10 @@ export const chapterData: Module[] = [
           realWorldConnection: 'Tally marks are used in modern surveys, opinion polls, game scoring, and even by emergency responders counting victims. It\'s a 2000-year-old method that\'s still faster than any modern app for quick, manual counting.',
           studentChallenge: 'In the next activity, you\'ll use tally marks to count real survey responses and build your first frequency table.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder2',
+        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+        videoStartSeconds: 40,
+        videoEndSeconds: 80,
+        videoCheckpointPrompt: 'Pause and answer: Why do tally marks use groups of 5?',
         workedExamples: [
           {
             explanation: 'Example 1: Basic Tally Marks Method',
@@ -209,7 +217,10 @@ export const chapterData: Module[] = [
           realWorldConnection: 'Pictographs are used in: newspaper infographics, children\'s books, marketing presentations, environmental reports (tree icons for forest coverage, rainfall drops for precipitation), and health reports (heart icons for cardiovascular data).',
           studentChallenge: 'You\'ll create your own pictograph using symbols to represent class data. The goal: make your graph so clear that someone can understand it without numbers!'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder3a',
+        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+        videoStartSeconds: 80,
+        videoEndSeconds: 120,
+        videoCheckpointPrompt: 'Pause and answer: What does the KEY in a pictograph represent?',
         workedExamples: [
           {
             explanation: 'Example 1: Creating a Pictograph Scale',
@@ -304,7 +315,10 @@ export const chapterData: Module[] = [
           realWorldConnection: 'Bar graphs are ubiquitous: news articles comparing countries\' GDP, election results (candidate A vs B), sports statistics (team performance), company sales by quarter, and school enrollment by year. Any comparison of values across categories uses bar graphs.',
           studentChallenge: 'You\'ll build your own bar graph using the BAR BUILDER game format, and analyze double bar graphs to make comparisons.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder3b',
+        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+        videoStartSeconds: 120,
+        videoEndSeconds: 140,
+        videoCheckpointPrompt: 'Pause and answer: When should you use a double bar graph?',
         workedExamples: [
           {
             explanation: 'Example 1: Drawing a Simple Bar Graph',
@@ -400,7 +414,10 @@ export const chapterData: Module[] = [
           realWorldConnection: 'Politicians, advertisers, and companies use misleading graphs daily. Toothpaste companies show graphs with truncated axes to make their product look better. Media outlets exaggerate trends with poor scaling. Learning to read graphs critically is a life skill — it makes you immune to manipulation!',
           studentChallenge: 'You\'ll analyze real-world graphs (some truthful, some misleading) and identify which are intentionally deceptive and why.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder3c',
+        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+        videoStartSeconds: 340,
+        videoEndSeconds: 425,
+        videoCheckpointPrompt: 'Pause and answer: Which graph clue can reveal misleading data?',
         workedExamples: [
           {
             explanation: 'Example 1: The Truncated Axis Trick',
@@ -500,7 +517,10 @@ export const chapterData: Module[] = [
           realWorldConnection: 'Companies hire data scientists to do exactly this. Researchers use these methods to answer questions about society. Government uses data collection for census (population surveys). Your work here mirrors real-world data analysis!',
           studentChallenge: 'You will become a data detective. Choose a question about your class, collect data, organize it, visualize it, and present findings.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder3d',
+        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+        videoStartSeconds: 425,
+        videoEndSeconds: 520,
+        videoCheckpointPrompt: 'Pause and answer: What are the 3 steps in your class data project?',
         workedExamples: [
           {
             explanation: 'Example Project 1: Favorite Sport Survey',
