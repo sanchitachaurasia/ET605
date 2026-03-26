@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSessionStore, DEFAULT_SETTINGS } from '../store/sessionStore';
-import { signUp, login, sendResetPasswordEmail } from '../lib/firebaseAuth';
+import { signUp, login, sendResetPasswordEmail, checkUserIdAvailability } from '../lib/firebaseAuth';
 import { StudentSession } from '../types';
 
 type AuthContext = 'login' | 'signup' | 'reset';
@@ -17,6 +17,21 @@ type FriendlyError = {
 
 const mapAuthError = (rawError: string, context: AuthContext): FriendlyError => {
   const raw = String(rawError || '').toLowerCase();
+
+  if (raw.includes('user id already taken')) {
+    return {
+      title: 'User ID Unavailable',
+      message: 'This User ID is already in use.',
+      hint: 'Choose a different User ID.'
+    };
+  }
+
+  if (raw.includes('user id must be')) {
+    return {
+      title: 'Invalid User ID',
+      message: 'Use 4-24 characters: letters, numbers, dot, underscore, hyphen.'
+    };
+  }
 
   if (raw.includes('already in use') || raw.includes('already registered') || raw.includes('already exists')) {
     return {
@@ -91,6 +106,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<FriendlyError | null>(null);
   const [info, setInfo] = useState('');
+  const [userIdHint, setUserIdHint] = useState('Choose a unique User ID. You will use it to log in.');
+  const [userIdAvailable, setUserIdAvailable] = useState<boolean | null>(null);
+  const [checkingUserId, setCheckingUserId] = useState(false);
   const { register, handleSubmit, formState: { errors }, reset, getValues } = useForm();
   const { setSession } = useSessionStore();
   const navigate = useNavigate();
@@ -103,7 +121,7 @@ export default function LoginPage() {
     try {
       if (isLogin) {
         // Login with Firebase
-        const result = await login(data.email, data.password);
+        const result = await login(data.identifier, data.password);
         if (result.success && result.student) {
           // Convert to StudentSession format
           const session: StudentSession = {
@@ -119,7 +137,8 @@ export default function LoginPage() {
         }
       } else {
         // Sign up with Firebase
-        const result = await signUp(data.email, data.password, data.name, data.school, data.class);
+        const normalizedUserId = String(data.userId || '').trim().toLowerCase();
+        const result = await signUp(data.email, data.password, data.name, normalizedUserId, data.school, data.class);
         if (result.success && result.student) {
           const session: StudentSession = {
             ...result.student,
@@ -140,12 +159,34 @@ export default function LoginPage() {
     }
   };
 
+  const validateUserIdAvailability = async () => {
+    const raw = String(getValues('userId') || '').trim().toLowerCase();
+    if (!raw) {
+      setUserIdAvailable(null);
+      setUserIdHint('Choose a unique User ID. You will use it to log in.');
+      return;
+    }
+
+    setCheckingUserId(true);
+    const result = await checkUserIdAvailability(raw);
+    setCheckingUserId(false);
+
+    if (!result.success) {
+      setUserIdAvailable(null);
+      setUserIdHint(result.message || 'Could not validate User ID right now.');
+      return;
+    }
+
+    setUserIdAvailable(result.available);
+    setUserIdHint(result.message || (result.available ? 'User ID is available' : 'User ID already taken'));
+  };
+
   const handleForgotPassword = async () => {
-    const email = String(getValues('email') || '').trim();
+    const identifier = String(getValues('identifier') || '').trim();
     setError(null);
     setInfo('');
 
-    if (!email) {
+    if (!identifier) {
       setError({
         title: 'Email Required',
         message: 'Enter your email first, then click Forgot password.'
@@ -153,7 +194,16 @@ export default function LoginPage() {
       return;
     }
 
-    const result = await sendResetPasswordEmail(email);
+    if (!identifier.includes('@')) {
+      setError({
+        title: 'Email Required',
+        message: 'Password reset works with email only.',
+        hint: 'Enter your registered email address, not User ID.'
+      });
+      return;
+    }
+
+    const result = await sendResetPasswordEmail(identifier);
     if (result.success) {
       setInfo('Password reset link sent. Please check your inbox.');
     } else {
@@ -166,7 +216,7 @@ export default function LoginPage() {
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md rounded-3xl bg-white p-8 shadow-xl"
+        className={`w-full rounded-3xl bg-white p-8 shadow-xl ${isLogin ? 'max-w-md' : 'max-w-2xl'}`}
       >
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-brand text-white shadow-lg">
@@ -184,7 +234,14 @@ export default function LoginPage() {
             Login
           </button>
           <button
-            onClick={() => { setIsLogin(false); reset(); setError(null); setInfo(''); }}
+            onClick={() => {
+              setIsLogin(false);
+              reset();
+              setError(null);
+              setInfo('');
+              setUserIdAvailable(null);
+              setUserIdHint('Choose a unique User ID. You will use it to log in.');
+            }}
             className={`flex-1 rounded-xl py-2 text-sm font-bold transition-all ${!isLogin ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
           >
             Sign Up
@@ -201,7 +258,7 @@ export default function LoginPage() {
               {error.action === 'go-login' && !isLogin && (
                 <button
                   type="button"
-                  onClick={() => { setIsLogin(true); setError(null); setInfo(''); reset({ email: getValues('email') }); }}
+                  onClick={() => { setIsLogin(true); setError(null); setInfo(''); reset({ identifier: getValues('email') }); }}
                   className="mt-3 rounded-lg bg-red-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-800"
                 >
                   Go to Login
@@ -211,7 +268,7 @@ export default function LoginPage() {
               {error.action === 'go-signup' && isLogin && (
                 <button
                   type="button"
-                  onClick={() => { setIsLogin(false); setError(null); setInfo(''); reset({ email: getValues('email') }); }}
+                  onClick={() => { setIsLogin(false); setError(null); setInfo(''); reset({ email: getValues('identifier') }); }}
                   className="mt-3 rounded-lg bg-red-700 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-800"
                 >
                   Go to Sign Up
@@ -233,33 +290,68 @@ export default function LoginPage() {
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
-              className="space-y-4"
+              className={isLogin ? 'space-y-4' : 'grid grid-cols-1 gap-4 sm:grid-cols-2'}
             >
               <div>
-                <label className="block text-sm font-bold text-slate-700">Email</label>
-                <input
-                  type="email"
-                  {...register('email', { required: true })}
-                  className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
-                  placeholder="your@email.com"
-                />
-                {errors.email && <span className="text-xs text-red-600">Email is required</span>}
+                <label className="block text-sm font-bold text-slate-700">{isLogin ? 'Email or User ID' : 'Email'}</label>
+                {isLogin ? (
+                  <>
+                    <input
+                      type="text"
+                      {...register('identifier', { required: true })}
+                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                      placeholder="your@email.com or your_userid"
+                    />
+                    {errors.identifier && <span className="text-xs text-red-600">Email or User ID is required</span>}
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="email"
+                      {...register('email', { required: true })}
+                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                      placeholder="your@email.com"
+                    />
+                    {errors.email && <span className="text-xs text-red-600">Email is required</span>}
+                  </>
+                )}
               </div>
 
               {!isLogin && (
                 <div>
-                  <label className="block text-sm font-bold text-slate-700">Student Name</label>
+                  <label className="block text-sm font-bold text-slate-700">Unique User ID</label>
                   <input
-                    {...register('name', { required: !isLogin })}
+                    {...register('userId', {
+                      required: !isLogin,
+                      minLength: 4,
+                      maxLength: 24,
+                      pattern: /^[a-zA-Z0-9_.-]+$/,
+                    })}
+                    onBlur={validateUserIdAvailability}
                     className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
-                    placeholder="Enter your name"
+                    placeholder="e.g. riya_8a"
                   />
-                  {errors.name && <span className="text-xs text-red-600">Student name is required</span>}
+                  {errors.userId && <span className="text-xs text-red-600">Valid User ID is required (4-24 chars, letters/numbers/._-)</span>}
+                  {!errors.userId && (
+                    <span className={`text-xs ${userIdAvailable === false ? 'text-red-600' : userIdAvailable === true ? 'text-emerald-700' : 'text-slate-500'}`}>
+                      {checkingUserId ? 'Checking User ID...' : userIdHint}
+                    </span>
+                  )}
                 </div>
               )}
 
               {!isLogin && (
                 <>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700">Student Name</label>
+                    <input
+                      {...register('name', { required: !isLogin })}
+                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                      placeholder="Enter your name"
+                    />
+                    {errors.name && <span className="text-xs text-red-600">Student name is required</span>}
+                  </div>
+
                   <div>
                     <label className="block text-sm font-bold text-slate-700">School Name</label>
                     <input
@@ -269,6 +361,7 @@ export default function LoginPage() {
                     />
                     {errors.school && <span className="text-xs text-red-600">School name is required</span>}
                   </div>
+
                   <div>
                     <label className="block text-sm font-bold text-slate-700">Class & Section</label>
                     <input
@@ -281,7 +374,7 @@ export default function LoginPage() {
                 </>
               )}
 
-              <div>
+              <div className={isLogin ? '' : 'sm:col-span-2'}>
                 <label className="block text-sm font-bold text-slate-700">Password</label>
                 <input
                   type="password"
@@ -293,7 +386,7 @@ export default function LoginPage() {
               </div>
 
               {isLogin && (
-                <div className="text-right">
+                <div className={isLogin ? 'text-right' : 'sm:col-span-2 text-right'}>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
@@ -308,7 +401,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (!isLogin && (checkingUserId || userIdAvailable === false))}
             className="mt-6 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? 'Processing...' : (isLogin ? 'Login to Mission' : 'Start Your Mission')}

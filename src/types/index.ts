@@ -69,7 +69,10 @@ export type TrackingEventType =
   | 'remedial_opened'
   | 'remedial_expanded'
   | 'settings_changed'
+  | 'profile_updated'
+  | 'password_reset_requested'
   | 'navigation'
+  | 'user_id_changed'
   | 'clickstream'
   | 'focus_change'
   | 'heartbeat';
@@ -200,6 +203,7 @@ export interface StudentSession {
   exitConfirmed?: boolean;
   isStruggling?: boolean;
   studentId: string;
+  userId?: string;
   pin: string;
   name: string;
   school: string;

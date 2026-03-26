@@ -29,6 +29,26 @@ const getAdminHeaders = () => {
   return { 'x-admin-key': ADMIN_API_KEY };
 };
 
+const parseApiResponseSafely = async (response: Response) => {
+  const contentType = String(response.headers.get('content-type') || '').toLowerCase();
+  const bodyText = await response.text();
+  const looksLikeHtml = bodyText.trim().toLowerCase().startsWith('<!doctype') || bodyText.trim().startsWith('<html');
+
+  if (contentType.includes('application/json') && !looksLikeHtml) {
+    try {
+      return { data: JSON.parse(bodyText), raw: bodyText, isHtml: false };
+    } catch {
+      return { data: null as any, raw: bodyText, isHtml: false };
+    }
+  }
+
+  try {
+    return { data: JSON.parse(bodyText), raw: bodyText, isHtml: looksLikeHtml };
+  } catch {
+    return { data: null as any, raw: bodyText, isHtml: looksLikeHtml };
+  }
+};
+
 /**
  * Sign up new student account
  */
@@ -36,6 +56,7 @@ export const signUp = async (
   email: string,
   password: string,
   name: string,
+  userId: string,
   school?: string,
   studentClass?: string,
   pin?: string
@@ -44,7 +65,7 @@ export const signUp = async (
     const response = await fetch(`${API_BASE}/api/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name, school, class: studentClass, pin })
+      body: JSON.stringify({ email, password, name, userId, school, class: studentClass, pin })
     });
 
     const data = await response.json();
@@ -71,14 +92,14 @@ export const signUp = async (
 };
 
 /**
- * Login with email and password
+ * Login with email or user ID and password
  */
-export const login = async (email: string, password: string) => {
+export const login = async (identifier: string, password: string) => {
   try {
     const response = await fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ identifier, password })
     });
 
     const data = await response.json();
@@ -100,6 +121,103 @@ export const login = async (email: string, password: string) => {
     return {
       success: false,
       error: error.message
+    };
+  }
+};
+
+export const checkUserIdAvailability = async (userId: string) => {
+  try {
+    const normalized = String(userId || '').trim().toLowerCase();
+    if (!normalized) {
+      return { success: false, available: false, message: 'User ID is required' };
+    }
+
+    const response = await fetch(`${API_BASE}/api/auth/check-userid?userId=${encodeURIComponent(normalized)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    const parsed = await parseApiResponseSafely(response);
+    const data = parsed.data || {};
+
+    if (parsed.isHtml) {
+      return {
+        success: true,
+        available: true,
+        message: 'Live User ID check is temporarily unavailable. We will validate on submit.',
+      };
+    }
+
+    if (!response.ok) {
+      return {
+        success: false,
+        available: false,
+        message: data.error || 'Could not validate User ID',
+      };
+    }
+
+    return {
+      success: true,
+      available: Boolean(data.available),
+      message: String(data.message || ''),
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      available: false,
+      message: error.message || 'Could not validate User ID',
+    };
+  }
+};
+
+export const changeMyUserId = async (userId: string) => {
+  try {
+    const normalized = String(userId || '').trim().toLowerCase();
+    if (!normalized) {
+      return { success: false, error: 'User ID is required' };
+    }
+
+    const user = firebaseAuth.currentUser;
+    if (!user) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    const idToken = await user.getIdToken();
+    const response = await fetch(`${API_BASE}/api/auth/change-userid`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ userId: normalized }),
+    });
+
+    const parsed = await parseApiResponseSafely(response);
+    const data = parsed.data || {};
+
+    if (parsed.isHtml) {
+      return {
+        success: false,
+        error: 'User ID API is misconfigured (received HTML). Set VITE_API_BASE_URL to backend URL and restart app.',
+      };
+    }
+
+    if (!response.ok) {
+      return {
+        success: false,
+        error: data.error || 'Failed to update User ID',
+      };
+    }
+
+    return {
+      success: true,
+      userId: String(data.userId || normalized),
+      message: String(data.message || 'User ID updated successfully'),
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message || 'Failed to update User ID',
     };
   }
 };

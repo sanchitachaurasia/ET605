@@ -4,7 +4,8 @@ import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette
 import { useSessionStore } from '../store/sessionStore';
 import { AccessibilityMode, GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
-import { firebaseAuth, sendResetPasswordEmail } from '../lib/firebaseAuth';
+import { checkUserIdAvailability, changeMyUserId, firebaseAuth, sendResetPasswordEmail } from '../lib/firebaseAuth';
+import { trackTelemetryEvent } from '../analytics/telemetry';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -28,6 +29,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [profileName, setProfileName] = React.useState('');
   const [profileSchool, setProfileSchool] = React.useState('');
   const [profileClass, setProfileClass] = React.useState('');
+  const [profileUserId, setProfileUserId] = React.useState('');
+  const [userIdHint, setUserIdHint] = React.useState('Choose a unique User ID (4-24 chars: letters, numbers, . _ -).');
+  const [userIdAvailable, setUserIdAvailable] = React.useState<boolean | null>(null);
+  const [checkingUserId, setCheckingUserId] = React.useState(false);
+  const [savingUserId, setSavingUserId] = React.useState(false);
   const [accountMessage, setAccountMessage] = React.useState('');
   const [accountError, setAccountError] = React.useState('');
   const firstControlRef = React.useRef<HTMLElement | null>(null);
@@ -56,6 +62,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setProfileName(session.name || '');
     setProfileSchool(session.school || '');
     setProfileClass(session.class || '');
+    setProfileUserId(String((session as any).userId || session.studentId || '').trim().toLowerCase());
+    setUserIdHint('Choose a unique User ID (4-24 chars: letters, numbers, . _ -).');
+    setUserIdAvailable(null);
+    setCheckingUserId(false);
+    setSavingUserId(false);
     setAccountMessage('');
     setAccountError('');
   }, [isOpen, session]);
@@ -131,6 +142,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     const trimmedName = profileName.trim();
     const trimmedSchool = profileSchool.trim();
     const trimmedClass = profileClass.trim();
+    const previousName = String(session.name || '').trim();
+    const previousSchool = String(session.school || '').trim();
+    const previousClass = String(session.class || '').trim();
 
     if (!trimmedName) {
       setAccountError('Name is required.');
@@ -142,6 +156,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       school: trimmedSchool,
       class: trimmedClass,
     });
+
+    const changedFields: string[] = [];
+    if (trimmedName !== previousName) changedFields.push('name');
+    if (trimmedSchool !== previousSchool) changedFields.push('school');
+    if (trimmedClass !== previousClass) changedFields.push('class');
+
+    if (changedFields.length > 0) {
+      trackTelemetryEvent('profile_updated', {
+        event_data: {
+          changed_fields: changedFields,
+          previous: {
+            name: previousName,
+            school: previousSchool,
+            class: previousClass,
+          },
+          next: {
+            name: trimmedName,
+            school: trimmedSchool,
+            class: trimmedClass,
+          },
+          source: 'settings_account',
+        },
+      });
+    }
+
     setAccountMessage('Profile updated successfully.');
   };
 
@@ -157,10 +196,89 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
     const result = await sendResetPasswordEmail(email);
     if (result.success) {
+      trackTelemetryEvent('password_reset_requested', {
+        event_data: {
+          source: 'settings_account',
+          email_present: Boolean(email),
+        },
+      });
       setAccountMessage('Password reset link sent to your email.');
     } else {
       setAccountError(result.error || 'Could not send reset link.');
     }
+  };
+
+  const handleCheckUserId = async () => {
+    const normalized = profileUserId.trim().toLowerCase();
+    const currentUserId = String((session as any)?.userId || '').trim().toLowerCase();
+
+    if (!normalized) {
+      setUserIdAvailable(null);
+      setUserIdHint('User ID is required.');
+      return;
+    }
+
+    if (!/^[a-z0-9_.-]{4,24}$/.test(normalized)) {
+      setUserIdAvailable(false);
+      setUserIdHint('User ID must be 4-24 chars: letters, numbers, . _ -');
+      return;
+    }
+
+    if (normalized === currentUserId) {
+      setUserIdAvailable(true);
+      setUserIdHint('This is your current User ID.');
+      return;
+    }
+
+    setCheckingUserId(true);
+    const result = await checkUserIdAvailability(normalized);
+    setCheckingUserId(false);
+
+    if (!result.success) {
+      setUserIdAvailable(null);
+      setUserIdHint(result.message || 'Could not validate User ID right now.');
+      return;
+    }
+
+    setUserIdAvailable(result.available);
+    setUserIdHint(result.message || (result.available ? 'User ID is available' : 'User ID already taken'));
+  };
+
+  const handleUserIdSave = async () => {
+    setAccountError('');
+    setAccountMessage('');
+
+    const normalized = profileUserId.trim().toLowerCase();
+    const currentUserId = String((session as any)?.userId || '').trim().toLowerCase();
+
+    if (!normalized) {
+      setAccountError('User ID is required.');
+      return;
+    }
+
+    if (!/^[a-z0-9_.-]{4,24}$/.test(normalized)) {
+      setAccountError('User ID must be 4-24 chars: letters, numbers, . _ -');
+      return;
+    }
+
+    if (normalized !== currentUserId && userIdAvailable === false) {
+      setAccountError('User ID already taken. Choose another one.');
+      return;
+    }
+
+    setSavingUserId(true);
+    const result = await changeMyUserId(normalized);
+    setSavingUserId(false);
+
+    if (!result.success) {
+      setAccountError(result.error || 'Failed to update User ID.');
+      return;
+    }
+
+    updateSession({ userId: result.userId || normalized } as any);
+    setUserIdAvailable(true);
+    setUserIdHint('User ID updated successfully.');
+    setAccountMessage(result.message || 'User ID updated successfully.');
   };
 
   const handleCategoryWheelNavigation = (e: React.WheelEvent<HTMLDivElement>) => {
@@ -637,6 +755,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     <div className="rounded-2xl border border-slate-200 bg-white p-4">
                       <p className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Profile</p>
                       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                          <label className="mb-1 block text-xs font-bold text-slate-600">User ID</label>
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <input
+                              value={profileUserId}
+                              onChange={(e) => {
+                                setProfileUserId(e.target.value.toLowerCase());
+                                setUserIdAvailable(null);
+                                setUserIdHint('Choose a unique User ID (4-24 chars: letters, numbers, . _ -).');
+                              }}
+                              onBlur={handleCheckUserId}
+                              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-brand"
+                              placeholder="e.g. riya_8a"
+                            />
+                            <button
+                              onClick={handleUserIdSave}
+                              disabled={checkingUserId || savingUserId || userIdAvailable === false}
+                              className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {savingUserId ? 'Saving...' : 'Save User ID'}
+                            </button>
+                          </div>
+                          <p className={`mt-1 text-xs font-semibold ${userIdAvailable === false ? 'text-red-600' : userIdAvailable ? 'text-emerald-700' : 'text-slate-500'}`}>
+                            {checkingUserId ? 'Checking User ID...' : userIdHint}
+                          </p>
+                        </div>
                         <div className="sm:col-span-2">
                           <label className="mb-1 block text-xs font-bold text-slate-600">Name</label>
                           <input

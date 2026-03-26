@@ -59,6 +59,7 @@ export default function Dashboard() {
                 settings.darkMode ? "text-white" : "text-slate-900"
               )}>Welcome back, {session.name}!</h1>
               <div className="mt-2 space-y-1 text-xs sm:text-sm">
+                <p className="text-slate-600">User ID: <span className="font-bold text-slate-700">{session.userId || session.studentId}</span></p>
                 <p className="text-slate-600">You're on the <span className="font-bold text-brand">{session.learningPath === 'A' ? 'Explorer' : session.learningPath === 'C' ? 'Pioneer' : 'Adventurer'} Path</span></p>
                 {learnerProfile && (
                   <p className={cn(
