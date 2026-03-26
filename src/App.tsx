@@ -34,6 +34,7 @@ export default function App() {
       saveStudentProgressToCloud({
         preTestScore: session.preTestScore,
         preTestDone: session.preTestDone,
+        preTestProgress: session.preTestProgress,
         learningPath: session.learningPath,
         preTestFeedback: session.preTestFeedback,
         recommendedStyle: session.recommendedStyle,

@@ -138,6 +138,7 @@ router.post('/profile', verifyToken, async (req: Request, res: Response) => {
     const allowedKeys = [
       'preTestScore',
       'preTestDone',
+      'preTestProgress',
       'learningPath',
       'preTestFeedback',
       'recommendedStyle',

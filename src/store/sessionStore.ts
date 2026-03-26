@@ -132,6 +132,7 @@ export const useSessionStore = create<SessionState>()(
             ...state.session,
             preTestScore: 0,
             preTestDone: false,
+            preTestProgress: null,
             moduleProgress: [],
             badgesEarned: [],
             postTestScore: null,

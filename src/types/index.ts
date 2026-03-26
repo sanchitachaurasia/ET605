@@ -47,6 +47,19 @@ export interface PayloadRetryQueue {
   error?: string;
 }
 
+export interface PreTestProgress {
+  stage: 'questions' | 'learningStyle' | 'personalization';
+  currentIdx: number;
+  score: number;
+  correctAnswers: Record<string, boolean>;
+  preferredQuestionIds: string[];
+  learningStyle: LearningStyle;
+  recommendation: string;
+  prefContentMode: 'text' | 'video';
+  prefAssessmentTime: 'inModule' | 'endOfModule';
+  pendingResults: any | null;
+}
+
 export interface ModuleProgress {
   moduleId: string;
   completed: boolean;
@@ -72,6 +85,7 @@ export interface UserSettings {
 export interface StudentSession {
   chapterSessionId?: string;
   chapterMetrics?: SessionMetrics;
+  preTestProgress?: PreTestProgress | null;
   sessionStatus?: SessionStatus;
   exitConfirmed?: boolean;
   isStruggling?: boolean;
