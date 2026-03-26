@@ -31,6 +31,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [accountMessage, setAccountMessage] = React.useState('');
   const [accountError, setAccountError] = React.useState('');
   const firstControlRef = React.useRef<HTMLElement | null>(null);
+  const contentPanelRef = React.useRef<HTMLDivElement | null>(null);
+  const lastCategoryScrollSwitchAtRef = React.useRef(0);
+
+  const categoryOrder: SettingsCategory[] = [
+    'mechanics',
+    'preferences',
+    'accessibility',
+    'display',
+    'assessment',
+    'account',
+  ];
 
   React.useEffect(() => {
     if (!isOpen) return;
@@ -152,6 +163,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }
   };
 
+  const handleCategoryWheelNavigation = (e: React.WheelEvent<HTMLDivElement>) => {
+    const panel = contentPanelRef.current;
+    if (!panel) return;
+
+    const isScrollingDown = e.deltaY > 8;
+    const isScrollingUp = e.deltaY < -8;
+    if (!isScrollingDown && !isScrollingUp) return;
+
+    const atTop = panel.scrollTop <= 2;
+    const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 2;
+    if (!(isScrollingDown && atBottom) && !(isScrollingUp && atTop)) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now - lastCategoryScrollSwitchAtRef.current < 420) {
+      return;
+    }
+
+    const currentIndex = categoryOrder.indexOf(activeCategory);
+    if (currentIndex === -1) return;
+
+    const nextIndex = isScrollingDown
+      ? Math.min(currentIndex + 1, categoryOrder.length - 1)
+      : Math.max(currentIndex - 1, 0);
+
+    if (nextIndex === currentIndex) return;
+
+    e.preventDefault();
+    lastCategoryScrollSwitchAtRef.current = now;
+    setActiveCategory(categoryOrder[nextIndex]);
+    panel.scrollTo({ top: 0 });
+  };
+
   const colors = [
     { name: 'Blue', value: '#3b82f6' },
     { name: 'Indigo', value: '#6366f1' },
@@ -161,6 +206,83 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     { name: 'Orange', value: '#f97316' },
     { name: 'Green', value: '#22c55e' },
   ];
+
+  const mechanicMeta: Record<GameFormat, { label: string; description: string }> = {
+    [GameFormat.RAINDROP]: {
+      label: 'Raindrop Catch',
+      description: 'Catch correct falling options quickly.',
+    },
+    [GameFormat.DRAG_SORT]: {
+      label: 'Drag & Sort',
+      description: 'Drag items into the right group.',
+    },
+    [GameFormat.SPIN_WHEEL]: {
+      label: 'Spin Wheel',
+      description: 'Spin and answer based on outcomes.',
+    },
+    [GameFormat.BAR_BUILDER]: {
+      label: 'Bar Builder',
+      description: 'Read and compare bar values.',
+    },
+    [GameFormat.HOTSPOT]: {
+      label: 'Hotspot',
+      description: 'Tap the correct value hotspot.',
+    },
+    [GameFormat.PIE_SLICER]: {
+      label: 'Pie Slicer',
+      description: 'Interpret pie slices and percentages.',
+    },
+    [GameFormat.TALLY_TAP]: {
+      label: 'Tally Tap',
+      description: 'Count tally marks correctly.',
+    },
+  };
+
+  const renderMechanicPreview = (format: GameFormat) => {
+    if (format === GameFormat.RAINDROP) {
+      return (
+        <div className="relative h-10 w-14 overflow-hidden rounded-lg bg-sky-50">
+          <span className="absolute left-1 top-0 text-xs">💧</span>
+          <span className="absolute left-6 top-1 text-xs">💧</span>
+          <span className="absolute right-1 top-0.5 text-xs">💧</span>
+        </div>
+      );
+    }
+    if (format === GameFormat.DRAG_SORT) {
+      return (
+        <div className="flex h-10 w-14 items-center justify-center gap-1 rounded-lg bg-slate-100 px-1">
+          <span className="rounded bg-white px-1 text-[10px] font-bold text-slate-500">3</span>
+          <span className="text-[10px] text-slate-400">→</span>
+          <span className="rounded bg-white px-1 text-[10px] font-bold text-slate-500">A</span>
+        </div>
+      );
+    }
+    if (format === GameFormat.SPIN_WHEEL) {
+      return <div className="h-9 w-9 rounded-full bg-[conic-gradient(#ef4444_0deg_120deg,#3b82f6_120deg_290deg,#22c55e_290deg_360deg)]" />;
+    }
+    if (format === GameFormat.BAR_BUILDER) {
+      return (
+        <div className="flex h-10 items-end gap-1">
+          <span className="w-2 rounded-t bg-brand/50" style={{ height: '35%' }} />
+          <span className="w-2 rounded-t bg-brand/70" style={{ height: '65%' }} />
+          <span className="w-2 rounded-t bg-brand" style={{ height: '90%' }} />
+        </div>
+      );
+    }
+    if (format === GameFormat.HOTSPOT) {
+      return (
+        <div className="relative h-9 w-14 rounded-lg border border-slate-200 bg-white">
+          <span className="absolute left-1 top-1 text-[9px] font-bold text-slate-400">4</span>
+          <span className="absolute right-1 top-1 rounded-full bg-brand px-1 text-[8px] font-black text-white">7</span>
+          <span className="absolute left-1 bottom-1 text-[9px] font-bold text-slate-400">5</span>
+        </div>
+      );
+    }
+    if (format === GameFormat.PIE_SLICER) {
+      return <div className="h-9 w-9 rounded-full bg-[conic-gradient(#3b82f6_0deg_180deg,#e2e8f0_180deg_360deg)]" />;
+    }
+    return <div className="font-mono text-xs tracking-widest text-slate-700">|||| /</div>;
+  };
 
   const categoryConfig: Record<
     SettingsCategory,
@@ -223,7 +345,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="w-full max-w-5xl overflow-hidden rounded-[2.5rem] bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="flex h-[86vh] max-h-[860px] w-full max-w-5xl flex-col overflow-hidden rounded-[2.5rem] bg-white/90 shadow-2xl backdrop-blur-xl"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-200/50 px-8 py-6">
@@ -241,7 +363,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </button>
             </div>
 
-            <div className="grid max-h-[72vh] grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px_1fr] sm:gap-8">
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px_1fr] sm:gap-8">
               <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:h-full sm:overflow-y-auto">
                 {[
                   { id: 'mechanics', label: 'Game Mechanics' },
@@ -263,32 +385,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 ))}
               </aside>
 
-              <div className={`h-full min-h-[420px] rounded-2xl border p-4 sm:overflow-y-auto sm:p-5 ${categoryConfig[activeCategory].panelClass}`}>
+              <div
+                ref={contentPanelRef}
+                onWheel={handleCategoryWheelNavigation}
+                className={`h-full min-h-[420px] rounded-2xl border p-4 sm:overflow-y-auto sm:p-5 ${categoryConfig[activeCategory].panelClass}`}
+              >
                 {activeCategory === 'mechanics' && (
                   <section>
                     <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.mechanics.headingClass}`}>Game Mechanics</h3>
-                    <div className="space-y-2">
+                    <p className="mb-3 text-xs font-semibold text-slate-500">Choose preferred question formats. We use these styles during your journey.</p>
+                    <div className="mb-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+                      Selected: {enabledMechanics.length} (minimum 1 required)
+                    </div>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {Object.values(GameFormat).map((format, idx) => (
-                        <label
+                        <button
                           key={format}
-                          className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200"
+                          ref={(el) => {
+                            if (activeCategory === 'mechanics' && idx === 0 && el) {
+                              firstControlRef.current = el;
+                            }
+                          }}
+                          onClick={() => toggleMechanic(format)}
+                          className={`rounded-2xl border-2 p-3 text-left transition-all ${enabledMechanics.includes(format) ? 'border-brand bg-brand/10 shadow-sm' : 'border-slate-100 bg-white hover:border-blue-200'}`}
                         >
-                          <span className="font-bold capitalize text-slate-700">{format.replace('_', ' ')}</span>
-                          <div className="relative inline-flex items-center">
-                            <input
-                              ref={(el) => {
-                                if (activeCategory === 'mechanics' && idx === 0 && el) {
-                                  firstControlRef.current = el;
-                                }
-                              }}
-                              type="checkbox"
-                              className="peer sr-only"
-                              checked={enabledMechanics.includes(format)}
-                              onChange={() => toggleMechanic(format)}
-                            />
-                            <div className="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-brand peer-checked:after:translate-x-full" />
+                          <div className="mb-2 flex items-start gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${enabledMechanics.includes(format) ? 'bg-brand/20 text-brand' : 'bg-slate-100 text-slate-500'}`}>
+                                {renderMechanicPreview(format)}
+                              </span>
+                              <div>
+                                <p className="text-sm font-black text-slate-800">{mechanicMeta[format].label}</p>
+                                <p className="text-xs font-medium text-slate-500">{mechanicMeta[format].description}</p>
+                              </div>
+                            </div>
                           </div>
-                        </label>
+                        </button>
                       ))}
                     </div>
                   </section>
@@ -391,19 +523,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                     <div>
                       <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Text Size</h3>
-                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                      <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-100 p-2">
                         {[
-                          { id: 'small', label: 'Small (14px)' },
-                          { id: 'medium', label: 'Medium (16px)' },
-                          { id: 'large', label: 'Large (18px)' },
-                          { id: 'xLarge', label: 'Extra Large (19px)' },
+                          { id: 'small', label: 'Small', px: 14 },
+                          { id: 'medium', label: 'Medium', px: 16 },
+                          { id: 'large', label: 'Large', px: 18 },
+                          { id: 'xLarge', label: 'Extra Large', px: 19 },
                         ].map((size) => (
                           <button
                             key={size.id}
                             onClick={() => updateSettings({ textSize: size.id as any })}
-                            className={`flex-1 rounded-xl py-2 text-[11px] font-bold transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                            className={`rounded-xl px-3 py-2 text-left transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'bg-white/60 text-slate-600 hover:bg-white'}`}
                           >
-                            {size.label}
+                            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">{size.label} ({size.px}px)</p>
+                            <p className="font-bold leading-tight" style={{ fontSize: `${size.px}px` }}>Aa 123</p>
                           </button>
                         ))}
                       </div>
@@ -411,19 +544,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                     <div>
                       <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Line Spacing</h3>
-                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                      <div className="grid grid-cols-1 gap-2 rounded-2xl bg-slate-100 p-2 sm:grid-cols-3">
                         {[
-                          { id: 'normal', label: 'Normal (1.5x)', icon: <AlignJustify size={14} /> },
-                          { id: 'relaxed', label: 'Relaxed (1.7x)', icon: <AlignJustify size={14} /> },
-                          { id: 'wide', label: 'Wide (1.9x)', icon: <AlignJustify size={14} /> },
+                          { id: 'normal', label: 'Normal', value: 1.5, icon: <AlignJustify size={14} /> },
+                          { id: 'relaxed', label: 'Relaxed', value: 1.7, icon: <AlignJustify size={14} /> },
+                          { id: 'wide', label: 'Wide', value: 1.9, icon: <AlignJustify size={14} /> },
                         ].map((spacing) => (
                           <button
                             key={spacing.id}
                             onClick={() => updateSettings({ lineSpacing: spacing.id as any })}
-                            className={`flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-bold transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                            className={`rounded-xl px-3 py-2 text-left transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'bg-white/60 text-slate-600 hover:bg-white'}`}
                           >
-                            {spacing.icon}
-                            {spacing.label}
+                            <p className="mb-1 flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                              {spacing.icon}
+                              {spacing.label} ({spacing.value}x)
+                            </p>
+                            <div className="text-[12px] font-semibold text-slate-700" style={{ lineHeight: spacing.value }}>
+                              <p>How this text looks</p>
+                              <p>with selected spacing.</p>
+                            </div>
                           </button>
                         ))}
                       </div>
