@@ -3,6 +3,124 @@ import { db, auth } from './firebase';
 import admin from 'firebase-admin';
 
 const router = Router();
+const ADMIN_API_KEY = String(process.env.ADMIN_API_KEY || '').trim();
+const GEO_IP_ENABLED = String(process.env.GEO_IP_ENABLED || 'true').toLowerCase() !== 'false';
+const GEO_IP_PROVIDER = String(process.env.GEO_IP_PROVIDER || 'ipapi').trim().toLowerCase();
+const GEO_IP_TIMEOUT_MS = Math.max(Number(process.env.GEO_IP_TIMEOUT_MS) || 1500, 500);
+const GEO_IP_CACHE_TTL_MS = Math.max(Number(process.env.GEO_IP_CACHE_TTL_MS) || 12 * 60 * 60 * 1000, 60 * 1000);
+
+type GeoIpResult = {
+  city?: string;
+  country?: string;
+  countryCode?: string;
+};
+
+const geoIpCache = new Map<string, { expiresAt: number; value: GeoIpResult | null }>();
+
+const getClientIp = (req: Request) => {
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  if (typeof xForwardedFor === 'string' && xForwardedFor.length) {
+    return xForwardedFor.split(',')[0].trim();
+  }
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string' && realIp.length) {
+    return realIp;
+  }
+  return req.socket.remoteAddress || 'unknown';
+};
+
+const normalizeIp = (ip: string) => {
+  const value = String(ip || '').trim();
+  if (!value) return '';
+  return value.startsWith('::ffff:') ? value.slice(7) : value;
+};
+
+const isPrivateOrLocalIp = (ip: string) => {
+  const value = normalizeIp(ip);
+  if (!value) return true;
+  if (value === '127.0.0.1' || value === '::1' || value === 'localhost') return true;
+  if (value.startsWith('10.')) return true;
+  if (value.startsWith('192.168.')) return true;
+  if (/^172\.(1[6-9]|2\d|3[0-1])\./.test(value)) return true;
+  if (value.startsWith('169.254.')) return true;
+  if (value.startsWith('fc') || value.startsWith('fd')) return true;
+  return false;
+};
+
+const sanitizeGeoIpField = (value: any) => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : undefined;
+};
+
+const fetchJsonWithTimeout = async (url: string) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), GEO_IP_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return null;
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
+const fetchGeoIp = async (ip: string): Promise<GeoIpResult | null> => {
+  if (!GEO_IP_ENABLED) return null;
+
+  const normalizedIp = normalizeIp(ip);
+  if (!normalizedIp || isPrivateOrLocalIp(normalizedIp)) {
+    return null;
+  }
+
+  const cached = geoIpCache.get(normalizedIp);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.value;
+  }
+
+  try {
+    let result: GeoIpResult | null = null;
+
+    if (GEO_IP_PROVIDER === 'ipwhois' || GEO_IP_PROVIDER === 'ipwho.is') {
+      const data = await fetchJsonWithTimeout(`https://ipwho.is/${encodeURIComponent(normalizedIp)}`);
+      if (data && data.success !== false) {
+        result = {
+          city: sanitizeGeoIpField(data.city),
+          country: sanitizeGeoIpField(data.country),
+          countryCode: sanitizeGeoIpField(data.country_code),
+        };
+      }
+    } else {
+      const data = await fetchJsonWithTimeout(`https://ipapi.co/${encodeURIComponent(normalizedIp)}/json/`);
+      if (data && !data.error) {
+        result = {
+          city: sanitizeGeoIpField(data.city),
+          country: sanitizeGeoIpField(data.country_name),
+          countryCode: sanitizeGeoIpField(data.country_code),
+        };
+      }
+    }
+
+    geoIpCache.set(normalizedIp, {
+      value: result,
+      expiresAt: Date.now() + GEO_IP_CACHE_TTL_MS,
+    });
+    return result;
+  } catch {
+    geoIpCache.set(normalizedIp, {
+      value: null,
+      expiresAt: Date.now() + Math.min(GEO_IP_CACHE_TTL_MS, 5 * 60 * 1000),
+    });
+    return null;
+  }
+};
+
+const toIsoString = (value: any) => {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value?.toDate === 'function') return value.toDate().toISOString();
+  return null;
+};
 
 /**
  * Middleware to verify Firebase auth token
@@ -17,6 +135,41 @@ const verifyToken = async (req: Request, res: Response, next: any) => {
     next();
   } catch (error) {
     res.status(401).json({ error: 'Unauthorized' });
+  }
+};
+
+const verifyAdminAccess = async (req: Request, res: Response, next: any) => {
+  try {
+    const headerAdminKey = String(req.headers['x-admin-key'] || '').trim();
+    const queryAdminKey = String(req.query.adminKey || '').trim();
+    const authorization = String(req.headers.authorization || '').trim();
+    const bearerToken = authorization.startsWith('Bearer ') ? authorization.slice(7).trim() : '';
+
+    if (ADMIN_API_KEY) {
+      const providedKey = headerAdminKey || queryAdminKey || (bearerToken === ADMIN_API_KEY ? bearerToken : '');
+      if (providedKey && providedKey === ADMIN_API_KEY) {
+        return next();
+      }
+    }
+
+    if (bearerToken && bearerToken !== ADMIN_API_KEY) {
+      const decodedToken = await auth.verifyIdToken(bearerToken);
+      if (decodedToken.admin === true || decodedToken.role === 'admin') {
+        (req as any).admin = decodedToken;
+        return next();
+      }
+    }
+
+    return res.status(401).json({
+      success: false,
+      error: 'Admin authorization failed',
+      hint: 'Provide x-admin-key header (or adminKey query for export), or a Firebase token with admin claim.'
+    });
+  } catch (error: any) {
+    return res.status(401).json({
+      success: false,
+      error: error?.message || 'Admin authorization failed'
+    });
   }
 };
 
@@ -69,7 +222,11 @@ router.post('/update', verifyToken, async (req: Request, res: Response) => {
 router.get('/:chapterId', verifyToken, async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { chapterId } = req.params;
+    const chapterId = String(req.params.chapterId || '').trim();
+
+    if (!chapterId) {
+      return res.status(400).json({ success: false, error: 'chapterId required' });
+    }
 
     const docSnap = await db
       .collection('students')
@@ -104,6 +261,8 @@ router.post('/payload', verifyToken, async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const payload = req.body;
+    const clientIp = getClientIp(req);
+    const geo = await fetchGeoIp(clientIp);
 
     // Store in session payloads collection
     await db
@@ -113,6 +272,8 @@ router.post('/payload', verifyToken, async (req: Request, res: Response) => {
       .add({
         ...payload,
         studentId: user.uid,
+        clientIp,
+        clientGeo: geo || null,
         submittedAt: admin.firestore.Timestamp.now()
       });
 
@@ -148,6 +309,7 @@ router.post('/profile', verifyToken, async (req: Request, res: Response) => {
       'recommendedStyle',
       'learnerProfile',
       'moduleProgress',
+      'moduleTracking',
       'badgesEarned',
       'postTestScore',
       'journeyComplete',
@@ -208,6 +370,285 @@ router.get('/', verifyToken, async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Fetch sessions error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /api/session/telemetry/batch
+ * Persist telemetry clickstream and interaction events to Firestore.
+ */
+router.post('/telemetry/batch', verifyToken, async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    const events = Array.isArray(req.body?.events) ? req.body.events : [];
+
+    if (!events.length) {
+      return res.status(400).json({ success: false, error: 'events array required' });
+    }
+
+    const ipAddress = getClientIp(req);
+    const geo = await fetchGeoIp(ipAddress);
+    const batch = db.batch();
+
+    for (const event of events.slice(0, 1000)) {
+      const eventRef = db.collection('analytics_events').doc();
+      const eventDoc = {
+        ...event,
+        uid: user.uid,
+        student_id: event.student_id || user.uid,
+        context: {
+          ...(event.context || {}),
+          ip: ipAddress,
+          city: event?.context?.city || geo?.city || undefined,
+          country: event?.context?.country || geo?.country || undefined,
+          countryCode: event?.context?.countryCode || geo?.countryCode || undefined,
+        },
+        serverTimestamp: admin.firestore.Timestamp.now(),
+      };
+
+      batch.set(eventRef, eventDoc);
+    }
+
+    const summaryRef = db.collection('students').doc(user.uid).collection('analytics').doc('summary');
+    const uniqueDevices = events
+      .map((ev: any) => ev?.context?.device_id)
+      .filter((value: string | undefined) => !!value);
+
+    const uniqueCities = events
+      .map((ev: any) => ev?.context?.city || geo?.city)
+      .filter((value: string | undefined) => !!value);
+
+    const uniqueCountries = events
+      .map((ev: any) => ev?.context?.country || geo?.country)
+      .filter((value: string | undefined) => !!value);
+
+    const summaryUpdate: Record<string, any> = {
+      studentId: user.uid,
+      lastActivityAt: admin.firestore.Timestamp.now(),
+      totalEvents: admin.firestore.FieldValue.increment(events.length),
+    };
+
+    if (uniqueDevices.length) {
+      summaryUpdate.uniqueDevices = admin.firestore.FieldValue.arrayUnion(...uniqueDevices);
+    }
+    if (ipAddress) {
+      summaryUpdate.uniqueIps = admin.firestore.FieldValue.arrayUnion(ipAddress);
+    }
+    if (uniqueCities.length) {
+      summaryUpdate.uniqueCities = admin.firestore.FieldValue.arrayUnion(...uniqueCities);
+    }
+    if (uniqueCountries.length) {
+      summaryUpdate.uniqueCountries = admin.firestore.FieldValue.arrayUnion(...uniqueCountries);
+    }
+
+    batch.set(summaryRef, summaryUpdate, { merge: true });
+
+    await batch.commit();
+
+    res.json({ success: true, stored: events.length });
+  } catch (error: any) {
+    console.error('Telemetry batch error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Telemetry write failed' });
+  }
+});
+
+/**
+ * GET /api/session/admin/realtime
+ * Fetch recent events and user-level aggregate summaries for admin dashboard.
+ */
+router.get('/admin/realtime', verifyAdminAccess, async (req: Request, res: Response) => {
+  try {
+    const limit = Math.min(Math.max(Number(req.query.limit) || 200, 10), 1000);
+
+    const eventSnap = await db
+      .collection('analytics_events')
+      .orderBy('serverTimestamp', 'desc')
+      .limit(limit)
+      .get();
+
+    const events = eventSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      timestamp: doc.data().timestamp || toIsoString(doc.data().serverTimestamp),
+    }));
+
+    const studentSnap = await db.collection('students').limit(500).get();
+    const users = await Promise.all(
+      studentSnap.docs.map(async (doc) => {
+        const student = doc.data();
+        const summaryDoc = await db.collection('students').doc(doc.id).collection('analytics').doc('summary').get();
+        const summary = summaryDoc.exists ? summaryDoc.data() : {};
+
+        return {
+          studentId: doc.id,
+          name: student?.name || 'Unknown',
+          email: student?.email || '',
+          school: student?.school || '',
+          class: student?.class || '',
+          totalEvents: summary?.totalEvents || 0,
+          totalDevices: (summary?.uniqueDevices || []).length,
+          totalLocations: (summary?.uniqueCountries || []).length,
+          totalIps: (summary?.uniqueIps || []).length,
+          lastActivityAt: toIsoString(summary?.lastActivityAt),
+        };
+      })
+    );
+
+    res.json({
+      success: true,
+      stats: {
+        totalEvents: events.length,
+        activeUsers: new Set(events.map((event: any) => event.student_id || event.uid)).size,
+      },
+      events,
+      users,
+    });
+  } catch (error: any) {
+    console.error('Admin realtime fetch error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to fetch realtime data' });
+  }
+});
+
+/**
+ * GET /api/session/admin/user/:studentId/activity
+ * Fetch all recent activity and summaries for a specific student.
+ */
+router.get('/admin/user/:studentId/activity', verifyAdminAccess, async (req: Request, res: Response) => {
+  try {
+    const studentId = String(req.params.studentId || '').trim();
+    const limit = Math.min(Math.max(Number(req.query.limit) || 1000, 10), 5000);
+
+    if (!studentId) {
+      return res.status(400).json({ success: false, error: 'studentId required' });
+    }
+
+    const eventSnap = await db
+      .collection('analytics_events')
+      .where('student_id', '==', studentId)
+      .orderBy('serverTimestamp', 'desc')
+      .limit(limit)
+      .get();
+
+    const payloadSnap = await db
+      .collection('students')
+      .doc(studentId)
+      .collection('session_payloads')
+      .orderBy('submittedAt', 'desc')
+      .limit(100)
+      .get();
+
+    const summaryDoc = await db.collection('students').doc(studentId).collection('analytics').doc('summary').get();
+
+    const events = eventSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      timestamp: doc.data().timestamp || toIsoString(doc.data().serverTimestamp),
+    }));
+
+    const sessionPayloads = payloadSnap.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+      submittedAt: toIsoString(doc.data().submittedAt),
+    }));
+
+    const summary = summaryDoc.exists ? summaryDoc.data() : {};
+
+    res.json({
+      success: true,
+      studentId,
+      summary: {
+        ...summary,
+        totalDevices: (summary?.uniqueDevices || []).length,
+        totalLocations: (summary?.uniqueCountries || []).length,
+        totalIps: (summary?.uniqueIps || []).length,
+        lastActivityAt: toIsoString(summary?.lastActivityAt),
+      },
+      events,
+      sessionPayloads,
+    });
+  } catch (error: any) {
+    console.error('Admin user activity fetch error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to fetch user activity' });
+  }
+});
+
+/**
+ * GET /api/session/admin/export
+ * Export analytics events in CSV format for Excel.
+ */
+router.get('/admin/export', verifyAdminAccess, async (req: Request, res: Response) => {
+  try {
+    const studentId = String(req.query.studentId || '').trim();
+    const limit = Math.min(Math.max(Number(req.query.limit) || 5000, 10), 20000);
+
+    let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db
+      .collection('analytics_events')
+      .orderBy('serverTimestamp', 'desc')
+      .limit(limit);
+
+    if (studentId) {
+      query = db
+        .collection('analytics_events')
+        .where('student_id', '==', studentId)
+        .orderBy('serverTimestamp', 'desc')
+        .limit(limit);
+    }
+
+    const snap = await query.get();
+
+    const headers = [
+      'event_id',
+      'timestamp',
+      'student_id',
+      'session_id',
+      'chapter_id',
+      'module_id',
+      'question_id',
+      'type',
+      'device_id',
+      'ip',
+      'city',
+      'country',
+      'url',
+      'event_data',
+    ];
+
+    const escapeCsv = (value: any) => {
+      const str = value === null || value === undefined ? '' : String(value);
+      if (/[",\n]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = snap.docs.map((doc) => {
+      const row = doc.data();
+      return [
+        doc.id,
+        row.timestamp || toIsoString(row.serverTimestamp),
+        row.student_id || row.uid || '',
+        row.session_id || '',
+        row.chapter_id || '',
+        row.module_id || '',
+        row.question_id || '',
+        row.type || '',
+        row.context?.device_id || '',
+        row.context?.ip || '',
+        row.context?.city || '',
+        row.context?.country || '',
+        row.context?.url || '',
+        row.event_data ? JSON.stringify(row.event_data) : '',
+      ].map(escapeCsv).join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+
+    res.header('Content-Type', 'text/csv; charset=utf-8');
+    res.header('Content-Disposition', `attachment; filename="analytics_export_${studentId || 'all'}.csv"`);
+    res.send(csv);
+  } catch (error: any) {
+    console.error('Admin export error:', error);
+    res.status(500).json({ success: false, error: error.message || 'Failed to export analytics' });
   }
 });
 

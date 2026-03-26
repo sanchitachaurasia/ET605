@@ -18,9 +18,16 @@ export const firebaseAuth = getAuth(firebaseApp);
 const rawApiBase = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/+$/, '');
 const isLoopbackApiBase = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(rawApiBase);
 
-const API_BASE = import.meta.env.DEV
+export const API_BASE = import.meta.env.DEV
   ? (rawApiBase || 'http://localhost:3000')
   : (isLoopbackApiBase ? '' : rawApiBase);
+
+const ADMIN_API_KEY = String(import.meta.env.VITE_ADMIN_API_KEY || '').trim();
+
+const getAdminHeaders = () => {
+  if (!ADMIN_API_KEY) return {};
+  return { 'x-admin-key': ADMIN_API_KEY };
+};
 
 /**
  * Sign up new student account
@@ -315,4 +322,43 @@ export const saveStudentProgressToCloud = async (progress: any) => {
     console.error('Progress sync error:', error);
     return { success: false, error: error.message };
   }
+};
+
+/**
+ * Fetch realtime admin analytics stream and user summaries.
+ */
+export const fetchAdminRealtimeAnalytics = async (limit: number = 200) => {
+  const response = await fetch(`${API_BASE}/api/session/admin/realtime?limit=${Math.max(10, limit)}`, {
+    headers: getAdminHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to fetch realtime analytics');
+  }
+  return data;
+};
+
+/**
+ * Fetch full activity trail for a specific student.
+ */
+export const fetchAdminUserActivity = async (studentId: string, limit: number = 1000) => {
+  const response = await fetch(`${API_BASE}/api/session/admin/user/${encodeURIComponent(studentId)}/activity?limit=${Math.max(10, limit)}`, {
+    headers: getAdminHeaders(),
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Failed to fetch user activity');
+  }
+  return data;
+};
+
+/**
+ * Get CSV export URL for analytics data that can be downloaded/opened in Excel.
+ */
+export const getAdminAnalyticsExportUrl = (studentId?: string, limit: number = 5000) => {
+  const params = new URLSearchParams();
+  params.set('limit', String(Math.max(10, limit)));
+  if (studentId) params.set('studentId', studentId);
+  if (ADMIN_API_KEY) params.set('adminKey', ADMIN_API_KEY);
+  return `${API_BASE}/api/session/admin/export?${params.toString()}`;
 };
