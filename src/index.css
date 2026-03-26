@@ -7,8 +7,41 @@
   --color-brand-dark: color-mix(in srgb, var(--theme-color, #3b82f6), black 20%);
 }
 
+:root {
+  --app-font-scale: 1;
+  --app-line-height: 1.5;
+}
+
+html {
+  font-size: calc(16px * var(--app-font-scale));
+}
+
 body {
   @apply bg-slate-50 text-slate-700 antialiased;
+  line-height: var(--app-line-height);
+}
+
+html.a11y-dyslexia body,
+html.a11y-dyslexia button,
+html.a11y-dyslexia input,
+html.a11y-dyslexia select,
+html.a11y-dyslexia textarea {
+  font-family: Verdana, Tahoma, sans-serif;
+  letter-spacing: 0.025em;
+  word-spacing: 0.08em;
+}
+
+html.a11y-high-contrast {
+  filter: contrast(1.18) saturate(1.08);
+}
+
+html.a11y-high-contrast *:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+html.a11y-colorblind {
+  filter: saturate(0.88) hue-rotate(-8deg);
 }
 
 .card-gradient {

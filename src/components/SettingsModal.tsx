@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette } from 'lucide-react';
+import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
 import { GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -37,9 +37,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     assessmentStyle: rawSettings.assessmentStyle || 'balanced',
     contentMode: rawSettings.contentMode || 'video',
     assessmentTime: rawSettings.assessmentTime || 'inModule',
+    accessibilityModes: rawSettings.accessibilityModes || [],
+    textSize: rawSettings.textSize || 'medium',
+    lineSpacing: rawSettings.lineSpacing || 'normal',
   };
 
   const enabledMechanics = settings.enabledMechanics || [];
+  const accessibilityModes = settings.accessibilityModes || [];
 
   const toggleMechanic = (format: GameFormat) => {
     const current = enabledMechanics;
@@ -49,6 +53,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     
     if (next.length === 0) return; // Must have at least one
     updateSettings({ enabledMechanics: next });
+  };
+
+  const toggleAccessibilityMode = (mode: 'highContrast' | 'dyslexia' | 'colorblind') => {
+    const next = accessibilityModes.includes(mode)
+      ? accessibilityModes.filter((m: string) => m !== mode)
+      : [...accessibilityModes, mode];
+    updateSettings({ accessibilityModes: next as any });
   };
 
   const handleResetProgress = () => {
@@ -191,6 +202,81 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           style={{ backgroundColor: c.value }}
                           title={c.name}
                         />
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Accessibility */}
+                  <section>
+                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
+                      Accessibility
+                    </h3>
+                    <div className="grid grid-cols-1 gap-3">
+                      {[
+                        { id: 'highContrast', label: 'High Contrast', icon: <Eye size={18} /> },
+                        { id: 'dyslexia', label: 'Dyslexia Mode', icon: <Type size={18} /> },
+                        { id: 'colorblind', label: 'Color-Blind Mode', icon: <Palette size={18} /> },
+                      ].map((mode) => {
+                        const selected = accessibilityModes.includes(mode.id);
+                        return (
+                          <button
+                            key={mode.id}
+                            onClick={() => toggleAccessibilityMode(mode.id as 'highContrast' | 'dyslexia' | 'colorblind')}
+                            className={`flex items-center justify-between rounded-2xl border-2 p-3 transition-all ${selected ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-600'}`}
+                          >
+                            <span className="flex items-center gap-2 text-sm font-bold">
+                              {mode.icon}
+                              {mode.label}
+                            </span>
+                            <span className={`h-5 w-5 rounded-full border-2 ${selected ? 'border-brand bg-brand' : 'border-slate-300'}`} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+
+                  {/* Text Size */}
+                  <section>
+                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
+                      Text Size
+                    </h3>
+                    <div className="flex rounded-2xl bg-slate-100 p-1">
+                      {[
+                        { id: 'small', label: 'S' },
+                        { id: 'medium', label: 'M' },
+                        { id: 'large', label: 'L' },
+                        { id: 'xLarge', label: 'XL' },
+                      ].map((size) => (
+                        <button
+                          key={size.id}
+                          onClick={() => updateSettings({ textSize: size.id as any })}
+                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                        >
+                          {size.label}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Line Spacing */}
+                  <section>
+                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
+                      Line Spacing
+                    </h3>
+                    <div className="flex rounded-2xl bg-slate-100 p-1">
+                      {[
+                        { id: 'normal', label: 'Normal', icon: <AlignJustify size={14} /> },
+                        { id: 'relaxed', label: 'Relaxed', icon: <AlignJustify size={14} /> },
+                        { id: 'wide', label: 'Wide', icon: <AlignJustify size={14} /> },
+                      ].map((spacing) => (
+                        <button
+                          key={spacing.id}
+                          onClick={() => updateSettings({ lineSpacing: spacing.id as any })}
+                          className={`flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                        >
+                          {spacing.icon}
+                          {spacing.label}
+                        </button>
                       ))}
                     </div>
                   </section>

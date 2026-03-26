@@ -19,7 +19,10 @@ export const DEFAULT_SETTINGS: UserSettings = {
   themeColor: '#3b82f6', // blue-500
   assessmentStyle: 'gamified',
   contentMode: 'text',
-  assessmentTime: 'inModule'
+  assessmentTime: 'inModule',
+  accessibilityModes: [],
+  textSize: 'medium',
+  lineSpacing: 'normal'
 };
 
 interface SessionState {

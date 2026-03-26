@@ -42,32 +42,26 @@ export default function PreTest() {
 
   useEffect(() => {
     if (!session) {
-      console.log('[PreTest] Session not yet loaded from storage');
       return;
     }
     
     if (session.preTestDone) {
-      console.log('[PreTest] PreTest already done');
       return;
     }
 
     // Only try to restore if session has been properly initialized from storage
     // (indicated by having a studentId and preTestProgress field exists)
     if (!session.studentId) {
-      console.log('[PreTest] Session not yet fully hydrated, waiting...');
       return;
     }
 
     const saved = session.preTestProgress;
-    console.log('[PreTest] Restore effect - session hydrated, saved progress:', saved);
     
     if (!saved) {
-      console.log('[PreTest] No saved progress, initializing fresh');
       setIsProgressInitialized(true);
       return;
     }
 
-    console.log('[PreTest] Attempting to restore from saved state at index:', saved.currentIdx);
     isRestoringRef.current = true;
 
     setCurrentIdx(saved.currentIdx ?? 0);
@@ -88,7 +82,6 @@ export default function PreTest() {
     window.setTimeout(() => {
       isRestoringRef.current = false;
       setIsProgressInitialized(true);
-      console.log('[PreTest] Restore complete, initialization flag set');
     }, 0);
   }, [session]);
 
@@ -121,7 +114,6 @@ export default function PreTest() {
       return;
     }
     lastPersistedRef.current = serialized;
-    console.log('[PreTest] Persisting state at index:', currentIdx, 'stage:', stage);
     updateSession({ preTestProgress: payload });
   }, [
     session,

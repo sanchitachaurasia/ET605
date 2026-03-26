@@ -11,6 +11,7 @@ export enum GameFormat {
 export type LearningPath = 'A' | 'B' | 'C';
 export type LearningStyle = 'visual' | 'auditory' | 'readWrite' | 'kinesthetic' | 'mixed';
 export type AccessibilityLevel = 'standard' | 'highContrast' | 'dyslexia' | 'colorblind';
+export type AccessibilityMode = Exclude<AccessibilityLevel, 'standard'>;
 
 // Learner profile for personalization
 export interface LearnerProfile {
@@ -89,6 +90,9 @@ export interface UserSettings {
   assessmentStyle: 'gamified' | 'traditional' | 'balanced';
   contentMode: 'text' | 'video';
   assessmentTime: 'inModule' | 'endOfModule';
+  accessibilityModes: AccessibilityMode[];
+  textSize: 'small' | 'medium' | 'large' | 'xLarge';
+  lineSpacing: 'normal' | 'relaxed' | 'wide';
 }
 
 export interface StudentSession {

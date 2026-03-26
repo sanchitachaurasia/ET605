@@ -37,16 +37,23 @@ export default function Dashboard() {
     return session.moduleProgress.some(p => p.moduleId === moduleId && p.completed);
   };
 
-  const handlePersonalizationSave = (options: any) => {
+  const handlePersonalizationChange = (options: any) => {
+    const primaryAccessibility = options.accessibilityModes?.[0] || 'standard';
     updateSession({
       learnerProfile: {
         preferredStyle: options.learningStyle,
-        accessibilityNeeds: options.accessibility,
+        accessibilityNeeds: primaryAccessibility,
         contentPreference: options.contentType,
         pacePref: options.pacePref,
         feedbackStyle: options.feedbackStyle,
         distractionLevel: 'moderate'
-      }
+      },
+      settings: {
+        ...(session?.settings || {}),
+        accessibilityModes: options.accessibilityModes || [],
+        textSize: options.textSize || 'medium',
+        lineSpacing: options.lineSpacing || 'normal',
+      } as any
     });
   };
 
@@ -117,13 +124,15 @@ export default function Dashboard() {
           {learnerProfile && (
             <div className="mb-8">
               <PersonalizationPanel
-                onSave={handlePersonalizationSave}
+                onChange={handlePersonalizationChange}
                 initialOptions={{
                   learningStyle: learnerProfile.preferredStyle,
-                  accessibility: learnerProfile.accessibilityNeeds,
+                  accessibilityModes: session.settings?.accessibilityModes || (learnerProfile.accessibilityNeeds !== 'standard' ? [learnerProfile.accessibilityNeeds] : []),
                   pacePref: learnerProfile.pacePref,
                   contentType: learnerProfile.contentPreference,
-                  feedbackStyle: learnerProfile.feedbackStyle
+                  feedbackStyle: learnerProfile.feedbackStyle,
+                  textSize: session.settings?.textSize || 'medium',
+                  lineSpacing: session.settings?.lineSpacing || 'normal',
                 }}
               />
             </div>
