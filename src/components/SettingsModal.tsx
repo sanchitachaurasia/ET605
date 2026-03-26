@@ -10,11 +10,20 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
+type SettingsCategory =
+  | 'mechanics'
+  | 'preferences'
+  | 'accessibility'
+  | 'display'
+  | 'assessment'
+  | 'account';
+
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const { session, updateSettings, updateSession, clearSession, resetProgress } = useSessionStore();
   const navigate = useNavigate();
 
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
+  const [activeCategory, setActiveCategory] = React.useState<SettingsCategory>('mechanics');
 
   if (!session) return null;
 
@@ -122,40 +131,55 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto p-8">
-              <div className="grid gap-10 md:grid-cols-2">
-                {/* Game Mechanics */}
-                <section>
-                  <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                    Game Mechanics
-                  </h3>
-                  <div className="space-y-2">
-                    {Object.values(GameFormat).map((format) => (
-                      <label
-                        key={format}
-                        className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200"
-                      >
-                        <span className="font-bold capitalize text-slate-700">{format.replace('_', ' ')}</span>
-                        <div className="relative inline-flex items-center">
-                          <input
-                            type="checkbox"
-                            className="peer sr-only"
-                            checked={enabledMechanics.includes(format)}
-                            onChange={() => toggleMechanic(format)}
-                          />
-                          <div className="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-brand peer-checked:after:translate-x-full" />
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </section>
+            <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[220px,1fr] md:gap-8">
+              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-2">
+                {[
+                  { id: 'mechanics', label: 'Game Mechanics' },
+                  { id: 'preferences', label: 'Preferences' },
+                  { id: 'accessibility', label: 'Accessibility' },
+                  { id: 'display', label: 'Display' },
+                  { id: 'assessment', label: 'Assessment' },
+                  { id: 'account', label: 'Account' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveCategory(item.id as SettingsCategory)}
+                    className={`mb-1 w-full rounded-xl px-3 py-2 text-left text-sm font-bold transition-all ${activeCategory === item.id ? 'bg-brand text-white shadow-sm' : 'text-slate-600 hover:bg-white'}`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </aside>
 
-                <div className="space-y-10">
-                  {/* Preferences */}
+              <div className="min-h-[420px] rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                {activeCategory === 'mechanics' && (
                   <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Preferences
-                    </h3>
+                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Game Mechanics</h3>
+                    <div className="space-y-2">
+                      {Object.values(GameFormat).map((format) => (
+                        <label
+                          key={format}
+                          className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200"
+                        >
+                          <span className="font-bold capitalize text-slate-700">{format.replace('_', ' ')}</span>
+                          <div className="relative inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              className="peer sr-only"
+                              checked={enabledMechanics.includes(format)}
+                              onChange={() => toggleMechanic(format)}
+                            />
+                            <div className="h-6 w-11 rounded-full bg-slate-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-brand peer-checked:after:translate-x-full" />
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {activeCategory === 'preferences' && (
+                  <section>
+                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Preferences</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         onClick={() => updateSettings({ darkMode: !settings.darkMode })}
@@ -173,44 +197,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       </button>
                       <button
                         onClick={() => updateSettings({ vfxEnabled: !settings.vfxEnabled })}
-                        className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all ${settings.vfxEnabled ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-500'}`}
+                        className={`col-span-2 flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all ${settings.vfxEnabled ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-500'}`}
                       >
                         {settings.vfxEnabled ? <Zap size={24} /> : <ZapOff size={24} />}
                         <span className="text-xs font-bold">Visual FX</span>
                       </button>
-                      <button
-                        onClick={handleRetakePreTest}
-                        className="flex flex-col items-center gap-2 rounded-2xl border-2 border-slate-100 bg-white p-4 text-slate-500 transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
-                      >
-                        <RotateCcw size={24} />
-                        <span className="text-xs font-bold">Retake Pre-Test</span>
-                      </button>
                     </div>
                   </section>
+                )}
 
-                  {/* Theme Color */}
+                {activeCategory === 'accessibility' && (
                   <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Theme Color
-                    </h3>
-                    <div className="flex flex-wrap gap-3">
-                      {colors.map((c) => (
-                        <button
-                          key={c.value}
-                          onClick={() => updateSettings({ themeColor: c.value })}
-                          className={`h-10 w-10 rounded-full border-4 transition-all hover:scale-110 ${settings.themeColor === c.value ? 'border-white ring-2 ring-slate-900' : 'border-transparent'}`}
-                          style={{ backgroundColor: c.value }}
-                          title={c.name}
-                        />
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Accessibility */}
-                  <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Accessibility
-                    </h3>
+                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Accessibility</h3>
                     <div className="grid grid-cols-1 gap-3">
                       {[
                         { id: 'highContrast', label: 'High Contrast', icon: <Eye size={18} /> },
@@ -238,113 +236,143 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       })}
                     </div>
                   </section>
+                )}
 
-                  {/* Text Size */}
-                  <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Text Size
-                    </h3>
-                    <div className="flex rounded-2xl bg-slate-100 p-1">
-                      {[
-                        { id: 'small', label: 'S' },
-                        { id: 'medium', label: 'M' },
-                        { id: 'large', label: 'L' },
-                        { id: 'xLarge', label: 'XL' },
-                      ].map((size) => (
-                        <button
-                          key={size.id}
-                          onClick={() => updateSettings({ textSize: size.id as any })}
-                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-                        >
-                          {size.label}
-                        </button>
-                      ))}
+                {activeCategory === 'display' && (
+                  <section className="space-y-6">
+                    <div>
+                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Theme Color</h3>
+                      <div className="flex flex-wrap gap-3">
+                        {colors.map((c) => (
+                          <button
+                            key={c.value}
+                            onClick={() => updateSettings({ themeColor: c.value })}
+                            className={`h-10 w-10 rounded-full border-4 transition-all hover:scale-110 ${settings.themeColor === c.value ? 'border-white ring-2 ring-slate-900' : 'border-transparent'}`}
+                            style={{ backgroundColor: c.value }}
+                            title={c.name}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Text Size</h3>
+                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                        {[
+                          { id: 'small', label: 'S' },
+                          { id: 'medium', label: 'M' },
+                          { id: 'large', label: 'L' },
+                          { id: 'xLarge', label: 'XL' },
+                        ].map((size) => (
+                          <button
+                            key={size.id}
+                            onClick={() => updateSettings({ textSize: size.id as any })}
+                            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                          >
+                            {size.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Line Spacing</h3>
+                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                        {[
+                          { id: 'normal', label: 'Normal', icon: <AlignJustify size={14} /> },
+                          { id: 'relaxed', label: 'Relaxed', icon: <AlignJustify size={14} /> },
+                          { id: 'wide', label: 'Wide', icon: <AlignJustify size={14} /> },
+                        ].map((spacing) => (
+                          <button
+                            key={spacing.id}
+                            onClick={() => updateSettings({ lineSpacing: spacing.id as any })}
+                            className={`flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                          >
+                            {spacing.icon}
+                            {spacing.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </section>
+                )}
 
-                  {/* Line Spacing */}
-                  <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Line Spacing
-                    </h3>
-                    <div className="flex rounded-2xl bg-slate-100 p-1">
-                      {[
-                        { id: 'normal', label: 'Normal', icon: <AlignJustify size={14} /> },
-                        { id: 'relaxed', label: 'Relaxed', icon: <AlignJustify size={14} /> },
-                        { id: 'wide', label: 'Wide', icon: <AlignJustify size={14} /> },
-                      ].map((spacing) => (
-                        <button
-                          key={spacing.id}
-                          onClick={() => updateSettings({ lineSpacing: spacing.id as any })}
-                          className={`flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-                        >
-                          {spacing.icon}
-                          {spacing.label}
-                        </button>
-                      ))}
+                {activeCategory === 'assessment' && (
+                  <section className="space-y-6">
+                    <div>
+                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Assessment Style</h3>
+                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                        {['gamified', 'traditional', 'balanced'].map((style) => (
+                          <button
+                            key={style}
+                            onClick={() => updateSettings({ assessmentStyle: style as any })}
+                            className={`flex-1 rounded-xl py-2 text-xs font-bold capitalize transition-all ${settings.assessmentStyle === style ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                          >
+                            {style}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Learning Mode</h3>
+                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                        {[
+                          { id: 'video', label: 'Video First' },
+                          { id: 'text', label: 'Text First' },
+                        ].map((mode) => (
+                          <button
+                            key={mode.id}
+                            onClick={() => updateSettings({ contentMode: mode.id as any })}
+                            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.contentMode === mode.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                          >
+                            {mode.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Assessment Timing</h3>
+                      <div className="flex rounded-2xl bg-slate-100 p-1">
+                        {[
+                          { id: 'inModule', label: 'After each part' },
+                          { id: 'endOfModule', label: 'At the end' },
+                        ].map((time) => (
+                          <button
+                            key={time.id}
+                            onClick={() => updateSettings({ assessmentTime: time.id as any })}
+                            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.assessmentTime === time.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                          >
+                            {time.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </section>
+                )}
 
-                  {/* Assessment Style */}
+                {activeCategory === 'account' && (
                   <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Assessment Style
-                    </h3>
-                    <div className="flex rounded-2xl bg-slate-100 p-1">
-                      {['gamified', 'traditional', 'balanced'].map((style) => (
-                        <button
-                          key={style}
-                          onClick={() => updateSettings({ assessmentStyle: style as any })}
-                          className={`flex-1 rounded-xl py-2 text-xs font-bold capitalize transition-all ${settings.assessmentStyle === style ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-                        >
-                          {style}
-                        </button>
-                      ))}
+                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Account Actions</h3>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <button
+                        onClick={handleRetakePreTest}
+                        className="flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-100 bg-white p-4 text-slate-600 transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
+                      >
+                        <RotateCcw size={20} />
+                        <span className="text-sm font-bold">Retake Pre-Test</span>
+                      </button>
+                      <button
+                        onClick={() => setShowResetConfirm(true)}
+                        className="flex items-center justify-center gap-2 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-amber-600 transition-all hover:bg-amber-100"
+                      >
+                        <RotateCcw size={20} />
+                        <span className="text-sm font-bold">Reset Progress</span>
+                      </button>
                     </div>
                   </section>
-
-                  {/* Content Mode */}
-                  <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Learning Mode
-                    </h3>
-                    <div className="flex rounded-2xl bg-slate-100 p-1">
-                      {[
-                        { id: 'video', label: 'Video First' },
-                        { id: 'text', label: 'Text First' }
-                      ].map((mode) => (
-                        <button
-                          key={mode.id}
-                          onClick={() => updateSettings({ contentMode: mode.id as any })}
-                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.contentMode === mode.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-                        >
-                          {mode.label}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Assessment Timing */}
-                  <section>
-                    <h3 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400">
-                      Assessment Timing
-                    </h3>
-                    <div className="flex rounded-2xl bg-slate-100 p-1">
-                      {[
-                        { id: 'inModule', label: 'After each part' },
-                        { id: 'endOfModule', label: 'At the end' }
-                      ].map((time) => (
-                        <button
-                          key={time.id}
-                          onClick={() => updateSettings({ assessmentTime: time.id as any })}
-                          className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.assessmentTime === time.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-                        >
-                          {time.label}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                </div>
+                )}
               </div>
             </div>
 
