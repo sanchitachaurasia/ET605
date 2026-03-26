@@ -70,6 +70,9 @@ export default function App() {
 
     const timeoutId = window.setTimeout(() => {
       saveStudentProgressToCloud({
+        name: session.name,
+        school: session.school,
+        class: session.class,
         preTestScore: session.preTestScore,
         preTestDone: session.preTestDone,
         preTestProgress: session.preTestProgress,

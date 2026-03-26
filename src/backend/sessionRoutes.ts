@@ -136,6 +136,9 @@ router.post('/profile', verifyToken, async (req: Request, res: Response) => {
     const progress = req.body?.progress || {};
 
     const allowedKeys = [
+      'name',
+      'school',
+      'class',
       'preTestScore',
       'preTestDone',
       'preTestProgress',

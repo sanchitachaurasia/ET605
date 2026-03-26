@@ -4,6 +4,7 @@ import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette
 import { useSessionStore } from '../store/sessionStore';
 import { AccessibilityMode, GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { firebaseAuth, sendResetPasswordEmail } from '../lib/firebaseAuth';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -24,6 +25,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState<SettingsCategory>('mechanics');
+  const [profileName, setProfileName] = React.useState('');
+  const [profileSchool, setProfileSchool] = React.useState('');
+  const [profileClass, setProfileClass] = React.useState('');
+  const [accountMessage, setAccountMessage] = React.useState('');
+  const [accountError, setAccountError] = React.useState('');
   const firstControlRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
@@ -33,6 +39,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     }, 40);
     return () => window.clearTimeout(id);
   }, [activeCategory, isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen || !session) return;
+    setProfileName(session.name || '');
+    setProfileSchool(session.school || '');
+    setProfileClass(session.class || '');
+    setAccountMessage('');
+    setAccountError('');
+  }, [isOpen, session]);
 
   if (!session) return null;
 
@@ -96,6 +111,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     updateSession({ preTestDone: false });
     onClose();
     navigate('/pre-test');
+  };
+
+  const handleProfileSave = () => {
+    setAccountError('');
+    setAccountMessage('');
+
+    const trimmedName = profileName.trim();
+    const trimmedSchool = profileSchool.trim();
+    const trimmedClass = profileClass.trim();
+
+    if (!trimmedName) {
+      setAccountError('Name is required.');
+      return;
+    }
+
+    updateSession({
+      name: trimmedName,
+      school: trimmedSchool,
+      class: trimmedClass,
+    });
+    setAccountMessage('Profile updated successfully.');
+  };
+
+  const handlePasswordChange = async () => {
+    setAccountError('');
+    setAccountMessage('');
+
+    const email = firebaseAuth.currentUser?.email || (session as any)?.email;
+    if (!email) {
+      setAccountError('No account email found. Please login again and try.');
+      return;
+    }
+
+    const result = await sendResetPasswordEmail(email);
+    if (result.success) {
+      setAccountMessage('Password reset link sent to your email.');
+    } else {
+      setAccountError(result.error || 'Could not send reset link.');
+    }
   };
 
   const colors = [
@@ -436,15 +490,78 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 )}
 
                 {activeCategory === 'account' && (
-                  <section>
+                  <section className="space-y-4">
                     <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.account.headingClass}`}>Account Actions</h3>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <p className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Profile</p>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                          <label className="mb-1 block text-xs font-bold text-slate-600">Name</label>
+                          <input
+                            ref={(el) => {
+                              if (activeCategory === 'account' && el) {
+                                firstControlRef.current = el;
+                              }
+                            }}
+                            value={profileName}
+                            onChange={(e) => setProfileName(e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-brand"
+                            placeholder="Student name"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-bold text-slate-600">School</label>
+                          <input
+                            value={profileSchool}
+                            onChange={(e) => setProfileSchool(e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-brand"
+                            placeholder="School"
+                          />
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-bold text-slate-600">Class</label>
+                          <input
+                            value={profileClass}
+                            onChange={(e) => setProfileClass(e.target.value)}
+                            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-brand"
+                            placeholder="Class"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleProfileSave}
+                        className="mt-3 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+                      >
+                        Save Profile
+                      </button>
+                    </div>
+
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                      <p className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Security</p>
+                      <button
+                        onClick={handlePasswordChange}
+                        className="rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:border-brand"
+                      >
+                        Change Password
+                      </button>
+                      <p className="mt-2 text-xs text-slate-500">We will send a secure reset link to your registered email.</p>
+                    </div>
+
+                    {accountMessage && (
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+                        {accountMessage}
+                      </div>
+                    )}
+
+                    {accountError && (
+                      <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+                        {accountError}
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <button
-                        ref={(el) => {
-                          if (activeCategory === 'account' && el) {
-                            firstControlRef.current = el;
-                          }
-                        }}
                         onClick={handleRetakePreTest}
                         className="flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-100 bg-white p-4 text-slate-600 transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
                       >
