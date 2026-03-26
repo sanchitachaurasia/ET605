@@ -62,22 +62,21 @@ export default function PreTest() {
   };
 
   const preTestPreferenceOptions = (() => {
-    const uniqueByFormat: Record<string, { id: string; format: GameFormat; label: string }> = {};
-    for (let index = 0; index < preTestQuestions.length; index += 1) {
-      const question = preTestQuestions[index];
-      const key = question.format;
-      if (!uniqueByFormat[key]) {
-        uniqueByFormat[key] = {
-          id: question.id,
-          format: question.format,
-          label: `Q${index + 1}. ${question.text}`,
-        };
-      }
-      if (Object.keys(uniqueByFormat).length === 3) {
-        break;
-      }
-    }
-    return Object.values(uniqueByFormat);
+    const formatDescriptions: Record<GameFormat, string> = {
+      [GameFormat.DRAG_SORT]: 'Drag items into the right category',
+      [GameFormat.RAINDROP]: 'Catch correct falling drops quickly',
+      [GameFormat.SPIN_WHEEL]: 'Spin and answer from outcome chance',
+      [GameFormat.BAR_BUILDER]: 'Read or compare bar graph values',
+      [GameFormat.HOTSPOT]: 'Tap the correct value hotspot',
+      [GameFormat.PIE_SLICER]: 'Understand pie sectors and percentages',
+      [GameFormat.TALLY_TAP]: 'Read and count tally patterns',
+    };
+
+    return Object.values(GameFormat).map((format) => ({
+      id: format,
+      format,
+      label: formatDescriptions[format],
+    }));
   })();
 
   const togglePreferredQuestion = (questionId: string) => {
@@ -120,7 +119,31 @@ export default function PreTest() {
       );
     }
     if (format === GameFormat.RAINDROP) {
-      return <div className="text-xl">💧💧💧</div>;
+      return (
+        <div className="relative h-10 w-12 overflow-hidden rounded-lg bg-sky-50">
+          <motion.span
+            animate={{ y: [-10, 18], opacity: [0, 1, 0.8] }}
+            transition={{ duration: 1.1, repeat: Infinity, ease: 'linear' }}
+            className="absolute left-1 top-0 text-sm"
+          >
+            💧
+          </motion.span>
+          <motion.span
+            animate={{ y: [-12, 18], opacity: [0, 1, 0.8] }}
+            transition={{ duration: 1, repeat: Infinity, delay: 0.25, ease: 'linear' }}
+            className="absolute left-5 top-0 text-sm"
+          >
+            💧
+          </motion.span>
+          <motion.span
+            animate={{ y: [-8, 18], opacity: [0, 1, 0.8] }}
+            transition={{ duration: 0.9, repeat: Infinity, delay: 0.45, ease: 'linear' }}
+            className="absolute left-8 top-0 text-sm"
+          >
+            💧
+          </motion.span>
+        </div>
+      );
     }
     if (format === GameFormat.SPIN_WHEEL) {
       return <div className="h-8 w-8 rounded-full bg-[conic-gradient(#ef4444_0deg_130deg,#3b82f6_130deg_320deg,#22c55e_320deg_360deg)]" />;
@@ -130,6 +153,15 @@ export default function PreTest() {
     }
     if (format === GameFormat.TALLY_TAP) {
       return <div className="font-mono text-sm tracking-widest text-slate-700">|||| /</div>;
+    }
+    if (format === GameFormat.HOTSPOT) {
+      return (
+        <div className="relative h-8 w-12 rounded-lg border border-slate-200 bg-white">
+          <span className="absolute left-1 top-1 text-[10px] font-bold text-slate-400">4</span>
+          <span className="absolute right-1 top-1 rounded-full bg-brand px-1 text-[9px] font-black text-white">7</span>
+          <span className="absolute left-1 bottom-1 text-[10px] font-bold text-slate-400">5</span>
+        </div>
+      );
     }
     return <div className="text-xl">🧩</div>;
   };
@@ -224,13 +256,9 @@ export default function PreTest() {
       return;
     }
 
-    const selectedFormats = Array.from(
-      new Set(
-        preTestQuestions
-          .filter((question) => preferredQuestionIds.includes(question.id))
-          .map((question) => question.format)
-      )
-    );
+    const selectedFormats = preTestPreferenceOptions
+      .filter((option) => preferredQuestionIds.includes(option.id))
+      .map((option) => option.format);
 
     const enabledMechanics = selectedFormats.length > 0
       ? selectedFormats
@@ -310,7 +338,7 @@ export default function PreTest() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className={cn(
-            "w-full max-w-md rounded-3xl bg-white p-6 sm:p-8 shadow-xl",
+            "w-full max-w-6xl rounded-3xl bg-white p-5 sm:p-6 lg:p-8 shadow-xl",
             "border border-slate-100"
           )}
         >
@@ -332,7 +360,7 @@ export default function PreTest() {
             <section>
               <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
               <p className="mb-3 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>
-              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {preTestPreferenceOptions.map((option) => {
                   const selected = preferredQuestionIds.includes(option.id);
                   return (
@@ -351,7 +379,7 @@ export default function PreTest() {
                         <div className={cn('h-4 w-4 rounded-full border-2', selected ? 'border-brand bg-brand' : 'border-slate-300')} />
                       </div>
                       <p className="text-[11px] font-black uppercase tracking-wide text-brand">{getFormatLabel(option.format)}</p>
-                      <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-700">{option.label}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-700">{option.label}</p>
                     </button>
                   );
                 })}
