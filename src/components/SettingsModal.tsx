@@ -731,13 +731,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <LogOut size={20} />
                   Logout
                 </button>
-                <button
-                  onClick={() => setShowResetConfirm(true)}
-                  className="flex items-center gap-2 font-bold text-amber-500 hover:text-amber-600"
-                >
-                  <RotateCcw size={20} />
-                  Reset Progress
-                </button>
               </div>
               <button
                 onClick={onClose}
