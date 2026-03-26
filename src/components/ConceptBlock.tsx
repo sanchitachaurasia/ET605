@@ -4,8 +4,8 @@ import { Concept, LearningPath } from '../types';
 import { GameQuestion } from './GameQuestion';
 import { RemediationBlock } from './RemediationBlock';
 import { useConstraintEngine } from '../hooks/useConstraintEngine';
-import { useAdaptivePath } from '../hooks/useAdaptivePath';
 import { useSessionStore } from '../store/sessionStore';
+import { remedialContentBank, getReferenceTagsForQuestion } from '../data/remedialContentBank';
 
 declare global {
   interface Window {
@@ -46,9 +46,22 @@ interface ConceptBlockProps {
   concept: Concept;
   path: LearningPath;
   onComplete: () => void;
+  onStageChange?: (stage: 'content' | 'examples' | 'questions') => void;
+  onPreviousPage?: () => void;
+  entryStage?: 'content' | 'examples' | 'questions';
+  entryQuestionMode?: 'first' | 'last';
 }
 
-export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, path, onComplete }) => {
+export const ConceptBlock: React.FC<ConceptBlockProps> = ({
+  moduleId,
+  concept,
+  path,
+  onComplete,
+  onStageChange,
+  onPreviousPage,
+  entryStage = 'content',
+  entryQuestionMode = 'first',
+}) => {
   const { session } = useSessionStore();
   const rawSettings = session?.settings || ({} as any);
   const settings = {
@@ -56,7 +69,6 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
     contentMode: rawSettings.contentMode || 'video',
     assessmentTime: rawSettings.assessmentTime || 'inModule',
   };
-  const { remediationAutoExpand } = useAdaptivePath();
   const [currentQuestionIdx, setCurrentQuestionIdx] = React.useState(0);
   const [isRemediationExpanded, setIsRemediationExpanded] = React.useState(false);
   
@@ -70,7 +82,9 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
   const [showRushingPrompt, setShowRushingPrompt] = React.useState(false);
   const [contentReviewed, setContentReviewed] = React.useState(false);
   const [segmentComplete, setSegmentComplete] = React.useState(false);
+  const [conceptStage, setConceptStage] = React.useState<'content' | 'examples' | 'questions'>('content');
   const checkpointRef = React.useRef<HTMLDivElement | null>(null);
+  const rushingPromptRef = React.useRef<HTMLDivElement | null>(null);
   const localVideoRef = React.useRef<HTMLVideoElement | null>(null);
   const ytPlayerRef = React.useRef<any>(null);
   const ytPollRef = React.useRef<number | null>(null);
@@ -82,6 +96,35 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
     setShowRushingPrompt(false);
     setSegmentComplete(false);
   }, [concept.id]);
+
+  React.useEffect(() => {
+    setConceptStage(entryStage);
+    setIsCorrectAnswered(false);
+    setIsRemediationExpanded(false);
+
+    if (entryStage === 'questions' && filteredQuestions.length > 0 && entryQuestionMode === 'last') {
+      setCurrentQuestionIdx(filteredQuestions.length - 1);
+    } else {
+      setCurrentQuestionIdx(0);
+    }
+  }, [concept.id, entryStage, entryQuestionMode, filteredQuestions.length]);
+
+  React.useEffect(() => {
+    onStageChange?.(conceptStage);
+  }, [conceptStage, onStageChange]);
+
+  React.useEffect(() => {
+    if (!showRushingPrompt) return;
+
+    const id = window.setTimeout(() => {
+      const el = rushingPromptRef.current;
+      if (!el) return;
+      const top = window.scrollY + el.getBoundingClientRect().top - 90;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, 50);
+
+    return () => window.clearTimeout(id);
+  }, [showRushingPrompt]);
 
   const stopSegmentPoll = React.useCallback(() => {
     if (ytPollRef.current !== null) {
@@ -134,6 +177,17 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
     onComplete();
   };
 
+  const handleContinueToExamples = () => {
+    if (checkRushing()) return;
+    setConceptStage('examples');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleStartQuestions = () => {
+    setConceptStage('questions');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // If no questions or questions are at end of module, and we are in-module, just show content
   React.useEffect(() => {
     if ((filteredQuestions.length === 0 || !showQuestionsInBlock)) {
@@ -144,6 +198,8 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
 
   const currentQuestion = filteredQuestions[currentQuestionIdx];
   const { attempts, showHint, showRemediation, onAnswer } = useConstraintEngine(currentQuestion?.id || '', moduleId);
+  const remediationEntry = currentQuestion ? remedialContentBank[currentQuestion.id] : undefined;
+  const referenceTags = currentQuestion ? getReferenceTagsForQuestion(currentQuestion.id) : [];
   const segmentedVideoUrl = buildSegmentedVideoUrl(concept);
   const hasYouTubeEmbed = concept.videoUrl.includes('youtube.com/embed/');
   const isLocalVideoFile = /\.mp4($|\?)/i.test(concept.videoUrl) || concept.videoUrl.startsWith('/');
@@ -291,83 +347,184 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
   ]);
 
   const showQuestions = showQuestionsInBlock && filteredQuestions.length > 0;
+  const showExampleStage = conceptStage === 'examples';
+  const showQuestionStage = conceptStage === 'questions';
+
+  const pathMeta = path === 'A'
+    ? {
+        label: 'Explorer Path Examples',
+        tone: 'Guided walkthroughs with concrete checkpoints.',
+        badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+      }
+    : path === 'C'
+      ? {
+          label: 'Pioneer Path Examples',
+          tone: 'Challenge-first examples with deeper reasoning.',
+          badgeClass: 'bg-violet-100 text-violet-800 border-violet-200',
+        }
+      : {
+          label: 'Adventurer Path Examples',
+          tone: 'Balanced examples for understanding and application.',
+          badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
+        };
+
+  const pathSpecificExamples = concept.workedExamples.map((ex, i) => {
+    if (path === 'A') {
+      return {
+        title: `Guided ${i + 1}: ${ex.explanation.replace(/^Example\s*\d+:\s*/i, '')}`,
+        steps: [
+          ...ex.steps.map((step, idx) => `Step ${idx + 1}: ${step}`),
+          'Checkpoint: Say the rule in your own words before moving ahead.',
+        ],
+      };
+    }
+
+    if (path === 'C') {
+      return {
+        title: `Challenge ${i + 1}: ${ex.explanation.replace(/^Example\s*\d+:\s*/i, '')}`,
+        steps: [
+          ...ex.steps.map((step, idx) => `Reasoning ${idx + 1}: ${step}`),
+          'Extension: Change one value and predict how the final result changes.',
+        ],
+      };
+    }
+
+    return {
+      title: `Applied ${i + 1}: ${ex.explanation.replace(/^Example\s*\d+:\s*/i, '')}`,
+      steps: [
+        ...ex.steps,
+        'Use-it-now: Where would you apply this in school or daily life?',
+      ],
+    };
+  });
 
   return (
     <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="rounded-3xl bg-white p-8 shadow-xl"
-      >
-        <h2 className="mb-6 text-3xl font-black text-slate-900">{concept.title}</h2>
-        <div className="prose prose-slate max-w-none">
-          <p className="text-lg leading-relaxed text-slate-600">{concept.textContent}</p>
-        </div>
+      {conceptStage === 'content' && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl bg-white p-8 shadow-xl"
+        >
+          {onPreviousPage && (
+            <button
+              onClick={onPreviousPage}
+              className="mb-4 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100"
+            >
+              <span aria-hidden>←</span>
+              Previous Page
+            </button>
+          )}
 
-        {settings.contentMode === 'video' && (
-          <div className="mt-8 space-y-4">
-            <div className="aspect-video rounded-2xl bg-slate-100 overflow-hidden border-2 border-slate-200">
-              {hasYouTubeEmbed && youtubeVideoId ? (
-                <div id={youtubeContainerId} className="h-full w-full" />
-              ) : isLocalVideoFile ? (
-                <video
-                  ref={localVideoRef}
-                  controls
-                  className="h-full w-full bg-black"
-                  src={concept.videoUrl}
-                  preload="metadata"
-                />
-              ) : (
-                <iframe
-                  title={`${concept.title} video segment`}
-                  src={segmentedVideoUrl}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                />
-              )}
-            </div>
+          <h2 className="mb-6 text-3xl font-black text-slate-900">{concept.title}</h2>
+          <div className="prose prose-slate max-w-none">
+            <p className="text-lg leading-relaxed text-slate-600">{concept.textContent}</p>
+          </div>
 
-            {concept.videoCheckpointPrompt && (
-              <div
-                ref={checkpointRef}
-                className="rounded-2xl border border-blue-200 bg-blue-50 p-4"
-              >
-                <p className="text-xs font-black uppercase tracking-wider text-blue-700">In-video checkpoint</p>
-                <p className="mt-1 text-sm font-semibold text-blue-900">{concept.videoCheckpointPrompt}</p>
-                {segmentComplete && (
-                  <p className="mt-2 text-xs font-bold text-emerald-700">Segment complete. Answer this before moving ahead.</p>
+          {settings.contentMode === 'video' && (
+            <div className="mt-8 space-y-4">
+              <div className="aspect-video rounded-2xl bg-slate-100 overflow-hidden border-2 border-slate-200">
+                {hasYouTubeEmbed && youtubeVideoId ? (
+                  <div id={youtubeContainerId} className="h-full w-full" />
+                ) : isLocalVideoFile ? (
+                  <video
+                    ref={localVideoRef}
+                    controls
+                    className="h-full w-full bg-black"
+                    src={concept.videoUrl}
+                    preload="metadata"
+                  />
+                ) : (
+                  <iframe
+                    title={`${concept.title} video segment`}
+                    src={segmentedVideoUrl}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
                 )}
               </div>
-            )}
-          </div>
-        )}
 
-        <div className="mt-8 space-y-4">
-          <h3 className="font-bold text-slate-800">Worked Examples:</h3>
-          {concept.workedExamples.map((ex, i) => (
-            <div key={i} className="rounded-2xl bg-blue-50 p-6 border border-blue-100">
-              <p className="font-bold text-blue-800 mb-2">{ex.explanation}</p>
-              <ul className="list-inside list-disc space-y-1 text-blue-700">
-                {ex.steps.map((step, si) => <li key={si}>{step}</li>)}
-              </ul>
+              {concept.videoCheckpointPrompt && (
+                <div
+                  ref={checkpointRef}
+                  className="rounded-2xl border border-blue-200 bg-blue-50 p-4"
+                >
+                  <p className="text-xs font-black uppercase tracking-wider text-blue-700">In-video checkpoint</p>
+                  <p className="mt-1 text-sm font-semibold text-blue-900">{concept.videoCheckpointPrompt}</p>
+                  {segmentComplete && (
+                    <p className="mt-2 text-xs font-bold text-emerald-700">Segment complete. Answer this before moving ahead.</p>
+                  )}
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+          )}
 
-        {!showQuestions && (
           <button
-            onClick={handleReadConcept}
+            onClick={handleContinueToExamples}
             className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
           >
-            I've Read This Concept
+            Next: Path-Specific Examples →
           </button>
-        )}
-      </motion.div>
+        </motion.div>
+      )}
+
+      {showExampleStage && !showRushingPrompt && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-3xl bg-white p-8 shadow-xl"
+        >
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <button
+              onClick={() => setConceptStage('content')}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100"
+            >
+              <span aria-hidden>←</span>
+              Previous Page
+            </button>
+            <span className={`rounded-full border px-3 py-1 text-xs font-black uppercase tracking-wider ${pathMeta.badgeClass}`}>
+              {pathMeta.label}
+            </span>
+          </div>
+
+          <p className="mb-5 text-sm font-semibold text-slate-600">{pathMeta.tone}</p>
+
+          <div className="space-y-4">
+            {pathSpecificExamples.map((ex, i) => (
+              <div key={i} className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
+                <p className="mb-2 font-black text-blue-900">{ex.title}</p>
+                <ul className="list-inside list-disc space-y-1 text-blue-800">
+                  {ex.steps.map((step, si) => (
+                    <li key={si}>{step}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+
+          {showQuestions ? (
+            <button
+              onClick={handleStartQuestions}
+              className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
+            >
+              Start Practice Questions
+            </button>
+          ) : (
+            <button
+              onClick={handleReadConcept}
+              className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
+            >
+              Complete Concept
+            </button>
+          )}
+        </motion.div>
+      )}
 
       {showRushingPrompt && (
         <motion.div
+          ref={rushingPromptRef}
            initial={{ opacity: 0, y: 10 }}
            animate={{ opacity: 1, y: 0 }}
            className="rounded-3xl bg-amber-50 p-8 shadow-xl border-2 border-amber-200"
@@ -388,8 +545,16 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
         </motion.div>
       )}
 
-      {showQuestions && !showRushingPrompt && (
+      {showQuestions && showQuestionStage && !showRushingPrompt && (
         <div className="space-y-4">
+          <button
+            onClick={() => setConceptStage('examples')}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+          >
+            <span aria-hidden>←</span>
+            Back to Examples
+          </button>
+
           <GameQuestion
             key={currentQuestion.id}
             questionText={currentQuestion.text}
@@ -428,14 +593,41 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({ moduleId, concept, p
 
           {showRemediation && (
             <RemediationBlock
-              briefText={currentQuestion.remedialBrief}
+              briefText={remediationEntry?.brief || currentQuestion.remedialBrief}
               detailedContent={
-                <div>
-                  <p className="mb-4">{currentQuestion.remedialDetail}</p>
-                  <p className="font-bold">💡 Hint: {currentQuestion.hint}</p>
+                <div className="space-y-4">
+                  {referenceTags.length > 0 && (
+                    <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
+                      <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-700">Refer Content Tags</p>
+                      <div className="flex flex-wrap gap-2">
+                        {referenceTags.map((tag) => (
+                          <span key={tag} className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-amber-800">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="mt-2 text-xs font-semibold text-amber-700">Review the module content sections matching these tags, then retry.</p>
+                    </div>
+                  )}
+
+                  {remediationEntry ? (
+                    remediationEntry.details.map((section) => (
+                      <div key={section.heading}>
+                        <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">{section.heading}</p>
+                        <ul className="list-disc space-y-1 pl-5">
+                          {section.points.map((point) => (
+                            <li key={point}>{point}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))
+                  ) : (
+                    <p>{currentQuestion.remedialDetail}</p>
+                  )}
+                  <p className="font-bold">Hint: {currentQuestion.hint}</p>
                 </div>
               }
-              autoExpand={remediationAutoExpand}
+              autoExpand={false}
               isExpanded={isRemediationExpanded}
               onToggle={() => setIsRemediationExpanded(!isRemediationExpanded)}
             />

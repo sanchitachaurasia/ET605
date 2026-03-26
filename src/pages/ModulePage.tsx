@@ -8,39 +8,61 @@ import { RemediationBlock } from '../components/RemediationBlock';
 import { RocketProgress } from '../components/RocketProgress';
 import { useSessionStore } from '../store/sessionStore';
 import { useConstraintEngine } from '../hooks/useConstraintEngine';
-import { ChevronLeft, ChevronRight, CheckCircle, Settings } from 'lucide-react';
+import { ChevronLeft, CheckCircle, Settings } from 'lucide-react';
 import { SettingsModal } from '../components/SettingsModal';
 import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
 import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
+import { remedialContentBank, getReferenceTagsForQuestion } from '../data/remedialContentBank';
 
 export default function ModulePage() {
   useMergeIntegration();
   const { moduleId } = useParams();
   const navigate = useNavigate();
   const { session, updateSession } = useSessionStore();
-  const moduleProgress = session?.moduleProgress?.find(p => p.moduleId === moduleId);
+  const moduleProgress = session?.moduleProgress?.find((p) => p.moduleId === moduleId);
   const path = moduleProgress?.learningPath || session?.learningPath || 'B';
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentConceptIdx, setCurrentConceptIdx] = useState(() => moduleProgress?.currentConceptIdx || 0);
   const [showFinalAssessment, setShowFinalAssessment] = useState(() => moduleProgress?.showFinalAssessment || false);
   const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => moduleProgress?.finalAssessmentIdx || 0);
+  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>('content');
+  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>('content');
+  const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
+  const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
+  const [redirectCountdown, setRedirectCountdown] = useState(3);
   const lastPersistedModuleStateRef = useRef('');
 
   useEffect(() => {
+    if (!showCompletionCelebration) return;
+
+    const timer = window.setInterval(() => {
+      setRedirectCountdown((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(timer);
+          navigate('/dashboard');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [showCompletionCelebration, navigate]);
+
+  useEffect(() => {
     if (!session || !session.studentId) {
-      // Session not yet hydrated from localStorage
       return;
     }
-    
-    const prog = session.moduleProgress?.find(p => p.moduleId === moduleId);
+
+    const prog = session.moduleProgress?.find((p) => p.moduleId === moduleId);
     if (prog) {
       setCurrentConceptIdx(prog.currentConceptIdx || 0);
       setShowFinalAssessment(prog.showFinalAssessment || false);
       setFinalAssessmentIdx(prog.finalAssessmentIdx || 0);
     }
-  }, [moduleId, session?.studentId]);
+  }, [moduleId, session?.studentId, session?.moduleProgress]);
 
   useEffect(() => {
     if (!session || !moduleId) return;
@@ -56,7 +78,7 @@ export default function ModulePage() {
     lastPersistedModuleStateRef.current = serialized;
 
     const newProgress = [...(session.moduleProgress || [])];
-    const modIdx = newProgress.findIndex(p => p.moduleId === moduleId);
+    const modIdx = newProgress.findIndex((p) => p.moduleId === moduleId);
 
     if (modIdx >= 0) {
       newProgress[modIdx] = {
@@ -82,45 +104,50 @@ export default function ModulePage() {
 
     updateSession({ moduleProgress: newProgress });
   }, [session, moduleId, currentConceptIdx, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
-  
-  const module = chapterData.find(m => m.id === moduleId);
+
+  const module = chapterData.find((m) => m.id === moduleId);
 
   if (!module || !session) return <div>Module not found</div>;
 
-  const filteredConcepts = module.concepts.filter(c => !c.path || c.path === path);
-  const rawSettings = session?.settings || ({} as any);
+  const filteredConcepts = module.concepts.filter((c) => !c.path || c.path === path);
+  const rawSettings = session.settings || ({} as any);
   const settings = {
     ...rawSettings,
     darkMode: rawSettings.darkMode || false,
     assessmentTime: rawSettings.assessmentTime || 'inModule',
   };
-  const currentConcept = filteredConcepts[currentConceptIdx];
-  const progress = showFinalAssessment 
-    ? 100 
-    : ((currentConceptIdx + 1) / filteredConcepts.length) * 100;
 
-  const allQuestions = filteredConcepts.flatMap(c => c.questions.filter(q => !q.path || q.path === path));
+  const currentConcept = filteredConcepts[currentConceptIdx];
+  const conceptStageWeight = conceptStage === 'content' ? 0.33 : conceptStage === 'examples' ? 0.66 : 1;
+  const progress = showFinalAssessment
+    ? 100
+    : Math.min(((currentConceptIdx + conceptStageWeight) / Math.max(filteredConcepts.length, 1)) * 100, 100);
+
+  const allQuestions = filteredConcepts.flatMap((c) => c.questions.filter((q) => !q.path || q.path === path));
 
   const handleExitClick = () => {
-    if (window.confirm("Are you sure you want to exit? Your session progress will be recorded.")) {
-      if (session) {
-        submitMergePayload(session, 'exited_midway', false);
-      }
+    if (window.confirm('Are you sure you want to exit? Your session progress will be recorded.')) {
+      submitMergePayload(session, 'exited_midway', { isSync: false });
       navigate('/dashboard');
     }
   };
 
   const handleModuleComplete = async () => {
-    // Module Complete
+    setShowCompletionCelebration(true);
+    setRedirectCountdown(3);
+
     confetti({
       particleCount: 200,
       spread: 100,
-      origin: { y: 0.6 }
+      origin: { y: 0.6 },
     });
-    
-    // Update progress in session
-    const newProgress = [...(session?.moduleProgress || [])];
-    const modIdx = newProgress.findIndex(p => p.moduleId === moduleId);
+
+    window.setTimeout(() => {
+      confetti({ particleCount: 140, spread: 120, origin: { y: 0.58 } });
+    }, 350);
+
+    const newProgress = [...(session.moduleProgress || [])];
+    const modIdx = newProgress.findIndex((p) => p.moduleId === moduleId);
     if (modIdx >= 0) {
       newProgress[modIdx].completed = true;
       newProgress[modIdx].showFinalAssessment = false;
@@ -138,33 +165,26 @@ export default function ModulePage() {
         finalAssessmentIdx: 0,
       });
     }
-    
-    updateSession({ moduleProgress: newProgress, xp: (session?.xp || 0) + 500, sessionStatus: 'completed' });
-    
-    // Submit completion payload to Merge Team
-    if (session) {
-      try {
-        await submitMergePayload(session, 'completed', { isSync: false });
-        console.log('✓ Completion payload submitted to Merge Team');
-      } catch (error) {
-        console.error('Error submitting completion payload:', error);
-        // Continue to dashboard even if submission fails (retry will be handled)
-      }
+
+    updateSession({ moduleProgress: newProgress, xp: (session.xp || 0) + 500, sessionStatus: 'completed' });
+
+    try {
+      await submitMergePayload(session, 'completed', { isSync: false });
+    } catch (error) {
+      console.error('Error submitting completion payload:', error);
     }
-    
-    setTimeout(() => {
-      navigate('/dashboard');
-    }, 3000);
   };
 
   const handleConceptComplete = () => {
     if (currentConceptIdx < filteredConcepts.length - 1) {
       const nextIdx = currentConceptIdx + 1;
       setCurrentConceptIdx(nextIdx);
+      setConceptEntryStage('content');
+      setConceptEntryQuestionMode('first');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      const newProgress = [...(session?.moduleProgress || [])];
-      const modIdx = newProgress.findIndex(p => p.moduleId === moduleId);
+
+      const newProgress = [...(session.moduleProgress || [])];
+      const modIdx = newProgress.findIndex((p) => p.moduleId === moduleId);
       if (modIdx >= 0) {
         newProgress[modIdx] = { ...newProgress[modIdx], currentConceptIdx: nextIdx };
       } else {
@@ -176,31 +196,40 @@ export default function ModulePage() {
           learningPath: path,
           masteryMap: {},
           attemptsCount: {},
-          currentConceptIdx: nextIdx
+          currentConceptIdx: nextIdx,
         });
       }
       updateSession({ moduleProgress: newProgress });
+    } else if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
+      setShowFinalAssessment(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
-        setShowFinalAssessment(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        handleModuleComplete();
-      }
+      handleModuleComplete();
     }
+  };
+
+  const handlePreviousConcept = () => {
+    if (currentConceptIdx <= 0) return;
+    setCurrentConceptIdx((prev) => prev - 1);
+    setConceptEntryStage('questions');
+    setConceptEntryQuestionMode('last');
+    setConceptStage('questions');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const [isFinalCorrect, setIsFinalCorrect] = useState(false);
   const [isRemediationExpanded, setIsRemediationExpanded] = useState(false);
 
   const currentFinalQuestion = allQuestions[finalAssessmentIdx];
-  const { attempts, showHint, showRemediation, onAnswer: onFinalAnswer } = useConstraintEngine(currentFinalQuestion?.id || 'final', moduleId);
+  const { showHint, showRemediation, onAnswer: onFinalAnswer } = useConstraintEngine(currentFinalQuestion?.id || 'final', moduleId);
+  const finalRemediationEntry = currentFinalQuestion ? remedialContentBank[currentFinalQuestion.id] : undefined;
+  const finalReferenceTags = currentFinalQuestion ? getReferenceTagsForQuestion(currentFinalQuestion.id) : [];
 
   const handleFinalQuestionComplete = () => {
     setIsFinalCorrect(false);
     setIsRemediationExpanded(false);
     if (finalAssessmentIdx < allQuestions.length - 1) {
-      setFinalAssessmentIdx(prev => prev + 1);
+      setFinalAssessmentIdx((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       handleModuleComplete();
@@ -208,35 +237,28 @@ export default function ModulePage() {
   };
 
   return (
-    <div className={cn(
-      "min-h-screen transition-colors duration-500 pb-20",
-      settings.darkMode ? "bg-slate-950 text-white" : "bg-slate-50 text-slate-900"
-    )}>
-      <header className={cn(
-        "sticky top-0 z-10 px-6 py-4 shadow-sm backdrop-blur-md transition-colors",
-        settings.darkMode ? "bg-slate-900/80 border-b border-slate-800" : "bg-white/80"
-      )}>
-        <div className="mx-auto max-w-4xl flex items-center justify-between gap-8">
-          <button 
+    <div className={cn('min-h-screen pb-20 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900')}>
+      <header
+        className={cn(
+          'sticky top-0 z-10 px-6 py-4 shadow-sm backdrop-blur-md transition-colors',
+          settings.darkMode ? 'border-b border-slate-800 bg-slate-900/80' : 'bg-white/80'
+        )}
+      >
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-8">
+          <button
             onClick={handleExitClick}
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-full transition-colors",
-              settings.darkMode ? "bg-slate-800 text-slate-400 hover:bg-slate-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
+              settings.darkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             )}
           >
             <ChevronLeft size={24} />
           </button>
-          
+
           <div className="flex-1">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-bold text-slate-500">
-                {showFinalAssessment ? "Module Assessment" : `Module ${module.id}: ${module.title}`}
-              </span>
-              <span className="text-sm font-bold text-brand">
-                {showFinalAssessment 
-                  ? `${finalAssessmentIdx + 1} / ${allQuestions.length}`
-                  : `${currentConceptIdx + 1} / ${filteredConcepts.length}`}
-              </span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-bold text-slate-500">{showFinalAssessment ? 'Module Assessment' : `Module ${module.id}: ${module.title}`}</span>
+              <span className="text-sm font-bold text-brand">{showFinalAssessment ? `${finalAssessmentIdx + 1} / ${allQuestions.length}` : `${currentConceptIdx + 1} / ${filteredConcepts.length}`}</span>
             </div>
             <RocketProgress progress={progress} />
           </div>
@@ -244,8 +266,8 @@ export default function ModulePage() {
           <button
             onClick={() => setIsSettingsOpen(true)}
             className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95",
-              settings.darkMode ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"
+              'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95',
+              settings.darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'
             )}
           >
             <Settings size={20} />
@@ -253,35 +275,29 @@ export default function ModulePage() {
         </div>
       </header>
 
-      <main className="mx-auto mt-8 max-w-4xl px-6">
+      <main className="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
+
         <AnimatePresence mode="wait">
           {!showFinalAssessment ? (
-            <motion.div
-              key={currentConcept.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.4 }}
-            >
-              <ConceptBlock 
+            <motion.div key={currentConcept.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.4 }}>
+              <ConceptBlock
                 moduleId={moduleId!}
-                concept={currentConcept} 
+                concept={currentConcept}
                 path={path}
                 onComplete={handleConceptComplete}
+                onStageChange={setConceptStage}
+                onPreviousPage={currentConceptIdx > 0 ? handlePreviousConcept : undefined}
+                entryStage={conceptEntryStage}
+                entryQuestionMode={conceptEntryQuestionMode}
               />
             </motion.div>
           ) : (
-            <motion.div
-              key="final-assessment"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="space-y-8"
-            >
+            <motion.div key="final-assessment" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
               <div className="rounded-3xl bg-white p-8 shadow-xl">
-                <h2 className="text-3xl font-black text-slate-900 mb-4">Module Assessment</h2>
-                <p className="text-slate-600">Great job reading through the concepts! Now, let's test your knowledge with a final assessment.</p>
+                <h2 className="mb-4 text-3xl font-black text-slate-900">Module Assessment</h2>
+                <p className="text-slate-600">Great job reading through the concepts! Now, let&apos;s test your knowledge with a final assessment.</p>
               </div>
-              
+
               <GameQuestion
                 key={allQuestions[finalAssessmentIdx].id}
                 questionText={allQuestions[finalAssessmentIdx].text}
@@ -299,12 +315,8 @@ export default function ModulePage() {
               />
 
               {showHint && !showRemediation && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-2xl bg-amber-50 p-6 border border-amber-200"
-                >
-                  <p className="font-bold text-amber-800 flex items-center gap-2">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+                  <p className="flex items-center gap-2 font-bold text-amber-800">
                     <span className="text-xl">💡</span> Hint
                   </p>
                   <p className="mt-2 text-amber-700">{allQuestions[finalAssessmentIdx].hint}</p>
@@ -313,14 +325,41 @@ export default function ModulePage() {
 
               {showRemediation && (
                 <RemediationBlock
-                  briefText={allQuestions[finalAssessmentIdx].remedialBrief}
+                  briefText={finalRemediationEntry?.brief || allQuestions[finalAssessmentIdx].remedialBrief}
                   detailedContent={
-                    <div>
-                      <p className="mb-4">{allQuestions[finalAssessmentIdx].remedialDetail}</p>
-                      <p className="font-bold">💡 Hint: {allQuestions[finalAssessmentIdx].hint}</p>
+                    <div className="space-y-4">
+                      {finalReferenceTags.length > 0 && (
+                        <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
+                          <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-700">Refer Content Tags</p>
+                          <div className="flex flex-wrap gap-2">
+                            {finalReferenceTags.map((tag) => (
+                              <span key={tag} className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-amber-800">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="mt-2 text-xs font-semibold text-amber-700">Review the module content sections matching these tags, then retry.</p>
+                        </div>
+                      )}
+
+                      {finalRemediationEntry ? (
+                        finalRemediationEntry.details.map((section) => (
+                          <div key={section.heading}>
+                            <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">{section.heading}</p>
+                            <ul className="list-disc space-y-1 pl-5">
+                              {section.points.map((point) => (
+                                <li key={point}>{point}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))
+                      ) : (
+                        <p>{allQuestions[finalAssessmentIdx].remedialDetail}</p>
+                      )}
+                      <p className="font-bold">Hint: {allQuestions[finalAssessmentIdx].hint}</p>
                     </div>
                   }
-                  autoExpand={true}
+                  autoExpand={false}
                   isExpanded={isRemediationExpanded}
                   onToggle={() => setIsRemediationExpanded(!isRemediationExpanded)}
                 />
@@ -331,7 +370,7 @@ export default function ModulePage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   onClick={handleFinalQuestionComplete}
-                  className="w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
                 >
                   Next Question
                   <span className="text-xl">→</span>
@@ -343,6 +382,34 @@ export default function ModulePage() {
       </main>
 
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+      <AnimatePresence>
+        {showCompletionCelebration && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-6 backdrop-blur-sm">
+            <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="w-full max-w-md rounded-3xl bg-white p-7 text-center shadow-2xl">
+              <motion.div
+                initial={{ scale: 0.7, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100"
+              >
+                <CheckCircle size={34} className="text-emerald-600" />
+              </motion.div>
+
+              <h3 className="text-2xl font-black text-slate-900">Module Completed!</h3>
+              <p className="mt-2 text-sm font-semibold text-slate-600">Awesome work. Your progress has been saved.</p>
+
+              <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 3, ease: 'linear' }} className="mt-5 h-2 rounded-full bg-emerald-500" />
+
+              <p className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-500">Returning to dashboard in {redirectCountdown}s</p>
+
+              <button onClick={() => navigate('/dashboard')} className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-slate-800">
+                Go now
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
