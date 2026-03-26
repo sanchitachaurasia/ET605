@@ -21,12 +21,18 @@ export const useConstraintEngine = (conceptId: string, moduleId?: string) => {
     setAttempts(newAttempts);
 
     const wasAttempted = session?.chapterMetrics?.questionsAttempted?.includes(conceptId);
+    const attemptCounts = session?.chapterMetrics?.questionAttemptCounts || {};
     
     updateMetrics({
       correctAnswers: isCorrect ? (session?.chapterMetrics?.correctAnswers || 0) + 1 : (session?.chapterMetrics?.correctAnswers || 0),
       wrongAnswers: !isCorrect ? (session?.chapterMetrics?.wrongAnswers || 0) + 1 : (session?.chapterMetrics?.wrongAnswers || 0),
       retryCount: wasAttempted || newAttempts > 1 ? (session?.chapterMetrics?.retryCount || 0) + 1 : (session?.chapterMetrics?.retryCount || 0),
-      questionsAttempted: Array.from(new Set([...(session?.chapterMetrics?.questionsAttempted || []), conceptId]))
+      questionsAttempted: Array.from(new Set([...(session?.chapterMetrics?.questionsAttempted || []), conceptId])),
+      questionAttemptCounts: {
+        ...attemptCounts,
+        [conceptId]: (attemptCounts[conceptId] || 0) + 1,
+      },
+      lastActivityTime: Date.now(),
     });
 
     if (!isCorrect) {

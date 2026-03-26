@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSessionStore } from './store/sessionStore';
 import { saveStudentProgressToCloud } from './lib/firebaseAuth';
+import {
+  flushTrackingEvents,
+  setTrackingSession,
+  setupGlobalClickstream,
+  trackTelemetryEvent,
+} from './analytics/telemetry';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import PreTest from './pages/PreTest';
@@ -13,6 +19,34 @@ import PostTest from './pages/PostTest';
 
 export default function App() {
   const session = useSessionStore(state => state.session);
+
+  useEffect(() => {
+    if (!session?.studentId) return;
+
+    const trackingSessionId = session.chapterSessionId || `app_${session.studentId}`;
+    setTrackingSession({
+      studentId: session.studentId,
+      sessionId: trackingSessionId,
+      chapterId: 'grade8_data_handling',
+    });
+
+    const teardownClickstream = setupGlobalClickstream();
+    trackTelemetryEvent('navigation', {
+      event_data: {
+        path: window.location.pathname,
+        source: 'app_mount',
+      }
+    });
+
+    const flushTimer = window.setInterval(() => {
+      flushTrackingEvents().catch(() => undefined);
+    }, 30000);
+
+    return () => {
+      teardownClickstream();
+      window.clearInterval(flushTimer);
+    };
+  }, [session?.studentId, session?.chapterSessionId]);
 
   useEffect(() => {
     if (session?.settings?.themeColor) {
@@ -82,6 +116,7 @@ export default function App() {
         recommendedStyle: session.recommendedStyle,
         learnerProfile: session.learnerProfile,
         moduleProgress: session.moduleProgress,
+        moduleTracking: session.moduleTracking,
         badgesEarned: session.badgesEarned,
         postTestScore: session.postTestScore,
         journeyComplete: session.journeyComplete,

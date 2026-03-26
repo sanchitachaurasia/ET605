@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { StudentSession, GameFormat, LearningPath, UserSettings } from '../types';
 import { gameConfig } from '../config/gameConfig';
+import { trackTelemetryEvent } from '../analytics/telemetry';
 
 export const DEFAULT_SETTINGS: UserSettings = {
   enabledMechanics: [
@@ -87,8 +88,17 @@ export const useSessionStore = create<SessionState>()(
             correctAnswers: 0,
             wrongAnswers: 0,
             questionsAttempted: [],
+            questionAttemptCounts: {},
             retryCount: 0,
             hintsUsed: 0,
+            totalHintsEmbedded: 0,
+            activeTimeSpent: 0,
+            idleTimeSpent: 0,
+            lastActivityTime: Date.now(),
+            optionMarkedCount: 0,
+            optionChangedCount: 0,
+            remedialClicks: 0,
+            settingsChanges: 0,
           };
           const next = { ...current, ...updates };
           const newSession = { ...state.session, chapterMetrics: next };
@@ -102,7 +112,25 @@ export const useSessionStore = create<SessionState>()(
           if (!state.session) return state;
           const currentSettings = state.session.settings || DEFAULT_SETTINGS;
           const newSettings = { ...currentSettings, ...updates };
+          const currentMetrics = state.session.chapterMetrics;
           const newSession = { ...state.session, settings: newSettings };
+
+          if (state.session.chapterSessionId) {
+            trackTelemetryEvent('settings_changed', {
+              event_data: {
+                updates,
+              }
+            });
+          }
+
+          if (currentMetrics) {
+            newSession.chapterMetrics = {
+              ...currentMetrics,
+              settingsChanges: (currentMetrics.settingsChanges || 0) + 1,
+              lastActivityTime: Date.now(),
+            };
+          }
+
           return {
             session: newSession,
             users: state.users.map(u => u.studentId === newSession.studentId ? newSession : u)

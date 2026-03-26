@@ -8,6 +8,7 @@ import { RocketProgress } from '../components/RocketProgress';
 import { SettingsModal } from '../components/SettingsModal';
 import { useResponsive, ResponsiveContainer } from '../components/ResponsiveLayout';
 import { cn } from '../lib/utils';
+import { getAdminAnalyticsExportUrl } from '../lib/firebaseAuth';
 
 export default function Dashboard() {
   const { session } = useSessionStore();
@@ -71,6 +72,15 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="flex gap-2 sm:gap-4 items-center flex-shrink-0">
+              <a
+                href={getAdminAnalyticsExportUrl(session.studentId, 10000)}
+                className={cn(
+                  "rounded-full px-3 py-2 text-xs font-bold",
+                  settings.darkMode ? "bg-slate-800 text-slate-200" : "bg-white border border-slate-200 text-slate-700"
+                )}
+              >
+                Download My Activity
+              </a>
               <div className={cn(
                 "flex items-center gap-2 rounded-full px-3 sm:px-4 py-2 text-amber-700",
                 settings.darkMode ? "bg-amber-900/30" : "bg-amber-100"

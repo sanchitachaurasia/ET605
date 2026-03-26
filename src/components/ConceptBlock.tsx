@@ -6,6 +6,7 @@ import { RemediationBlock } from './RemediationBlock';
 import { useConstraintEngine } from '../hooks/useConstraintEngine';
 import { useSessionStore } from '../store/sessionStore';
 import { remedialContentBank, getReferenceTagsForQuestion } from '../data/remedialContentBank';
+import { trackTelemetryEvent } from '../analytics/telemetry';
 
 declare global {
   interface Window {
@@ -62,7 +63,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   entryStage = 'content',
   entryQuestionMode = 'first',
 }) => {
-  const { session } = useSessionStore();
+  const { session, updateMetrics } = useSessionStore();
   const rawSettings = session?.settings || ({} as any);
   const settings = {
     ...rawSettings,
@@ -73,6 +74,8 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const [isRemediationExpanded, setIsRemediationExpanded] = React.useState(false);
   
   const [isCorrectAnswered, setIsCorrectAnswered] = React.useState(false);
+  const trackedHintQuestionRef = React.useRef<string | null>(null);
+  const trackedRemediationQuestionRef = React.useRef<string | null>(null);
   
   const filteredQuestions = concept.questions.filter(q => !q.path || q.path === path);
 
@@ -112,6 +115,16 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   React.useEffect(() => {
     onStageChange?.(conceptStage);
   }, [conceptStage, onStageChange]);
+
+  React.useEffect(() => {
+    trackTelemetryEvent('stage_change', {
+      module_id: moduleId,
+      event_data: {
+        concept_id: concept.id,
+        stage: conceptStage,
+      }
+    });
+  }, [concept.id, conceptStage, moduleId]);
 
   React.useEffect(() => {
     if (!showRushingPrompt) return;
@@ -165,6 +178,13 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
   const handleNext = () => {
     setIsCorrectAnswered(false);
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      question_id: currentQuestion?.id,
+      event_data: {
+        action: 'next_question',
+      }
+    });
     if (currentQuestionIdx < filteredQuestions.length - 1) {
       setCurrentQuestionIdx(prev => prev + 1);
     } else {
@@ -179,11 +199,25 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
   const handleContinueToExamples = () => {
     if (checkRushing()) return;
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'content_to_examples',
+        concept_id: concept.id,
+      }
+    });
     setConceptStage('examples');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleStartQuestions = () => {
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'examples_to_questions',
+        concept_id: concept.id,
+      }
+    });
     setConceptStage('questions');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -198,6 +232,35 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
   const currentQuestion = filteredQuestions[currentQuestionIdx];
   const { attempts, showHint, showRemediation, onAnswer } = useConstraintEngine(currentQuestion?.id || '', moduleId);
+    React.useEffect(() => {
+      if (!currentQuestion?.id || !showHint) return;
+      if (trackedHintQuestionRef.current === currentQuestion.id) return;
+      trackedHintQuestionRef.current = currentQuestion.id;
+
+      trackTelemetryEvent('hint_opened', {
+        module_id: moduleId,
+        question_id: currentQuestion.id,
+        event_data: {
+          attempts,
+        }
+      });
+    }, [attempts, currentQuestion?.id, moduleId, showHint]);
+
+    React.useEffect(() => {
+      if (!currentQuestion?.id || !showRemediation) return;
+      if (trackedRemediationQuestionRef.current === currentQuestion.id) return;
+      trackedRemediationQuestionRef.current = currentQuestion.id;
+
+      updateMetrics({ remedialClicks: (session?.chapterMetrics?.remedialClicks || 0) + 1 });
+      trackTelemetryEvent('remedial_opened', {
+        module_id: moduleId,
+        question_id: currentQuestion.id,
+        event_data: {
+          attempts,
+        }
+      });
+    }, [attempts, currentQuestion?.id, moduleId, session?.chapterMetrics?.remedialClicks, showRemediation, updateMetrics]);
+
   const remediationEntry = currentQuestion ? remedialContentBank[currentQuestion.id] : undefined;
   const referenceTags = currentQuestion ? getReferenceTagsForQuestion(currentQuestion.id) : [];
   const segmentedVideoUrl = buildSegmentedVideoUrl(concept);
@@ -557,6 +620,8 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
           <GameQuestion
             key={currentQuestion.id}
+            questionId={currentQuestion.id}
+            moduleId={moduleId}
             questionText={currentQuestion.text}
             options={currentQuestion.options}
             correctAnswer={currentQuestion.correctAnswer}
@@ -630,6 +695,14 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
               autoExpand={false}
               isExpanded={isRemediationExpanded}
               onToggle={() => setIsRemediationExpanded(!isRemediationExpanded)}
+              onExpandedChange={(expanded) => {
+                if (!expanded) return;
+                updateMetrics({ remedialClicks: (session?.chapterMetrics?.remedialClicks || 0) + 1 });
+                trackTelemetryEvent('remedial_expanded', {
+                  module_id: moduleId,
+                  question_id: currentQuestion.id,
+                });
+              }}
             />
           )}
         </div>

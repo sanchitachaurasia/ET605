@@ -10,6 +10,7 @@ interface RemediationBlockProps {
   autoExpand: boolean;
   isExpanded: boolean;
   onToggle: () => void;
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
 export const RemediationBlock = ({
@@ -18,6 +19,7 @@ export const RemediationBlock = ({
   autoExpand,
   isExpanded,
   onToggle,
+  onExpandedChange,
 }: RemediationBlockProps) => {
   const { session } = useSessionStore();
   const darkMode = session?.settings?.darkMode;
@@ -46,7 +48,11 @@ export const RemediationBlock = ({
         </div>
         {!autoExpand && (
           <button
-            onClick={onToggle}
+            onClick={() => {
+              const nextExpanded = !expanded;
+              onExpandedChange?.(nextExpanded);
+              onToggle();
+            }}
             className={cn(
               "flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-90",
               darkMode ? "bg-amber-900/40 text-amber-400 hover:bg-amber-900/60" : "bg-amber-200 text-amber-700 hover:bg-amber-300"

@@ -14,12 +14,13 @@ import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
 import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
 import { remedialContentBank, getReferenceTagsForQuestion } from '../data/remedialContentBank';
+import { trackTelemetryEvent, updateTrackingModule, flushTrackingEvents } from '../analytics/telemetry';
 
 export default function ModulePage() {
   useMergeIntegration();
   const { moduleId } = useParams();
   const navigate = useNavigate();
-  const { session, updateSession } = useSessionStore();
+  const { session, updateSession, updateMetrics } = useSessionStore();
   const moduleProgress = session?.moduleProgress?.find((p) => p.moduleId === moduleId);
   const path = moduleProgress?.learningPath || session?.learningPath || 'B';
 
@@ -31,8 +32,13 @@ export default function ModulePage() {
   const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>('content');
   const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(3);
   const lastPersistedModuleStateRef = useRef('');
+  const lastInteractionRef = useRef(Date.now());
+  const activeSecondsRef = useRef(0);
+  const idleSecondsRef = useRef(0);
 
   useEffect(() => {
     if (!showCompletionCelebration) return;
@@ -63,6 +69,78 @@ export default function ModulePage() {
       setFinalAssessmentIdx(prog.finalAssessmentIdx || 0);
     }
   }, [moduleId, session?.studentId, session?.moduleProgress]);
+
+  useEffect(() => {
+    if (!session || !moduleId) return;
+
+    updateTrackingModule(moduleId);
+    trackTelemetryEvent('module_open', {
+      module_id: moduleId,
+      event_data: {
+        concept_index: currentConceptIdx,
+      }
+    });
+
+    const markInteraction = () => {
+      lastInteractionRef.current = Date.now();
+      updateMetrics({ lastActivityTime: Date.now() });
+    };
+
+    const interactions: Array<keyof WindowEventMap> = ['click', 'keydown', 'mousemove', 'touchstart', 'scroll'];
+    interactions.forEach((evt) => window.addEventListener(evt, markInteraction, { passive: true }));
+
+    const timeTicker = window.setInterval(() => {
+      const idleMs = Date.now() - lastInteractionRef.current;
+      if (idleMs < 45000) {
+        activeSecondsRef.current += 1;
+      } else {
+        idleSecondsRef.current += 1;
+      }
+
+      if ((activeSecondsRef.current + idleSecondsRef.current) % 10 === 0) {
+        updateMetrics({
+          activeTimeSpent: (session.chapterMetrics?.activeTimeSpent || 0) + activeSecondsRef.current,
+          idleTimeSpent: (session.chapterMetrics?.idleTimeSpent || 0) + idleSecondsRef.current,
+          lastActivityTime: lastInteractionRef.current,
+        });
+        activeSecondsRef.current = 0;
+        idleSecondsRef.current = 0;
+      }
+    }, 1000);
+
+    return () => {
+      interactions.forEach((evt) => window.removeEventListener(evt, markInteraction));
+      window.clearInterval(timeTicker);
+      trackTelemetryEvent('module_exit', {
+        module_id: moduleId,
+        event_data: {
+          concept_index: currentConceptIdx,
+        }
+      });
+      if (activeSecondsRef.current || idleSecondsRef.current) {
+        updateMetrics({
+          activeTimeSpent: (session.chapterMetrics?.activeTimeSpent || 0) + activeSecondsRef.current,
+          idleTimeSpent: (session.chapterMetrics?.idleTimeSpent || 0) + idleSecondsRef.current,
+          lastActivityTime: lastInteractionRef.current,
+        });
+        activeSecondsRef.current = 0;
+        idleSecondsRef.current = 0;
+      }
+      flushTrackingEvents().catch(() => undefined);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moduleId, session?.studentId]);
+
+  useEffect(() => {
+    if (!moduleId) return;
+    trackTelemetryEvent('stage_change', {
+      module_id: moduleId,
+      event_data: {
+        concept_index: currentConceptIdx,
+        concept_stage: conceptStage,
+      }
+    });
+  }, [conceptStage, currentConceptIdx, moduleId]);
 
   useEffect(() => {
     if (!session || !moduleId) return;
@@ -126,9 +204,26 @@ export default function ModulePage() {
   const allQuestions = filteredConcepts.flatMap((c) => c.questions.filter((q) => !q.path || q.path === path));
 
   const handleExitClick = () => {
-    if (window.confirm('Are you sure you want to exit? Your session progress will be recorded.')) {
-      submitMergePayload(session, 'exited_midway', { isSync: false });
+    setShowExitConfirm(true);
+  };
+
+  const handleConfirmExit = async () => {
+    if (isExiting) return;
+    setIsExiting(true);
+    try {
+      trackTelemetryEvent('session_end', {
+        module_id: moduleId,
+        event_data: {
+          status: 'exited_midway',
+          trigger: 'exit_button',
+        }
+      });
+      await flushTrackingEvents();
+      await submitMergePayload(session, 'exited_midway', { isSync: false });
+    } finally {
+      setShowExitConfirm(false);
       navigate('/dashboard');
+      setIsExiting(false);
     }
   };
 
@@ -167,8 +262,21 @@ export default function ModulePage() {
     }
 
     updateSession({ moduleProgress: newProgress, xp: (session.xp || 0) + 500, sessionStatus: 'completed' });
+    trackTelemetryEvent('module_complete', {
+      module_id: moduleId,
+      event_data: {
+        xp_after: (session.xp || 0) + 500,
+      }
+    });
+    trackTelemetryEvent('session_end', {
+      module_id: moduleId,
+      event_data: {
+        status: 'completed',
+      }
+    });
 
     try {
+      await flushTrackingEvents();
       await submitMergePayload(session, 'completed', { isSync: false });
     } catch (error) {
       console.error('Error submitting completion payload:', error);
@@ -219,6 +327,8 @@ export default function ModulePage() {
 
   const [isFinalCorrect, setIsFinalCorrect] = useState(false);
   const [isRemediationExpanded, setIsRemediationExpanded] = useState(false);
+  const hintTrackedForQuestionRef = useRef<string | null>(null);
+  const remediationTrackedForQuestionRef = useRef<string | null>(null);
 
   const currentFinalQuestion = allQuestions[finalAssessmentIdx];
   const { showHint, showRemediation, onAnswer: onFinalAnswer } = useConstraintEngine(currentFinalQuestion?.id || 'final', moduleId);
@@ -235,6 +345,31 @@ export default function ModulePage() {
       handleModuleComplete();
     }
   };
+
+  useEffect(() => {
+    if (!moduleId || !currentFinalQuestion?.id) return;
+    if (!showHint) return;
+    if (hintTrackedForQuestionRef.current === currentFinalQuestion.id) return;
+
+    hintTrackedForQuestionRef.current = currentFinalQuestion.id;
+    trackTelemetryEvent('hint_opened', {
+      module_id: moduleId,
+      question_id: currentFinalQuestion.id,
+    });
+  }, [showHint, moduleId, currentFinalQuestion?.id]);
+
+  useEffect(() => {
+    if (!moduleId || !currentFinalQuestion?.id) return;
+    if (!showRemediation) return;
+    if (remediationTrackedForQuestionRef.current === currentFinalQuestion.id) return;
+
+    remediationTrackedForQuestionRef.current = currentFinalQuestion.id;
+    updateMetrics({ remedialClicks: (session.chapterMetrics?.remedialClicks || 0) + 1 });
+    trackTelemetryEvent('remedial_opened', {
+      module_id: moduleId,
+      question_id: currentFinalQuestion.id,
+    });
+  }, [showRemediation, moduleId, currentFinalQuestion?.id, session?.chapterMetrics?.remedialClicks, updateMetrics]);
 
   return (
     <div className={cn('min-h-screen pb-20 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900')}>
@@ -300,6 +435,8 @@ export default function ModulePage() {
 
               <GameQuestion
                 key={allQuestions[finalAssessmentIdx].id}
+                questionId={allQuestions[finalAssessmentIdx].id}
+                moduleId={moduleId}
                 questionText={allQuestions[finalAssessmentIdx].text}
                 options={allQuestions[finalAssessmentIdx].options}
                 correctAnswer={allQuestions[finalAssessmentIdx].correctAnswer}
@@ -362,6 +499,15 @@ export default function ModulePage() {
                   autoExpand={false}
                   isExpanded={isRemediationExpanded}
                   onToggle={() => setIsRemediationExpanded(!isRemediationExpanded)}
+                  onExpandedChange={(expanded) => {
+                    if (expanded) {
+                      updateMetrics({ remedialClicks: (session.chapterMetrics?.remedialClicks || 0) + 1 });
+                      trackTelemetryEvent('remedial_expanded', {
+                        module_id: moduleId,
+                        question_id: allQuestions[finalAssessmentIdx].id,
+                      });
+                    }
+                  }}
                 />
               )}
 
@@ -384,6 +530,37 @@ export default function ModulePage() {
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8 }}
+              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+            >
+              <h3 className="text-2xl font-black text-slate-900">Exit Module?</h3>
+              <p className="mt-2 text-sm font-semibold text-slate-600">Are you sure you want to exit? Your session progress will be recorded.</p>
+
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => setShowExitConfirm(false)}
+                  disabled={isExiting}
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmExit}
+                  disabled={isExiting}
+                  className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isExiting ? 'Saving...' : 'Exit'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {showCompletionCelebration && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-6 backdrop-blur-sm">
             <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="w-full max-w-md rounded-3xl bg-white p-7 text-center shadow-2xl">

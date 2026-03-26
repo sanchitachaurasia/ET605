@@ -39,11 +39,66 @@ export interface SessionMetrics {
   correctAnswers: number;
   wrongAnswers: number;
   questionsAttempted: string[]; // unique question IDs
+  questionAttemptCounts: Record<string, number>;
   retryCount: number;
   hintsUsed: number;
   totalHintsEmbedded: number;
   activeTimeSpent: number; // in seconds
+  idleTimeSpent: number; // in seconds
   lastActivityTime: number;
+  optionMarkedCount: number;
+  optionChangedCount: number;
+  remedialClicks: number;
+  settingsChanges: number;
+}
+
+export type TrackingEventType =
+  | 'session_start'
+  | 'session_end'
+  | 'module_open'
+  | 'module_exit'
+  | 'module_complete'
+  | 'stage_change'
+  | 'question_view'
+  | 'question_attempt'
+  | 'question_correct'
+  | 'question_wrong'
+  | 'option_marked'
+  | 'option_changed'
+  | 'hint_opened'
+  | 'remedial_opened'
+  | 'remedial_expanded'
+  | 'settings_changed'
+  | 'navigation'
+  | 'clickstream'
+  | 'focus_change'
+  | 'heartbeat';
+
+export interface TrackingEvent {
+  id: string;
+  type: TrackingEventType;
+  timestamp: string;
+  student_id: string;
+  session_id: string;
+  chapter_id: string;
+  module_id?: string;
+  question_id?: string;
+  event_data?: Record<string, any>;
+  context?: {
+    url?: string;
+    referrer?: string;
+    userAgent?: string;
+    language?: string;
+    timezone?: string;
+    platform?: string;
+    screen?: string;
+    viewport?: string;
+    ip?: string;
+    city?: string;
+    country?: string;
+    device_id?: string;
+    online?: boolean;
+  };
 }
 
 export interface PayloadRetryQueue {
@@ -89,6 +144,39 @@ export interface ModuleProgress {
   finalAssessmentIdx?: number;
 }
 
+export interface ModuleTracking {
+  moduleId: string;
+  path: LearningPath;
+  visits: number;
+  startedAt: number;
+  lastVisitedAt: number;
+  completedAt?: number;
+  exitedAt?: number;
+  totalTimeSpentSec: number;
+  activeTimeSpentSec: number;
+  stageTransitions: number;
+  contentViews: number;
+  examplesViews: number;
+  questionViews: number;
+  conceptAdvances: number;
+  previousPageClicks: number;
+  nextClicks: number;
+  questionAttempts: number;
+  correctAnswers: number;
+  incorrectAnswers: number;
+  hintsShown: number;
+  remediationShown: number;
+  remediationExpanded: number;
+  videoPlayCount: number;
+  videoPauseCount: number;
+  videoSeekCount: number;
+  videoEndedCount: number;
+  videoWatchTimeSec: number;
+  exitPromptShownCount: number;
+  exitsConfirmed: number;
+  completionCount: number;
+}
+
 export interface UserSettings {
   enabledMechanics: GameFormat[];
   darkMode: boolean;
@@ -124,6 +212,7 @@ export interface StudentSession {
   learnerProfile?: LearnerProfile;
   settings: UserSettings;
   moduleProgress: ModuleProgress[];
+  moduleTracking?: Record<string, ModuleTracking>;
   badgesEarned: string[];
   postTestScore: number | null;
   journeyComplete: boolean;

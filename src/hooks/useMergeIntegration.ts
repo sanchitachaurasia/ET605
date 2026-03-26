@@ -9,6 +9,13 @@ import {
 } from '../integration/payloadRetryManager';
 import { chapterData } from '../data/chapterData';
 import { SessionMetrics } from '../types';
+import { saveSessionPayload } from '../lib/firebaseAuth';
+import {
+  flushTrackingEvents,
+  setTrackingSession,
+  trackTelemetryEvent,
+  updateTrackingModule
+} from '../analytics/telemetry';
 
 export interface SubmitMergePayloadOptions {
   chapterId?: string;
@@ -46,11 +53,12 @@ export const submitMergePayload = async (
   });
 
   const completionRatio = session.moduleProgress
-    ? Math.min(session.moduleProgress.filter((m: any) => m.completed).length / Math.max(Object.keys(chapterData).length, 1), 1)
+    ? Math.min(session.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterData.length, 1), 1)
     : 0;
 
   const m = session.chapterMetrics as SessionMetrics;
-  const timeSpent = Math.floor((Date.now() - m.startTime) / 1000);
+  const computedTotalTime = Math.floor((Date.now() - m.startTime) / 1000);
+  const timeSpent = m.activeTimeSpent > 0 ? m.activeTimeSpent : computedTotalTime;
 
   const payload: MergeSessionPayload = mergePayloadFormatter(
     session,
@@ -74,6 +82,9 @@ export const submitMergePayload = async (
 
   // Attempt submission with retry mechanism
   const result = await submitPayloadWithRetry(payload, endpoint);
+
+  // Persist final payload in Firebase for user and admin querying
+  await saveSessionPayload(payload);
 
   if (result.success) {
     markSessionAsSubmitted(session.chapterSessionId);
@@ -104,20 +115,44 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
   useEffect(() => {
     // Initialize session metrics if not already done
     if (session && !session.chapterSessionId) {
+      const createdSessionId = `s_${session.studentId}_${chapterId}_${Date.now()}`;
       updateSession({
-        chapterSessionId: `s_${session.studentId}_${chapterId}_${Date.now()}`,
+        chapterSessionId: createdSessionId,
         chapterMetrics: {
           startTime: Date.now(),
           correctAnswers: 0,
           wrongAnswers: 0,
           questionsAttempted: [],
+          questionAttemptCounts: {},
           retryCount: 0,
           hintsUsed: 0,
           totalHintsEmbedded: 0,
           activeTimeSpent: 0,
-          lastActivityTime: Date.now()
+          idleTimeSpent: 0,
+          lastActivityTime: Date.now(),
+          optionMarkedCount: 0,
+          optionChangedCount: 0,
+          remedialClicks: 0,
+          settingsChanges: 0,
         } as SessionMetrics,
         sessionStatus: 'in_progress'
+      });
+
+      setTrackingSession({
+        studentId: session.studentId,
+        sessionId: createdSessionId,
+        chapterId,
+      });
+      trackTelemetryEvent('session_start', {
+        event_data: {
+          source: 'useMergeIntegration',
+        }
+      });
+    } else if (session?.studentId && session?.chapterSessionId) {
+      setTrackingSession({
+        studentId: session.studentId,
+        sessionId: session.chapterSessionId,
+        chapterId,
       });
     }
 
@@ -129,6 +164,13 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
 
     const handleUnload = () => {
       if (session && session.sessionStatus !== 'completed') {
+        trackTelemetryEvent('session_end', {
+          event_data: {
+            status: 'exited_midway',
+            reason: 'window_unload',
+          }
+        });
+        flushTrackingEvents();
         submitMergePayload(session, 'exited_midway', { chapterId, isSync: true });
       }
     };
@@ -140,6 +182,7 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
     const retryInterval = setInterval(() => {
       const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://merge.dataquest.local/api/session';
       processRetryQueue(endpoint).catch(err => console.error('Retry queue processing error:', err));
+      flushTrackingEvents().catch(err => console.error('Telemetry flush error:', err));
     }, 30000);
 
     return () => {
@@ -155,6 +198,14 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
 
   const handleConfirmExit = async () => {
     if (session) {
+      updateTrackingModule(undefined);
+      trackTelemetryEvent('session_end', {
+        event_data: {
+          status: 'exited_midway',
+          reason: 'manual_exit',
+        }
+      });
+      await flushTrackingEvents();
       await submitMergePayload(session, 'exited_midway', { chapterId });
       updateSession({ sessionStatus: 'exited_midway', exitConfirmed: true });
     }

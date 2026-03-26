@@ -4,8 +4,11 @@ import { GameFormat } from '../types';
 import { cn } from '../lib/utils';
 import { useSessionStore } from '../store/sessionStore';
 import { AlertCircle } from 'lucide-react';
+import { trackTelemetryEvent } from '../analytics/telemetry';
 
 interface GameQuestionProps {
+  questionId?: string;
+  moduleId?: string;
   questionText: string;
   options?: string[];
   correctAnswer: string | number | string[];
@@ -105,6 +108,8 @@ const renderQuestionVisual = (visual: any, darkMode: boolean) => {
 };
 
 export const GameQuestion: React.FC<GameQuestionProps> = ({
+  questionId,
+  moduleId,
   questionText,
   options = [],
   correctAnswer,
@@ -115,7 +120,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   image,
   visual,
 }) => {
-  const { session, updateSettings } = useSessionStore();
+  const { session, updateSettings, updateMetrics } = useSessionStore();
   const rawSettings = session?.settings || ({} as any);
   const settings = {
     ...rawSettings,
@@ -170,6 +175,17 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [format, styles, isPreTest, questionText, correctAnswer, image, visual]);
 
+  useEffect(() => {
+    if (!questionId) return;
+    trackTelemetryEvent('question_view', {
+      module_id: moduleId,
+      question_id: questionId,
+      event_data: {
+        format: activeFormat,
+      }
+    });
+  }, [activeFormat, moduleId, questionId]);
+
   if (!session) return null;
   const isEnabled = isPreTest || (settings.enabledMechanics?.includes(activeFormat) ?? true);
 
@@ -183,7 +199,46 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       : val === activeData.correctAnswer;
 
     setFeedback(isCorrect ? 'correct' : 'incorrect');
+    trackTelemetryEvent('question_attempt', {
+      module_id: moduleId,
+      question_id: questionId,
+      event_data: {
+        selected: val,
+        is_correct: isCorrect,
+        format: activeFormat,
+      }
+    });
+    trackTelemetryEvent(isCorrect ? 'question_correct' : 'question_wrong', {
+      module_id: moduleId,
+      question_id: questionId,
+    });
+
     onAnswer(isCorrect);
+  };
+
+  const handleSelectOption = (value: any) => {
+    const changed = selected !== null && selected !== value;
+    setSelected(value);
+
+    if (questionId) {
+      trackTelemetryEvent(changed ? 'option_changed' : 'option_marked', {
+        module_id: moduleId,
+        question_id: questionId,
+        event_data: {
+          selected: value,
+          previous: selected,
+        }
+      });
+    }
+
+    if (session?.chapterMetrics) {
+      updateMetrics({
+        optionMarkedCount: (session.chapterMetrics.optionMarkedCount || 0) + 1,
+        optionChangedCount: changed
+          ? (session.chapterMetrics.optionChangedCount || 0) + 1
+          : (session.chapterMetrics.optionChangedCount || 0),
+      });
+    }
   };
 
   if (!isEnabled) {
@@ -316,7 +371,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
                     !isArrayTarget && "cursor-pointer hover:bg-slate-200",
                     !isArrayTarget && selected === opt && (settings.darkMode ? "ring-4 ring-brand bg-slate-700" : "ring-4 ring-brand bg-slate-200")
                   )}
-                  onClick={() => !isArrayTarget && setSelected(opt)}
+                  onClick={() => !isArrayTarget && handleSelectOption(opt)}
                 >
                   {isArrayTarget ? (
                     <motion.div
@@ -356,7 +411,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
               <motion.div
                 key={i}
                 whileHover={{ scale: 1.02 }}
-                onClick={() => setSelected(opt)}
+                onClick={() => handleSelectOption(opt)}
                 className={cn(
                   "flex items-center justify-center rounded-xl border-2 cursor-pointer transition-all font-black",
                   selected === opt 
@@ -386,7 +441,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
             {activeData.options.map((opt, i) => (
               <button
                 key={i}
-                onClick={() => setSelected(opt)}
+                onClick={() => handleSelectOption(opt)}
                 className={cn(
                   "px-6 py-3 rounded-2xl border-2 font-black transition-all",
                   selected === opt 
@@ -407,7 +462,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
             <motion.button
               key={i}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelected(opt)}
+              onClick={() => handleSelectOption(opt)}
               className={cn(
                 "p-8 rounded-3xl border-2 text-3xl font-mono transition-all",
                 selected === opt 
