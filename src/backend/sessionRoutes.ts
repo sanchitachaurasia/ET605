@@ -122,6 +122,38 @@ const toIsoString = (value: any) => {
   return null;
 };
 
+const stripUndefinedDeep = (input: any): any => {
+  if (Array.isArray(input)) {
+    return input
+      .map((item) => stripUndefinedDeep(item))
+      .filter((item) => item !== undefined);
+  }
+
+  if (input && typeof input === 'object') {
+    const output: Record<string, any> = {};
+    for (const [key, value] of Object.entries(input)) {
+      const cleaned = stripUndefinedDeep(value);
+      if (cleaned !== undefined) {
+        output[key] = cleaned;
+      }
+    }
+    return output;
+  }
+
+  return input === undefined ? undefined : input;
+};
+
+const isMissingIndexError = (error: any) => {
+  const message = String(error?.message || '').toLowerCase();
+  const code = String(error?.code || '').toLowerCase();
+  return (
+    message.includes('requires an index') ||
+    message.includes('failed_precondition') ||
+    code === 'failed-precondition' ||
+    code === '9'
+  );
+};
+
 /**
  * Middleware to verify Firebase auth token
  */
@@ -388,25 +420,33 @@ router.post('/telemetry/batch', verifyToken, async (req: Request, res: Response)
 
     const ipAddress = getClientIp(req);
     const geo = await fetchGeoIp(ipAddress);
-    const batch = db.batch();
+    const eventsToStore = events.slice(0, 2000);
+    const chunkSize = 450;
 
-    for (const event of events.slice(0, 1000)) {
-      const eventRef = db.collection('analytics_events').doc();
-      const eventDoc = {
-        ...event,
-        uid: user.uid,
-        student_id: event.student_id || user.uid,
-        context: {
-          ...(event.context || {}),
-          ip: ipAddress,
-          city: event?.context?.city || geo?.city || undefined,
-          country: event?.context?.country || geo?.country || undefined,
-          countryCode: event?.context?.countryCode || geo?.countryCode || undefined,
-        },
-        serverTimestamp: admin.firestore.Timestamp.now(),
-      };
+    for (let i = 0; i < eventsToStore.length; i += chunkSize) {
+      const chunk = eventsToStore.slice(i, i + chunkSize);
+      const batch = db.batch();
 
-      batch.set(eventRef, eventDoc);
+      for (const event of chunk) {
+        const eventRef = db.collection('analytics_events').doc();
+        const eventDocRaw = {
+          ...event,
+          uid: user.uid,
+          student_id: event.student_id || user.uid,
+          context: {
+            ...(event.context || {}),
+            ip: ipAddress,
+            city: event?.context?.city || geo?.city || undefined,
+            country: event?.context?.country || geo?.country || undefined,
+            countryCode: event?.context?.countryCode || geo?.countryCode || undefined,
+          },
+          serverTimestamp: admin.firestore.Timestamp.now(),
+        };
+        const eventDoc = stripUndefinedDeep(eventDocRaw);
+        batch.set(eventRef, eventDoc);
+      }
+
+      await batch.commit();
     }
 
     const summaryRef = db.collection('students').doc(user.uid).collection('analytics').doc('summary');
@@ -441,11 +481,9 @@ router.post('/telemetry/batch', verifyToken, async (req: Request, res: Response)
       summaryUpdate.uniqueCountries = admin.firestore.FieldValue.arrayUnion(...uniqueCountries);
     }
 
-    batch.set(summaryRef, summaryUpdate, { merge: true });
+    await summaryRef.set(summaryUpdate, { merge: true });
 
-    await batch.commit();
-
-    res.json({ success: true, stored: events.length });
+    res.json({ success: true, stored: eventsToStore.length });
   } catch (error: any) {
     console.error('Telemetry batch error:', error);
     res.status(500).json({ success: false, error: error.message || 'Telemetry write failed' });
@@ -481,6 +519,7 @@ router.get('/admin/realtime', verifyAdminAccess, async (req: Request, res: Respo
 
         return {
           studentId: doc.id,
+          userId: student?.userId || doc.id,
           name: student?.name || 'Unknown',
           email: student?.email || '',
           school: student?.school || '',
@@ -522,12 +561,26 @@ router.get('/admin/user/:studentId/activity', verifyAdminAccess, async (req: Req
       return res.status(400).json({ success: false, error: 'studentId required' });
     }
 
-    const eventSnap = await db
-      .collection('analytics_events')
-      .where('student_id', '==', studentId)
-      .orderBy('serverTimestamp', 'desc')
-      .limit(limit)
-      .get();
+    let eventSnap: FirebaseFirestore.QuerySnapshot<FirebaseFirestore.DocumentData>;
+    try {
+      eventSnap = await db
+        .collection('analytics_events')
+        .where('student_id', '==', studentId)
+        .orderBy('serverTimestamp', 'desc')
+        .limit(limit)
+        .get();
+    } catch (queryError: any) {
+      if (!isMissingIndexError(queryError)) {
+        throw queryError;
+      }
+
+      // Fallback while composite index is still building/not deployed.
+      eventSnap = await db
+        .collection('analytics_events')
+        .where('student_id', '==', studentId)
+        .limit(limit)
+        .get();
+    }
 
     const payloadSnap = await db
       .collection('students')
@@ -543,7 +596,13 @@ router.get('/admin/user/:studentId/activity', verifyAdminAccess, async (req: Req
       id: doc.id,
       ...doc.data(),
       timestamp: doc.data().timestamp || toIsoString(doc.data().serverTimestamp),
-    }));
+    }))
+      .sort((a: any, b: any) => {
+        const aTs = new Date(a.timestamp || 0).getTime();
+        const bTs = new Date(b.timestamp || 0).getTime();
+        return bTs - aTs;
+      })
+      .slice(0, limit);
 
     const sessionPayloads = payloadSnap.docs.map((doc) => ({
       id: doc.id,

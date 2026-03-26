@@ -28,6 +28,10 @@ export default function AdminDashboard() {
   const [sortKey, setSortKey] = useState<SortKey>('lastActivityAt');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [eventTypeFilter, setEventTypeFilter] = useState('all');
+  const [eventStudentFilter, setEventStudentFilter] = useState('all');
+  const [eventModuleFilter, setEventModuleFilter] = useState('all');
+  const [eventSearch, setEventSearch] = useState('');
 
   const loadRealtime = async () => {
     setLoading(true);
@@ -92,6 +96,84 @@ export default function AdminDashboard() {
     });
     return rows;
   }, [users, sortDirection, sortKey]);
+
+  const eventTypeOptions = useMemo(() => {
+    const values = Array.from(new Set(events.map((event) => String(event?.type || '').trim()).filter(Boolean)));
+    return values.sort((a, b) => a.localeCompare(b));
+  }, [events]);
+
+  const eventStudentOptions = useMemo(() => {
+    const values = Array.from(new Set(events.map((event) => String(event?.student_id || event?.uid || '').trim()).filter(Boolean)));
+    return values.sort((a, b) => a.localeCompare(b));
+  }, [events]);
+
+  const studentProfileById = useMemo(() => {
+    const map: Record<string, { name: string; userId: string }> = {};
+    for (const user of users) {
+      const id = String(user?.studentId || '').trim();
+      if (!id) continue;
+      const name = String(user?.name || '').trim();
+      const userId = String(user?.userId || '').trim() || id;
+      map[id] = { name, userId };
+    }
+    return map;
+  }, [users]);
+
+  const getStudentLabel = (id: string) => {
+    const studentId = String(id || '').trim();
+    if (!studentId) return 'Unknown student';
+    const profile = studentProfileById[studentId];
+    if (!profile) return studentId;
+    if (!profile.name) return studentId;
+    return `${profile.name} (${profile.userId || studentId})`;
+  };
+
+  const getStudentFilterLabel = (id: string) => {
+    const studentId = String(id || '').trim();
+    if (!studentId) return 'Unknown student';
+    const profile = studentProfileById[studentId];
+    if (!profile) return studentId;
+    return profile.userId || studentId;
+  };
+
+  const eventModuleOptions = useMemo(() => {
+    const values = Array.from(new Set(events.map((event) => String(event?.module_id || '').trim()).filter(Boolean)));
+    return values.sort((a, b) => a.localeCompare(b));
+  }, [events]);
+
+  const filteredEvents = useMemo(() => {
+    const query = eventSearch.trim().toLowerCase();
+    const dedup = new Set<string>();
+
+    const rows = events.filter((event) => {
+      if (eventTypeFilter !== 'all' && String(event?.type || '') !== eventTypeFilter) return false;
+      if (eventStudentFilter !== 'all' && String(event?.student_id || event?.uid || '') !== eventStudentFilter) return false;
+      if (eventModuleFilter !== 'all' && String(event?.module_id || '') !== eventModuleFilter) return false;
+
+      if (!query) return true;
+
+      const haystack = [
+        event?.type,
+        event?.student_id,
+        event?.uid,
+        event?.module_id,
+        event?.question_id,
+        event?.timestamp,
+        event?.context?.country,
+        event?.context?.city,
+        JSON.stringify(event?.event_data || {}),
+      ].join(' ').toLowerCase();
+
+      return haystack.includes(query);
+    });
+
+    return rows.filter((event, index) => {
+      const key = `${event?.id || 'no-id'}::${event?.timestamp || 'no-ts'}::${event?.type || 'no-type'}`;
+      if (dedup.has(key)) return false;
+      dedup.add(key);
+      return index >= 0;
+    });
+  }, [eventModuleFilter, eventSearch, eventStudentFilter, eventTypeFilter, events]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -195,7 +277,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="font-black text-slate-800">{user.name || user.studentId}</p>
-                      <p className="text-xs font-semibold text-slate-500">{user.email || user.studentId}</p>
+                      <p className="text-xs font-semibold text-slate-500">User ID: {user.userId || user.studentId}</p>
                     </div>
                     <a
                       href={getAdminAnalyticsExportUrl(user.studentId, 20000)}
@@ -219,18 +301,78 @@ export default function AdminDashboard() {
 
           <section className="rounded-2xl bg-white p-5 shadow-sm">
             <h2 className="mb-4 text-lg font-black text-slate-900">Realtime Event Stream</h2>
+            <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <select
+                value={eventTypeFilter}
+                onChange={(e) => setEventTypeFilter(e.target.value)}
+                className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-700"
+              >
+                <option value="all">All event types</option>
+                {eventTypeOptions.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+
+              <select
+                value={eventStudentFilter}
+                onChange={(e) => setEventStudentFilter(e.target.value)}
+                className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-700"
+              >
+                <option value="all">All students</option>
+                {eventStudentOptions.map((value) => (
+                  <option key={value} value={value}>{getStudentFilterLabel(value)}</option>
+                ))}
+              </select>
+
+              <select
+                value={eventModuleFilter}
+                onChange={(e) => setEventModuleFilter(e.target.value)}
+                className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-700"
+              >
+                <option value="all">All modules</option>
+                {eventModuleOptions.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+
+              <input
+                value={eventSearch}
+                onChange={(e) => setEventSearch(e.target.value)}
+                placeholder="Search event data"
+                className="rounded-lg border border-slate-300 bg-white px-2 py-2 text-xs font-semibold text-slate-700 placeholder:text-slate-400"
+              />
+            </div>
+            <div className="mb-3 flex items-center justify-between text-xs font-semibold text-slate-500">
+              <span>Showing {filteredEvents.length} of {events.length} events</span>
+              <button
+                onClick={() => {
+                  setEventTypeFilter('all');
+                  setEventStudentFilter('all');
+                  setEventModuleFilter('all');
+                  setEventSearch('');
+                }}
+                className="rounded bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-200"
+              >
+                Clear filters
+              </button>
+            </div>
             {loading ? (
               <p className="py-8 text-center text-sm font-semibold text-slate-500">Loading events...</p>
             ) : (
               <div className="max-h-[560px] space-y-2 overflow-y-auto">
-                {events.map((event) => (
-                  <motion.div key={event.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                {filteredEvents.map((event, index) => (
+                  <motion.div key={`${event.id || 'no-id'}-${event.timestamp || 'no-ts'}-${index}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="text-xs font-black uppercase tracking-wider text-slate-500">{event.type}</p>
                         <p className="text-[11px] font-semibold text-slate-500">{event.timestamp || ''}</p>
                       </div>
-                      <span className="rounded bg-white px-2 py-1 text-[10px] font-bold text-slate-600">{event.student_id || event.uid}</span>
+                      <span
+                        className="rounded bg-white px-2 py-1 text-[10px] font-bold text-slate-600"
+                        title={event.student_id || event.uid || ''}
+                      >
+                        {getStudentLabel(event.student_id || event.uid || '')}
+                      </span>
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-600">
                       <span>Module: {event.module_id || '-'}</span>

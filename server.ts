@@ -24,7 +24,7 @@ async function startServer() {
 
     res.header("Vary", "Origin");
     res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization,x-admin-key");
 
     if (req.method === "OPTIONS") {
       return res.sendStatus(204);
@@ -62,6 +62,14 @@ async function startServer() {
   app.post("/api/session/payload", (req, res) => {
     console.log("Received Session Payload:", req.body);
     res.status(200).json({ status: "success" });
+  });
+
+  // Never let unknown API paths fall through to SPA routes.
+  app.use('/api', (_req, res) => {
+    res.status(404).json({
+      success: false,
+      error: 'API route not found',
+    });
   });
 
   // Vite middleware for development
