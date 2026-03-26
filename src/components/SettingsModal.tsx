@@ -131,7 +131,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </button>
             </div>
 
-            <div className="grid max-h-[72vh] grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px,1fr] sm:gap-8">
+            <div className="grid max-h-[72vh] grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px_1fr] sm:gap-8">
               <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:h-full sm:overflow-y-auto">
                 {[
                   { id: 'mechanics', label: 'Game Mechanics' },
