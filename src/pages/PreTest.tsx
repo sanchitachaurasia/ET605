@@ -330,18 +330,24 @@ export default function PreTest() {
   if (showRecommendation) {
     return (
       <div className={cn(
-        "flex min-h-screen items-center justify-center transition-colors",
+        "min-h-screen transition-colors",
         "p-4 sm:p-6 lg:p-8",
         "bg-gradient-to-br from-slate-50 to-blue-50"
       )}>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className={cn(
-            "w-full max-w-6xl rounded-3xl bg-white p-5 sm:p-6 lg:p-8 shadow-xl",
-            "border border-slate-100"
-          )}
-        >
+        <div className="mx-auto w-full max-w-none">
+          <div className="mb-6 sm:mb-8">
+            <h1 className={cn("font-black text-slate-900", isMobile ? "text-xl" : "text-2xl")}>Diagnostic Mission</h1>
+            <p className="mt-1 text-xs sm:text-sm text-slate-600">Mission complete. Finalize your personalized setup below.</p>
+          </div>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={cn(
+              "w-full rounded-3xl bg-white p-5 sm:p-6 lg:p-8 shadow-xl",
+              "border border-slate-100"
+            )}
+          >
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
             <span className="text-3xl">🚀</span>
           </div>
@@ -360,7 +366,7 @@ export default function PreTest() {
             <section>
               <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
               <p className="mb-3 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
                 {preTestPreferenceOptions.map((option) => {
                   const selected = preferredQuestionIds.includes(option.id);
                   return (
@@ -450,7 +456,8 @@ export default function PreTest() {
               <span>→</span>
             </button>
           </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </div>
     );
   }
