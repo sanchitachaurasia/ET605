@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithCustomToken, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, signInWithCustomToken, onAuthStateChanged, sendPasswordResetEmail, User } from 'firebase/auth';
 
 // Firebase config (public, OK to expose)
 const firebaseConfig = {
@@ -46,6 +46,7 @@ export const signUp = async (
 
     return {
       success: true,
+      student: data.student,
       user: data.student,
       token: data.token
     };
@@ -79,6 +80,7 @@ export const login = async (email: string, password: string) => {
 
     return {
       success: true,
+      student: data.student,
       user: data.student,
       token: data.token
     };
@@ -111,6 +113,7 @@ export const loginWithPin = async (email: string, pin: string) => {
 
     return {
       success: true,
+      student: data.student,
       user: data.student,
       token: data.token
     };
@@ -131,6 +134,37 @@ export const logout = async () => {
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Send password reset email
+ */
+export const sendResetPasswordEmail = async (email: string) => {
+  try {
+    await sendPasswordResetEmail(firebaseAuth, email);
+    return { success: true };
+  } catch (error: any) {
+    const code = error?.code || '';
+
+    if (code === 'auth/user-not-found') {
+      return {
+        success: false,
+        error: 'No account found for this email.'
+      };
+    }
+
+    if (code === 'auth/invalid-email') {
+      return {
+        success: false,
+        error: 'Please enter a valid email address.'
+      };
+    }
+
+    return {
+      success: false,
+      error: error.message || 'Could not send reset email.'
+    };
   }
 };
 
