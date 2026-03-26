@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify } from 'lucide-react';
+import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify, Gamepad2, SlidersHorizontal, ShieldCheck, Monitor, ClipboardCheck, UserCog } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
 import { AccessibilityMode, GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +24,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
   const [activeCategory, setActiveCategory] = React.useState<SettingsCategory>('mechanics');
+  const firstControlRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const id = window.setTimeout(() => {
+      firstControlRef.current?.focus();
+    }, 40);
+    return () => window.clearTimeout(id);
+  }, [activeCategory, isOpen]);
 
   if (!session) return null;
 
@@ -99,6 +108,53 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     { name: 'Green', value: '#22c55e' },
   ];
 
+  const categoryConfig: Record<
+    SettingsCategory,
+    {
+      label: string;
+      icon: React.ReactNode;
+      panelClass: string;
+      headingClass: string;
+    }
+  > = {
+    mechanics: {
+      label: 'Game Mechanics',
+      icon: <Gamepad2 size={16} />,
+      panelClass: 'border-blue-100 bg-blue-50/40',
+      headingClass: 'text-blue-500',
+    },
+    preferences: {
+      label: 'Preferences',
+      icon: <SlidersHorizontal size={16} />,
+      panelClass: 'border-violet-100 bg-violet-50/40',
+      headingClass: 'text-violet-500',
+    },
+    accessibility: {
+      label: 'Accessibility',
+      icon: <ShieldCheck size={16} />,
+      panelClass: 'border-emerald-100 bg-emerald-50/40',
+      headingClass: 'text-emerald-500',
+    },
+    display: {
+      label: 'Display',
+      icon: <Monitor size={16} />,
+      panelClass: 'border-amber-100 bg-amber-50/40',
+      headingClass: 'text-amber-500',
+    },
+    assessment: {
+      label: 'Assessment',
+      icon: <ClipboardCheck size={16} />,
+      panelClass: 'border-indigo-100 bg-indigo-50/40',
+      headingClass: 'text-indigo-500',
+    },
+    account: {
+      label: 'Account',
+      icon: <UserCog size={16} />,
+      panelClass: 'border-rose-100 bg-rose-50/40',
+      headingClass: 'text-rose-500',
+    },
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -144,19 +200,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <button
                     key={item.id}
                     onClick={() => setActiveCategory(item.id as SettingsCategory)}
-                    className={`mb-1 w-full rounded-xl px-3 py-2 text-left text-sm font-bold transition-all ${activeCategory === item.id ? 'bg-brand text-white shadow-sm' : 'text-slate-600 hover:bg-white'}`}
+                    aria-current={activeCategory === item.id ? 'page' : undefined}
+                    className={`mb-2 flex h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-bold transition-all ${activeCategory === item.id ? 'bg-brand text-white shadow-sm' : 'border border-transparent text-slate-600 hover:border-slate-200 hover:bg-white'}`}
                   >
-                    {item.label}
+                    <span>{categoryConfig[item.id as SettingsCategory].icon}</span>
+                    <span>{item.label}</span>
                   </button>
                 ))}
               </aside>
 
-              <div className="min-h-[420px] rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:h-full sm:overflow-y-auto sm:p-5">
+              <div className={`h-full min-h-[420px] rounded-2xl border p-4 sm:overflow-y-auto sm:p-5 ${categoryConfig[activeCategory].panelClass}`}>
                 {activeCategory === 'mechanics' && (
                   <section>
-                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Game Mechanics</h3>
+                    <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.mechanics.headingClass}`}>Game Mechanics</h3>
                     <div className="space-y-2">
-                      {Object.values(GameFormat).map((format) => (
+                      {Object.values(GameFormat).map((format, idx) => (
                         <label
                           key={format}
                           className="flex cursor-pointer items-center justify-between rounded-2xl border-2 border-slate-100 bg-white p-4 transition-all hover:border-blue-200"
@@ -164,6 +222,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           <span className="font-bold capitalize text-slate-700">{format.replace('_', ' ')}</span>
                           <div className="relative inline-flex items-center">
                             <input
+                              ref={(el) => {
+                                if (activeCategory === 'mechanics' && idx === 0 && el) {
+                                  firstControlRef.current = el;
+                                }
+                              }}
                               type="checkbox"
                               className="peer sr-only"
                               checked={enabledMechanics.includes(format)}
@@ -179,9 +242,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                 {activeCategory === 'preferences' && (
                   <section>
-                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Preferences</h3>
+                    <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.preferences.headingClass}`}>Preferences</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <button
+                        ref={(el) => {
+                          if (activeCategory === 'preferences' && el) {
+                            firstControlRef.current = el;
+                          }
+                        }}
                         onClick={() => updateSettings({ darkMode: !settings.darkMode })}
                         className={`flex flex-col items-center gap-2 rounded-2xl border-2 p-4 transition-all ${settings.darkMode ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-500'}`}
                       >
@@ -208,7 +276,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                 {activeCategory === 'accessibility' && (
                   <section>
-                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Accessibility</h3>
+                    <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.accessibility.headingClass}`}>Accessibility</h3>
                     <div className="grid grid-cols-1 gap-3">
                       {[
                         { id: 'highContrast', label: 'High Contrast', icon: <Eye size={18} /> },
@@ -218,11 +286,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         { id: 'boldText', label: 'Bold Text', icon: <span className="text-base font-black">B</span> },
                         { id: 'underlineLinks', label: 'Underline Links', icon: <span className="text-base">🔗</span> },
                         { id: 'sepia', label: 'Sepia Reading', icon: <span className="text-base">📜</span> },
-                      ].map((mode) => {
+                      ].map((mode, idx) => {
                         const selected = accessibilityModes.includes(mode.id);
                         return (
                           <button
                             key={mode.id}
+                            ref={(el) => {
+                              if (activeCategory === 'accessibility' && idx === 0 && el) {
+                                firstControlRef.current = el;
+                              }
+                            }}
                             onClick={() => toggleAccessibilityMode(mode.id as AccessibilityMode)}
                             className={`flex items-center justify-between rounded-2xl border-2 p-3 transition-all ${selected ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-600'}`}
                           >
@@ -241,11 +314,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 {activeCategory === 'display' && (
                   <section className="space-y-6">
                     <div>
-                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Theme Color</h3>
+                      <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.display.headingClass}`}>Theme Color</h3>
                       <div className="flex flex-wrap gap-3">
-                        {colors.map((c) => (
+                        {colors.map((c, idx) => (
                           <button
                             key={c.value}
+                            ref={(el) => {
+                              if (activeCategory === 'display' && idx === 0 && el) {
+                                firstControlRef.current = el;
+                              }
+                            }}
                             onClick={() => updateSettings({ themeColor: c.value })}
                             className={`h-10 w-10 rounded-full border-4 transition-all hover:scale-110 ${settings.themeColor === c.value ? 'border-white ring-2 ring-slate-900' : 'border-transparent'}`}
                             style={{ backgroundColor: c.value }}
@@ -300,11 +378,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 {activeCategory === 'assessment' && (
                   <section className="space-y-6">
                     <div>
-                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Assessment Style</h3>
+                      <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.assessment.headingClass}`}>Assessment Style</h3>
                       <div className="flex rounded-2xl bg-slate-100 p-1">
-                        {['gamified', 'traditional', 'balanced'].map((style) => (
+                        {['gamified', 'traditional', 'balanced'].map((style, idx) => (
                           <button
                             key={style}
+                            ref={(el) => {
+                              if (activeCategory === 'assessment' && idx === 0 && el) {
+                                firstControlRef.current = el;
+                              }
+                            }}
                             onClick={() => updateSettings({ assessmentStyle: style as any })}
                             className={`flex-1 rounded-xl py-2 text-xs font-bold capitalize transition-all ${settings.assessmentStyle === style ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
                           >
@@ -354,9 +437,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
                 {activeCategory === 'account' && (
                   <section>
-                    <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Account Actions</h3>
+                    <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.account.headingClass}`}>Account Actions</h3>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <button
+                        ref={(el) => {
+                          if (activeCategory === 'account' && el) {
+                            firstControlRef.current = el;
+                          }
+                        }}
                         onClick={handleRetakePreTest}
                         className="flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-100 bg-white p-4 text-slate-600 transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
                       >
