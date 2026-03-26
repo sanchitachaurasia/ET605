@@ -35,6 +35,7 @@ export default function App() {
         preTestScore: session.preTestScore,
         preTestDone: session.preTestDone,
         preTestProgress: session.preTestProgress,
+        postTestProgress: session.postTestProgress,
         learningPath: session.learningPath,
         preTestFeedback: session.preTestFeedback,
         recommendedStyle: session.recommendedStyle,

@@ -133,6 +133,7 @@ export const useSessionStore = create<SessionState>()(
             preTestScore: 0,
             preTestDone: false,
             preTestProgress: null,
+            postTestProgress: null,
             moduleProgress: [],
             badgesEarned: [],
             postTestScore: null,

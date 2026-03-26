@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { chapterData } from '../data/chapterData';
@@ -24,12 +24,56 @@ export default function ModulePage() {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentConceptIdx, setCurrentConceptIdx] = useState(() => moduleProgress?.currentConceptIdx || 0);
-  const [showFinalAssessment, setShowFinalAssessment] = useState(false);
-  const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(0);
+  const [showFinalAssessment, setShowFinalAssessment] = useState(() => moduleProgress?.showFinalAssessment || false);
+  const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => moduleProgress?.finalAssessmentIdx || 0);
+  const lastPersistedModuleStateRef = useRef('');
 
   useEffect(() => {
     setCurrentConceptIdx(moduleProgress?.currentConceptIdx || 0);
+    setShowFinalAssessment(moduleProgress?.showFinalAssessment || false);
+    setFinalAssessmentIdx(moduleProgress?.finalAssessmentIdx || 0);
   }, [moduleId]);
+
+  useEffect(() => {
+    if (!session || !moduleId) return;
+
+    const serialized = JSON.stringify({
+      moduleId,
+      currentConceptIdx,
+      showFinalAssessment,
+      finalAssessmentIdx,
+    });
+
+    if (serialized === lastPersistedModuleStateRef.current) return;
+    lastPersistedModuleStateRef.current = serialized;
+
+    const newProgress = [...(session.moduleProgress || [])];
+    const modIdx = newProgress.findIndex(p => p.moduleId === moduleId);
+
+    if (modIdx >= 0) {
+      newProgress[modIdx] = {
+        ...newProgress[modIdx],
+        currentConceptIdx,
+        showFinalAssessment,
+        finalAssessmentIdx,
+      };
+    } else {
+      newProgress.push({
+        moduleId,
+        completed: false,
+        score: 0,
+        stars: 0,
+        learningPath: path,
+        masteryMap: {},
+        attemptsCount: {},
+        currentConceptIdx,
+        showFinalAssessment,
+        finalAssessmentIdx,
+      });
+    }
+
+    updateSession({ moduleProgress: newProgress });
+  }, [session, moduleId, currentConceptIdx, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
   
   const module = chapterData.find(m => m.id === moduleId);
 
@@ -71,6 +115,8 @@ export default function ModulePage() {
     const modIdx = newProgress.findIndex(p => p.moduleId === moduleId);
     if (modIdx >= 0) {
       newProgress[modIdx].completed = true;
+      newProgress[modIdx].showFinalAssessment = false;
+      newProgress[modIdx].finalAssessmentIdx = 0;
     } else {
       newProgress.push({
         moduleId: moduleId!,
@@ -79,7 +125,9 @@ export default function ModulePage() {
         stars: 3,
         learningPath: path,
         masteryMap: {},
-        attemptsCount: {}
+        attemptsCount: {},
+        showFinalAssessment: false,
+        finalAssessmentIdx: 0,
       });
     }
     

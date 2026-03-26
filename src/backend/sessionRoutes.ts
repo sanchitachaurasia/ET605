@@ -139,6 +139,7 @@ router.post('/profile', verifyToken, async (req: Request, res: Response) => {
       'preTestScore',
       'preTestDone',
       'preTestProgress',
+      'postTestProgress',
       'learningPath',
       'preTestFeedback',
       'recommendedStyle',

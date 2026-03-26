@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, ArrowRight, Star, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -12,6 +12,9 @@ import { submitMergePayload } from '../hooks/useMergeIntegration';
 export default function PostTest() {
   const { session, updateSession } = useSessionStore();
   const navigate = useNavigate();
+  const isRestoringRef = useRef(false);
+  const lastPersistedRef = useRef('');
+  const [isProgressInitialized, setIsProgressInitialized] = useState(false);
   const [currentStep, setCurrentStep] = useState<'intro' | 'questions' | 'results'>('intro');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<boolean[]>([]);
@@ -22,6 +25,49 @@ export default function PostTest() {
       navigate('/login');
     }
   }, [session, navigate]);
+
+  useEffect(() => {
+    if (!session || session.postTestScore !== null) {
+      return;
+    }
+
+    const saved = session.postTestProgress;
+    if (!saved) {
+      setIsProgressInitialized(true);
+      return;
+    }
+
+    isRestoringRef.current = true;
+    setCurrentStep(saved.step || 'intro');
+    setCurrentQuestionIdx(saved.currentQuestionIdx || 0);
+    setAnswers(saved.answers || []);
+    setStartTime(saved.startTime || 0);
+
+    window.setTimeout(() => {
+      isRestoringRef.current = false;
+      setIsProgressInitialized(true);
+    }, 0);
+  }, [session]);
+
+  useEffect(() => {
+    if (!session || session.postTestScore !== null || isRestoringRef.current || !isProgressInitialized) {
+      return;
+    }
+
+    const payload = {
+      step: currentStep,
+      currentQuestionIdx,
+      answers,
+      startTime,
+    };
+
+    const serialized = JSON.stringify(payload);
+    if (serialized === lastPersistedRef.current) {
+      return;
+    }
+    lastPersistedRef.current = serialized;
+    updateSession({ postTestProgress: payload as any });
+  }, [session, currentStep, currentQuestionIdx, answers, startTime, isProgressInitialized, updateSession]);
 
   if (!session) return null;
 
@@ -51,7 +97,8 @@ export default function PostTest() {
     // Update session with post-test results
     updateSession({
       postTestScore: score,
-      completed: true
+      completed: true,
+      postTestProgress: null,
     });
     
     if (session) {

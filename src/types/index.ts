@@ -60,6 +60,13 @@ export interface PreTestProgress {
   pendingResults: any | null;
 }
 
+export interface PostTestProgress {
+  step: 'intro' | 'questions' | 'results';
+  currentQuestionIdx: number;
+  answers: boolean[];
+  startTime: number;
+}
+
 export interface ModuleProgress {
   moduleId: string;
   completed: boolean;
@@ -69,6 +76,8 @@ export interface ModuleProgress {
   masteryMap: Record<string, 'untried' | 'mastered' | 'masteredWithSupport' | 'struggling' | 'attempted'>;
   attemptsCount: Record<string, number>;
   currentConceptIdx?: number;
+  showFinalAssessment?: boolean;
+  finalAssessmentIdx?: number;
 }
 
 export interface UserSettings {
@@ -86,6 +95,7 @@ export interface StudentSession {
   chapterSessionId?: string;
   chapterMetrics?: SessionMetrics;
   preTestProgress?: PreTestProgress | null;
+  postTestProgress?: PostTestProgress | null;
   sessionStatus?: SessionStatus;
   exitConfirmed?: boolean;
   isStruggling?: boolean;
