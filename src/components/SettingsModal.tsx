@@ -393,15 +393,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Text Size</h3>
                       <div className="flex rounded-2xl bg-slate-100 p-1">
                         {[
-                          { id: 'small', label: 'S' },
-                          { id: 'medium', label: 'M' },
-                          { id: 'large', label: 'L' },
-                          { id: 'xLarge', label: 'XL' },
+                          { id: 'small', label: 'Small (14px)' },
+                          { id: 'medium', label: 'Medium (16px)' },
+                          { id: 'large', label: 'Large (18px)' },
+                          { id: 'xLarge', label: 'Extra Large (19px)' },
                         ].map((size) => (
                           <button
                             key={size.id}
                             onClick={() => updateSettings({ textSize: size.id as any })}
-                            className={`flex-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                            className={`flex-1 rounded-xl py-2 text-[11px] font-bold transition-all ${settings.textSize === size.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
                           >
                             {size.label}
                           </button>
@@ -413,14 +413,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Line Spacing</h3>
                       <div className="flex rounded-2xl bg-slate-100 p-1">
                         {[
-                          { id: 'normal', label: 'Normal', icon: <AlignJustify size={14} /> },
-                          { id: 'relaxed', label: 'Relaxed', icon: <AlignJustify size={14} /> },
-                          { id: 'wide', label: 'Wide', icon: <AlignJustify size={14} /> },
+                          { id: 'normal', label: 'Normal (1.5x)', icon: <AlignJustify size={14} /> },
+                          { id: 'relaxed', label: 'Relaxed (1.7x)', icon: <AlignJustify size={14} /> },
+                          { id: 'wide', label: 'Wide (1.9x)', icon: <AlignJustify size={14} /> },
                         ].map((spacing) => (
                           <button
                             key={spacing.id}
                             onClick={() => updateSettings({ lineSpacing: spacing.id as any })}
-                            className={`flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
+                            className={`flex flex-1 items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-bold transition-all ${settings.lineSpacing === spacing.id ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
                           >
                             {spacing.icon}
                             {spacing.label}
