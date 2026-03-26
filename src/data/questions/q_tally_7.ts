@@ -8,10 +8,20 @@ export const q_tally_7 = {
   remedialDetail: 'Tally marks work in sets of 5. For 7, you make one full set of 5 (four vertical and one diagonal) and then 2 extra vertical lines.',
   styles: {
     [GameFormat.TALLY_TAP]: {
+      visual: {
+        kind: 'tally',
+        pattern: '||||/ ||',
+        caption: '7 = 5 + 2',
+      },
       options: ['|||| ||', '|||| |||', '|||||||', '|||| |'],
       correctAnswer: '|||| ||'
     },
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'tally',
+        pattern: '||||/ ||',
+        caption: '7 = 5 + 2',
+      },
       options: ['|||| ||', '|||| |||', '|||||||', '|||| |'],
       correctAnswer: '|||| ||'
     }

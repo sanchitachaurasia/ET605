@@ -16,12 +16,10 @@ export default function PreTest() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [formatFeedbacks, setFormatFeedbacks] = useState<Record<string, number>>({});
+  const [preferredQuestionIds, setPreferredQuestionIds] = useState<string[]>([]);
   const [showLearningStyleQuiz, setShowLearningStyleQuiz] = useState(false);
   const [learningStyle, setLearningStyle] = useState<LearningStyle>('mixed');
   const [showRecommendation, setShowRecommendation] = useState(false);
-  const [showPreferences, setShowPreferences] = useState(false);
   const [recommendation, setRecommendation] = useState('');
   const [prefContentMode, setPrefContentMode] = useState<'text' | 'video'>('video');
   const [prefAssessmentTime, setPrefAssessmentTime] = useState<'inModule' | 'endOfModule'>('inModule');
@@ -63,21 +61,77 @@ export default function PreTest() {
     navigate('/dashboard');
   };
 
-  const handleFeedback = (val: number) => {
-    const currentFormat = preTestQuestions[currentIdx].format;
-    const newFormatFeedbacks = { ...formatFeedbacks, [currentFormat]: val };
-    setFormatFeedbacks(newFormatFeedbacks);
-    
-    setTimeout(() => {
-      setShowFeedback(false);
-      
-      if (currentIdx < preTestQuestions.length - 1) {
-        setCurrentIdx(i => i + 1);
-      } else {
-        // Show learning style quiz before recommendations
-        setShowLearningStyleQuiz(true);
+  const preTestPreferenceOptions = (() => {
+    const uniqueByFormat: Record<string, { id: string; format: GameFormat; label: string }> = {};
+    for (let index = 0; index < preTestQuestions.length; index += 1) {
+      const question = preTestQuestions[index];
+      const key = question.format;
+      if (!uniqueByFormat[key]) {
+        uniqueByFormat[key] = {
+          id: question.id,
+          format: question.format,
+          label: `Q${index + 1}. ${question.text}`,
+        };
       }
-    }, 800);
+      if (Object.keys(uniqueByFormat).length === 3) {
+        break;
+      }
+    }
+    return Object.values(uniqueByFormat);
+  })();
+
+  const togglePreferredQuestion = (questionId: string) => {
+    setPreferredQuestionIds((prev) =>
+      prev.includes(questionId)
+        ? prev.filter((id) => id !== questionId)
+        : [...prev, questionId]
+    );
+  };
+
+  const getFormatLabel = (format: GameFormat) => {
+    switch (format) {
+      case GameFormat.DRAG_SORT:
+        return 'Drag & Sort';
+      case GameFormat.RAINDROP:
+        return 'Raindrop Catch';
+      case GameFormat.BAR_BUILDER:
+        return 'Bar Builder';
+      case GameFormat.TALLY_TAP:
+        return 'Tally Tap';
+      case GameFormat.SPIN_WHEEL:
+        return 'Spin Wheel';
+      case GameFormat.PIE_SLICER:
+        return 'Pie Slicer';
+      case GameFormat.HOTSPOT:
+        return 'Hotspot';
+      default:
+        return format;
+    }
+  };
+
+  const getFormatPreview = (format: GameFormat) => {
+    if (format === GameFormat.BAR_BUILDER) {
+      return (
+        <div className="flex h-10 items-end gap-1">
+          <span className="w-2 rounded-t bg-brand/50" style={{ height: '40%' }} />
+          <span className="w-2 rounded-t bg-brand/70" style={{ height: '70%' }} />
+          <span className="w-2 rounded-t bg-brand" style={{ height: '95%' }} />
+        </div>
+      );
+    }
+    if (format === GameFormat.RAINDROP) {
+      return <div className="text-xl">💧💧💧</div>;
+    }
+    if (format === GameFormat.SPIN_WHEEL) {
+      return <div className="h-8 w-8 rounded-full bg-[conic-gradient(#ef4444_0deg_130deg,#3b82f6_130deg_320deg,#22c55e_320deg_360deg)]" />;
+    }
+    if (format === GameFormat.PIE_SLICER) {
+      return <div className="h-8 w-8 rounded-full bg-[conic-gradient(#3b82f6_0deg_180deg,#e2e8f0_180deg_360deg)]" />;
+    }
+    if (format === GameFormat.TALLY_TAP) {
+      return <div className="font-mono text-sm tracking-widest text-slate-700">|||| /</div>;
+    }
+    return <div className="text-xl">🧩</div>;
   };
 
   const handleLearningStyleComplete = (style: LearningStyle, profile: any) => {
@@ -86,8 +140,7 @@ export default function PreTest() {
     
     // Calculate Final Results after learning style is determined
     const finalScore = Math.round((score / preTestQuestions.length) * 100);
-    const feedbacks = Object.values(formatFeedbacks) as number[];
-    const avgFeedback = feedbacks.length > 0 ? feedbacks.reduce((a, b) => a + b, 0) / feedbacks.length : 3;
+    const avgFeedback = 3;
     
     // Per-Module Path Logic
     const getPath = (correctCount: number, total: number): 'A' | 'B' | 'C' => {
@@ -114,21 +167,15 @@ export default function PreTest() {
     let contentMode: 'text' | 'video' = 'video';
     let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
     let rec = `${assessmentStyle.charAt(0).toUpperCase() + assessmentStyle.slice(1)} Learner (${finalScore}% Mastery)`;
-    
-    // Disable mechanics with low feedback (<= 2)
-    const enabledMechanics = Object.values(GameFormat).filter(f => {
-      const fbk = formatFeedbacks[f];
-      return fbk === undefined || fbk > 2;
-    });
 
-    if (avgFeedback >= 4) {
+    if (style === 'kinesthetic') {
       assessmentStyle = 'gamified';
       contentMode = 'video';
-      rec = '✨ Gamified & Interactive (High Engagement)';
-    } else if (avgFeedback <= 2.5) {
+      rec = '✨ Gamified & Interactive (Hands-on Learner)';
+    } else if (style === 'readWrite') {
       assessmentStyle = 'traditional';
       contentMode = 'text';
-      rec = '📖 Traditional & Focused (Minimal Distractions)';
+      rec = '📖 Traditional & Focused (Reading-first Learner)';
     }
 
     if (finalScore >= 80) {
@@ -164,7 +211,6 @@ export default function PreTest() {
         { moduleId: '2.5', completed: false, score: 0, stars: 0, learningPath: path25, masteryMap: {}, attemptsCount: {} },
         { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
       ],
-      enabledMechanics,
       style: assessmentStyle
     };
     (window as any)._tempPreTestResults = tempResults;
@@ -173,6 +219,22 @@ export default function PreTest() {
   const handleFinish = () => {
     const results = (window as any)._tempPreTestResults;
     if (!results) return;
+
+    if (preferredQuestionIds.length === 0) {
+      return;
+    }
+
+    const selectedFormats = Array.from(
+      new Set(
+        preTestQuestions
+          .filter((question) => preferredQuestionIds.includes(question.id))
+          .map((question) => question.format)
+      )
+    );
+
+    const enabledMechanics = selectedFormats.length > 0
+      ? selectedFormats
+      : Object.values(GameFormat);
 
     updateSession({ 
       preTestScore: results.preTestScore, 
@@ -187,7 +249,7 @@ export default function PreTest() {
         assessmentStyle: results.style,
         contentMode: prefContentMode,
         assessmentTime: prefAssessmentTime,
-        enabledMechanics: results.enabledMechanics
+        enabledMechanics
       } as any
     });
     navigate('/dashboard');
@@ -208,8 +270,12 @@ export default function PreTest() {
     });
 
     setTimeout(() => {
-      setShowFeedback(true);
-    }, 1000);
+      if (currentIdx < preTestQuestions.length - 1) {
+        setCurrentIdx(i => i + 1);
+      } else {
+        setShowLearningStyleQuiz(true);
+      }
+    }, 900);
   };
 
   if (showLearningStyleQuiz) {
@@ -264,6 +330,38 @@ export default function PreTest() {
             isMobile && "space-y-4"
           )}>
             <section>
+              <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
+              <p className="mb-3 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                {preTestPreferenceOptions.map((option) => {
+                  const selected = preferredQuestionIds.includes(option.id);
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => togglePreferredQuestion(option.id)}
+                      className={cn(
+                        "w-full rounded-xl border p-3 text-left transition-all",
+                        selected
+                          ? "border-brand bg-brand/10"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      )}
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <div>{getFormatPreview(option.format)}</div>
+                        <div className={cn('h-4 w-4 rounded-full border-2', selected ? 'border-brand bg-brand' : 'border-slate-300')} />
+                      </div>
+                      <p className="text-[11px] font-black uppercase tracking-wide text-brand">{getFormatLabel(option.format)}</p>
+                      <p className="mt-1 line-clamp-2 text-xs font-semibold text-slate-700">{option.label}</p>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs font-semibold text-slate-500">
+                Selected: {preferredQuestionIds.length} (minimum 1 required)
+              </p>
+            </section>
+
+            <section>
               <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Learning Mode</h3>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -317,7 +415,8 @@ export default function PreTest() {
 
             <button
               onClick={handleFinish}
-              className="w-full rounded-2xl bg-brand py-3 sm:py-4 text-base sm:text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95"
+              disabled={preferredQuestionIds.length === 0}
+              className="w-full rounded-2xl bg-brand py-3 sm:py-4 text-base sm:text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Start My Journey
               <span>→</span>
@@ -418,52 +517,11 @@ export default function PreTest() {
             format={q.format}
             styles={q.styles}
             image={q.image}
+            visual={q.styles?.[q.format]?.visual}
             isPreTest={true}
             onAnswer={handleAnswer}
           />
         </div>
-
-        <AnimatePresence>
-          {showFeedback && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                className="w-full max-w-sm rounded-3xl bg-white p-8 text-center shadow-2xl"
-              >
-                <h3 className="mb-6 text-xl font-black text-slate-900">How do you like this game style?</h3>
-                <div className="flex justify-between gap-2 mb-6">
-                    { [
-                      { val: 1, emoji: '😫' },
-                      { val: 2, emoji: '😕' },
-                      { val: 3, emoji: '😐' },
-                      { val: 4, emoji: '🙂' },
-                      { val: 5, emoji: '🤩' }
-                    ].map((f) => (
-                      <button
-                        key={f.val}
-                        onClick={() => handleFeedback(f.val)}
-                        className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 text-2xl transition-all hover:scale-110 hover:bg-brand/10 active:scale-95"
-                      >
-                        {f.emoji}
-                      </button>
-                    ))}
-                </div>
-                <button
-                  onClick={() => handleFeedback(3)}
-                  className="text-sm font-bold text-slate-400 hover:text-brand transition-colors"
-                >
-                  Skip Feedback
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         {/* Skip Confirmation Modal */}
         <AnimatePresence>

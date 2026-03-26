@@ -8,6 +8,17 @@ export const inline_2_2_q1 = {
   remedialDetail: '"Less than 20" means every class whose values are below 20. That is 0–10 AND 10–20. You must ADD BOTH: 2+10=12.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: '0-10', value: 2 },
+          { label: '10-20', value: 10 },
+          { label: '20-30', value: 21 },
+          { label: '30-40', value: 19 },
+          { label: '40-50', value: 7 },
+          { label: '50-60', value: 1 },
+        ],
+      },
       options: ['2', '10', '12', '21'],
       correctAnswer: '12'
     }
@@ -22,6 +33,16 @@ export const inline_2_2_q2 = {
   remedialDetail: 'Scan the frequency column for the LARGEST number. Values are: 6, 3, 9, 8, 2. Largest=9. That is class 820–830.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: '800-810', value: 6 },
+          { label: '810-820', value: 3 },
+          { label: '820-830', value: 9 },
+          { label: '830-840', value: 8 },
+          { label: '840-850', value: 2 },
+        ],
+      },
       options: ['800–810', '810–820', '820–830', '830–840'],
       correctAnswer: '820–830'
     }
@@ -36,6 +57,17 @@ export const inline_2_2_q3 = {
   remedialDetail: '"40 or more" includes BOTH 40–50 (freq=7) AND 50–60 (freq=1). Do NOT forget the last class. 7+1=8.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: '0-10', value: 2 },
+          { label: '10-20', value: 10 },
+          { label: '20-30', value: 21 },
+          { label: '30-40', value: 19 },
+          { label: '40-50', value: 7 },
+          { label: '50-60', value: 1 },
+        ],
+      },
       options: ['7', '8', '9', '6'],
       correctAnswer: '8'
     }
@@ -50,6 +82,18 @@ export const inline_2_2_q4 = {
   remedialDetail: 'Step 1: list which classes are "more than 5 hours": 6-hour (freq=6) and 7-hour (freq=5). Step 2: add: 6+5=11. Step 3: total students = 4+8+22+32+8+6+5=85. Step 4: fraction = 11/85.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: '1h', value: 4 },
+          { label: '2h', value: 8 },
+          { label: '3h', value: 22 },
+          { label: '4h', value: 32 },
+          { label: '5h', value: 8 },
+          { label: '6h', value: 6 },
+          { label: '7h', value: 5 },
+        ],
+      },
       options: ['11/85', '6/85', '5/85', '11/80'],
       correctAnswer: '11/85'
     }

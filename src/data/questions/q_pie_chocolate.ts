@@ -8,6 +8,11 @@ export const q_pie_chocolate = {
   remedialDetail: '50% is equivalent to 1/2. Half of 200 is 100 students.',
   styles: {
     [GameFormat.PIE_SLICER]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 50,
+        highlightLabel: 'Chocolate',
+      },
       options: ['50', '75', '100', '150'],
       correctAnswer: '100'
     }

@@ -22,6 +22,13 @@ export const post_q2 = {
   remedialDetail: 'To find the increase, subtract the starting value (100) from the final value (325). 325 - 100 = 225.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: '2003-04', value: 100 },
+          { label: '2007-08', value: 325 },
+        ],
+      },
       options: ['100', '225', '325', '200'],
       correctAnswer: '225'
     }
@@ -78,6 +85,11 @@ export const post_q6 = {
   remedialDetail: 'The central angle is calculated as (Value / Total) * 360. Here, (3 / 36) * 360 = 30 degrees.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 8.33,
+        highlightLabel: 'Yellow',
+      },
       options: ['15°', '30°', '45°', '60°'],
       correctAnswer: '30°'
     }
@@ -92,6 +104,11 @@ export const post_q7 = {
   remedialDetail: 'To find the amount, multiply the percentage (15%) by the total income (20,000). 0.15 * 20,000 = 3,000.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 15,
+        highlightLabel: 'Education',
+      },
       options: ['Rs 2,000', 'Rs 3,000', 'Rs 4,000', 'Rs 5,000'],
       correctAnswer: 'Rs 3,000'
     }
@@ -106,6 +123,11 @@ export const post_q8 = {
   remedialDetail: 'The central angle is (Value / Total) * 360. Here, (40 / 72) * 360 = (5/9) * 360 = 200 degrees.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 55.56,
+        highlightLabel: 'Hindi',
+      },
       options: ['160°', '180°', '200°', '220°'],
       correctAnswer: '200°'
     }
@@ -120,6 +142,11 @@ export const post_q9 = {
   remedialDetail: 'The numbers greater than 3 and less than 8 are 4, 5, 6, and 7. There are 4 such numbers out of 10 total slips.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Slips 1-10', symbols: '1 2 3 4 5 6 7 8 9 10' }],
+        key: 'Favourable: 4, 5, 6, 7',
+      },
       options: ['4/10', '3/10', '5/10', '2/10'],
       correctAnswer: '4/10'
     }
@@ -134,6 +161,11 @@ export const post_q10 = {
   remedialDetail: 'Since Red and Yellow are the only possible outcomes, the sum of their probabilities must be 1. P(E1) + P(E2) = 4/6 + 2/6 = 1.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Bag', symbols: '🔴🔴🔴🔴🟡🟡' }],
+        key: 'Red = 4/6, Yellow = 2/6',
+      },
       options: ['P(E1)+P(E2)=2', 'P(E1)+P(E2)=1', 'P(E1)=P(E2)', 'P(E1)<P(E2)'],
       correctAnswer: 'P(E1)+P(E2)=1'
     }

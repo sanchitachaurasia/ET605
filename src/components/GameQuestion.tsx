@@ -14,7 +14,95 @@ interface GameQuestionProps {
   isPreTest?: boolean;
   styles?: Record<string, any>;
   image?: string;
+  visual?: any;
 }
+
+const renderQuestionVisual = (visual: any, darkMode: boolean) => {
+  if (!visual || !visual.kind) return null;
+
+  if (visual.kind === 'bar') {
+    const max = Math.max(...visual.data.map((d: any) => d.value));
+    return (
+      <div className={cn('rounded-2xl border p-6', darkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50')}>
+        <div className="mb-4 text-xs font-black uppercase tracking-wide text-slate-500">Bar Graph</div>
+        <div className="flex h-56 items-end justify-between gap-3">
+          {visual.data.map((d: any) => (
+            <div key={d.label} className="flex flex-1 flex-col items-center gap-2">
+              <div className="text-xs font-bold text-slate-600">{d.value}</div>
+              <div 
+                className={cn('w-full rounded-t-lg', darkMode ? 'bg-brand/80' : 'bg-brand')}
+                style={{ height: `${Math.max(20, (d.value / max) * 160)}px` }}
+              />
+              <div className="text-sm font-bold text-slate-700">{d.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (visual.kind === 'pictograph') {
+    return (
+      <div className={cn('rounded-2xl border p-4', darkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50')}>
+        <div className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Pictograph</div>
+        <div className="space-y-2">
+          {visual.rows.map((row: any) => (
+            <div key={row.label} className="flex items-center justify-between gap-3">
+              <span className="text-xs font-bold text-slate-600">{row.label}</span>
+              <span className="text-lg leading-none">{row.symbols}</span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 text-[11px] font-semibold text-slate-500">{visual.key}</div>
+      </div>
+    );
+  }
+
+  if (visual.kind === 'pie') {
+    const value = Math.max(0, Math.min(100, Number(visual.valuePercent) || 0));
+    const gradient = `conic-gradient(#3b82f6 0% ${value}%, #e2e8f0 ${value}% 100%)`;
+    return (
+      <div className={cn('rounded-2xl border p-4', darkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50')}>
+        <div className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Pie Chart</div>
+        <div className="flex items-center gap-4">
+          <div className="h-24 w-24 rounded-full border-4 border-white shadow" style={{ background: gradient }} />
+          <div>
+            <p className="text-sm font-black text-slate-800">{visual.highlightLabel}</p>
+            <p className="text-xs font-semibold text-slate-500">{value}% of total</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual.kind === 'spinner') {
+    return (
+      <div className={cn('rounded-2xl border p-4', darkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50')}>
+        <div className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Spinner</div>
+        <div className="flex items-center gap-4">
+          <div className="h-24 w-24 rounded-full border-4 border-slate-200 bg-[conic-gradient(#ef4444_0deg_135deg,#3b82f6_135deg_315deg,#22c55e_315deg_360deg)]" />
+          <div className="text-xs font-semibold text-slate-600">
+            <div>Red: 3 parts</div>
+            <div>Blue: 4 parts</div>
+            <div>Green: 1 part</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (visual.kind === 'tally') {
+    return (
+      <div className={cn('rounded-2xl border p-4', darkMode ? 'border-slate-700 bg-slate-800' : 'border-slate-200 bg-slate-50')}>
+        <div className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Tally</div>
+        <div className="font-mono text-2xl tracking-widest text-slate-700">{visual.pattern}</div>
+        <div className="mt-1 text-xs font-semibold text-slate-500">{visual.caption}</div>
+      </div>
+    );
+  }
+
+  return null;
+};
 
 export const GameQuestion: React.FC<GameQuestionProps> = ({
   questionText,
@@ -25,6 +113,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   isPreTest = false,
   styles,
   image,
+  visual,
 }) => {
   const { session, updateSettings } = useSessionStore();
   const rawSettings = session?.settings || ({} as any);
@@ -44,7 +133,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
   // Determine the active format and data
   const [activeFormat, setActiveFormat] = useState(format);
-  const [activeData, setActiveData] = useState({ questionText, options, correctAnswer, image });
+  const [activeData, setActiveData] = useState({ questionText, options, correctAnswer, image, visual });
   const [selected, setSelected] = useState<any>(null);
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
@@ -55,7 +144,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
     if (isPreTest) {
       setActiveFormat(format);
-      setActiveData({ questionText, options, correctAnswer, image });
+      setActiveData({ questionText, options, correctAnswer, image, visual });
       return;
     }
 
@@ -73,12 +162,13 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
         options: styles[nextFormat].options || options,
         correctAnswer: styles[nextFormat].correctAnswer || correctAnswer,
         image: styles[nextFormat].image || image,
+        visual: styles[nextFormat].visual || visual,
       });
     } else {
-      setActiveData({ questionText, options, correctAnswer, image });
+      setActiveData({ questionText, options, correctAnswer, image, visual });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [format, styles, isPreTest, questionText, correctAnswer, image]);
+  }, [format, styles, isPreTest, questionText, correctAnswer, image, visual]);
 
   if (!session) return null;
   const isEnabled = isPreTest || (settings.enabledMechanics?.includes(activeFormat) ?? true);
@@ -125,7 +215,9 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       "flex flex-col gap-6 rounded-3xl p-8 shadow-xl transition-colors",
       settings.darkMode ? "bg-slate-900 text-white" : "bg-white text-slate-900"
     )}>
-      {activeData.image && (
+      {activeData.visual && renderQuestionVisual(activeData.visual, settings.darkMode)}
+
+      {!activeData.visual && activeData.image && (
         <div className="mb-4 overflow-hidden rounded-2xl border-2 border-slate-100 bg-slate-50 p-2">
           <img 
             src={activeData.image} 

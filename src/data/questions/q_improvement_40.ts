@@ -8,6 +8,13 @@ export const q_improvement_40 = {
   remedialDetail: 'To find the improvement, subtract the previous year\'s score from the current year\'s score: 70 - 30 = 40.',
   styles: {
     [GameFormat.BAR_BUILDER]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: '2005-06', value: 30 },
+          { label: '2006-07', value: 70 },
+        ],
+      },
       options: ['30 marks', '40 marks', '50 marks', '70 marks'],
       correctAnswer: '40 marks'
     }

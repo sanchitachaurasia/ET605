@@ -23,14 +23,6 @@ const LEARNING_STYLE_QUESTIONS: StyleQuestion[] = [
   },
   {
     id: 'q2',
-    question: 'I learn best through...',
-    visual: 4,
-    auditory: 3,
-    readWrite: 2,
-    kinesthetic: 1
-  },
-  {
-    id: 'q3',
     question: 'During class, I usually...',
     visual: 3,
     auditory: 4,
@@ -38,15 +30,7 @@ const LEARNING_STYLE_QUESTIONS: StyleQuestion[] = [
     kinesthetic: 1
   },
   {
-    id: 'q4',
-    question: 'When explaining something, I tend to...',
-    visual: 4,
-    auditory: 3,
-    readWrite: 1,
-    kinesthetic: 2
-  },
-  {
-    id: 'q5',
+    id: 'q3',
     question: 'I remember things better when I...',
     visual: 4,
     auditory: 3,
@@ -68,7 +52,7 @@ interface Props {
 
 export function LearningStyleQuiz({ onComplete }: Props) {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [scores, setScores] = useState({
+  const [scores, setScores] = useState<Record<'visual' | 'auditory' | 'readWrite' | 'kinesthetic', number>>({
     visual: 0,
     auditory: 0,
     readWrite: 0,
@@ -100,9 +84,15 @@ export function LearningStyleQuiz({ onComplete }: Props) {
   };
 
   const getSecondaryStyle = (): LearningStyle => {
-    const sorted = Object.entries(scores)
+    const sortable: Array<[LearningStyle, number]> = [
+      ['visual', scores.visual],
+      ['auditory', scores.auditory],
+      ['readWrite', scores.readWrite],
+      ['kinesthetic', scores.kinesthetic],
+    ];
+    const sorted = sortable
       .sort(([, a], [, b]) => b - a)
-      .map(([style]) => style as LearningStyle);
+      .map(([style]) => style);
     
     const dominant = getDominantStyle();
     return sorted.find(s => s !== dominant) || 'mixed';
@@ -111,7 +101,8 @@ export function LearningStyleQuiz({ onComplete }: Props) {
   if (showResults) {
     const dominant = getDominantStyle();
     const secondary = getSecondaryStyle();
-    const isMixed = Math.max(...Object.values(scores)) - Math.min(...Object.values(scores)) < 5;
+    const scoreValues = [scores.visual, scores.auditory, scores.readWrite, scores.kinesthetic];
+    const isMixed = Math.max(...scoreValues) - Math.min(...scoreValues) < 5;
 
     return (
       <motion.div

@@ -8,6 +8,15 @@ export const inline_2_1_q1 = {
   remedialDetail: 'Scan the frequency column. The values are 7, 10, 6, and 5. The largest number is 10, which corresponds to Cat.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: 'Dog', value: 7 },
+          { label: 'Cat', value: 10 },
+          { label: 'Fish', value: 6 },
+          { label: 'Rabbit', value: 5 },
+        ],
+      },
       options: ['Dog', 'Cat', 'Fish', 'Rabbit'],
       correctAnswer: 'Cat'
     }
@@ -22,6 +31,11 @@ export const inline_2_1_q2 = {
   remedialDetail: 'Step 1: Count full symbols and multiply: 4 × 50 = 200. Step 2: Half symbol = scale ÷ 2 = 50 ÷ 2 = 25. Step 3: Add: 200 + 25 = 225.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'September', symbols: '🚗🚗🚗🚗◐' }],
+        key: 'Key: 1 symbol = 50 cars (half = 25)',
+      },
       options: ['200', '225', '250', '175'],
       correctAnswer: '225'
     }
@@ -36,6 +50,15 @@ export const inline_2_1_q3 = {
   remedialDetail: 'Decrease means the second (later) value is SMALLER than the first. Hindi went from 50 to 45, so it decreased. Maths went from 30 to 70, so it increased.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: 'Hindi 05-06', value: 50 },
+          { label: 'Hindi 06-07', value: 45 },
+          { label: 'Maths 05-06', value: 30 },
+          { label: 'Maths 06-07', value: 70 },
+        ],
+      },
       options: ['Maths', 'Hindi', 'Both subjects', 'Neither subject'],
       correctAnswer: 'Hindi'
     }
@@ -50,6 +73,21 @@ export const inline_2_1_q4 = {
   remedialDetail: 'Go subject by subject: Maths: B40 < G55. Science: B60 > G50 (Win). English: B55 < G65. Hindi: B70 > G65 (Win). Art: B45 < G50. Total wins = 2.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: 'Maths B', value: 40 },
+          { label: 'Maths G', value: 55 },
+          { label: 'Science B', value: 60 },
+          { label: 'Science G', value: 50 },
+          { label: 'English B', value: 55 },
+          { label: 'English G', value: 65 },
+          { label: 'Hindi B', value: 70 },
+          { label: 'Hindi G', value: 65 },
+          { label: 'Art B', value: 45 },
+          { label: 'Art G', value: 50 },
+        ],
+      },
       options: ['1 subject', '2 subjects', '3 subjects', '4 subjects'],
       correctAnswer: '2 subjects'
     }

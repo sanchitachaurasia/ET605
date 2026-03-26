@@ -22,6 +22,11 @@ export const inline_2_3_q2 = {
   remedialDetail: 'Formula: (value÷total)×360°. Here total=360 (people), so (120÷360)×360°=120°. When total happens to equal 360, each unit = 1 degree.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 33.33,
+        highlightLabel: 'Rainy',
+      },
       options: ['90°', '100°', '120°', '150°'],
       correctAnswer: '120°'
     }
@@ -36,6 +41,11 @@ export const inline_2_3_q3 = {
   remedialDetail: 'Step 1 — convert 90° to a fraction of the full circle: 90÷360=1/4. Step 2 — multiply that fraction by the total: (1/4)×540=135.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 25,
+        highlightLabel: 'Mathematics',
+      },
       options: ['90', '120', '135', '150'],
       correctAnswer: '135'
     }
@@ -50,6 +60,11 @@ export const inline_2_3_q4 = {
   remedialDetail: '25%=Rs5,000 → 1%=5,000÷25=Rs200 → 100%=200×100=Rs20,000. Always find 1% first in reverse calculation.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pie',
+        valuePercent: 25,
+        highlightLabel: 'Rent',
+      },
       options: ['Rs 15,000', 'Rs 20,000', 'Rs 25,000', 'Rs 30,000'],
       correctAnswer: 'Rs 20,000'
     }

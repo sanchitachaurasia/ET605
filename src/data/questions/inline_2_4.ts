@@ -8,6 +8,11 @@ export const inline_2_4_q1 = {
   remedialDetail: 'Count only the RED balls for favourable: 3. Count ALL balls for total: 3+2+1=6. P=3/6.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Bag', symbols: '🔴🔴🔴🔵🔵🟢' }],
+        key: '3 Red, 2 Blue, 1 Green',
+      },
       options: ['1/6', '2/6', '3/6', '4/6'],
       correctAnswer: '3/6'
     }
@@ -22,6 +27,11 @@ export const inline_2_4_q2 = {
   remedialDetail: 'List die faces: 1,2,3,4,5,6. Is 1 prime? NO (1 factor only). Is 4 prime? NO (4=2×2). Is 6 prime? NO (6=2×3). Primes: {2,3,5} = 3. P=3/6=1/2.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Die', symbols: '1 2 3 4 5 6' }],
+        key: 'Prime faces: 2, 3, 5',
+      },
       options: ['1/6', '2/6', '3/6', '4/6'],
       correctAnswer: '3/6'
     }
@@ -36,6 +46,11 @@ export const inline_2_4_q3 = {
   remedialDetail: '"Greater than 6" is STRICTLY greater — does NOT include 6 itself. Numbers: 7,8,9,10. Count=4. P=4/10.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Slips 1-10', symbols: '1 2 3 4 5 6 7 8 9 10' }],
+        key: 'Favourable (>6): 7, 8, 9, 10',
+      },
       options: ['3/10', '4/10', '5/10', '6/10'],
       correctAnswer: '4/10'
     }
@@ -50,6 +65,11 @@ export const inline_2_4_q4 = {
   remedialDetail: 'Write sample space: {HH,HT,TH,TT}. Mark each: HH has 2 heads, HT has 1, TH has 1, TT has 0. Count ticks = 3. P=3/4.',
   styles: {
     [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Outcomes', symbols: 'HH HT TH TT' }],
+        key: 'At least one Head: HH, HT, TH',
+      },
       options: ['1/4', '2/4', '3/4', '4/4'],
       correctAnswer: '3/4'
     }
@@ -64,6 +84,11 @@ export const inline_2_4_q5 = {
   remedialDetail: 'You need BOTH conditions: >3 AND <8. List numbers > 3: {4,5,6,7,8,9,10}. Then remove those that are NOT < 8: remove 8,9,10. Remaining: {4,5,6,7}. Count=4. P=4/10.',
   styles: {
     [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'Slips 1-10', symbols: '1 2 3 4 5 6 7 8 9 10' }],
+        key: 'Numbers >3 and <8: 4, 5, 6, 7',
+      },
       options: ['3/10', '4/10', '5/10', '2/10'],
       correctAnswer: '4/10'
     }
