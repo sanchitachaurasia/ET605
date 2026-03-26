@@ -113,7 +113,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="w-full max-w-2xl overflow-hidden rounded-[2.5rem] bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="w-full max-w-5xl overflow-hidden rounded-[2.5rem] bg-white/90 shadow-2xl backdrop-blur-xl"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-slate-200/50 px-8 py-6">
@@ -131,8 +131,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
               </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-[220px,1fr] md:gap-8">
-              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-2">
+            <div className="grid max-h-[72vh] grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px,1fr] sm:gap-8">
+              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:h-full sm:overflow-y-auto">
                 {[
                   { id: 'mechanics', label: 'Game Mechanics' },
                   { id: 'preferences', label: 'Preferences' },
@@ -151,7 +151,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                 ))}
               </aside>
 
-              <div className="min-h-[420px] rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <div className="min-h-[420px] rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:h-full sm:overflow-y-auto sm:p-5">
                 {activeCategory === 'mechanics' && (
                   <section>
                     <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Game Mechanics</h3>
