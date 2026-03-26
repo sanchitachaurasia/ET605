@@ -36,12 +36,24 @@ export default function App() {
     document.documentElement.style.setProperty('--app-font-scale', textScaleMap[textSize] || '1');
     document.documentElement.style.setProperty('--app-line-height', lineSpacingMap[lineSpacing] || '1.5');
 
-    const accessibilityClasses = ['a11y-high-contrast', 'a11y-dyslexia', 'a11y-colorblind'];
+    const accessibilityClasses = [
+      'a11y-high-contrast',
+      'a11y-dyslexia',
+      'a11y-colorblind',
+      'a11y-reduced-motion',
+      'a11y-bold-text',
+      'a11y-underline-links',
+      'a11y-sepia',
+    ];
     accessibilityClasses.forEach((className) => document.documentElement.classList.remove(className));
     (session?.settings?.accessibilityModes || []).forEach((mode) => {
       if (mode === 'highContrast') document.documentElement.classList.add('a11y-high-contrast');
       if (mode === 'dyslexia') document.documentElement.classList.add('a11y-dyslexia');
       if (mode === 'colorblind') document.documentElement.classList.add('a11y-colorblind');
+      if (mode === 'reducedMotion') document.documentElement.classList.add('a11y-reduced-motion');
+      if (mode === 'boldText') document.documentElement.classList.add('a11y-bold-text');
+      if (mode === 'underlineLinks') document.documentElement.classList.add('a11y-underline-links');
+      if (mode === 'sepia') document.documentElement.classList.add('a11y-sepia');
     });
 
     if (session?.settings?.darkMode) {

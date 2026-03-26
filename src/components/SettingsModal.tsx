@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
-import { GameFormat } from '../types';
+import { AccessibilityMode, GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
 
 interface SettingsModalProps {
@@ -55,7 +55,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     updateSettings({ enabledMechanics: next });
   };
 
-  const toggleAccessibilityMode = (mode: 'highContrast' | 'dyslexia' | 'colorblind') => {
+  const toggleAccessibilityMode = (mode: AccessibilityMode) => {
     const next = accessibilityModes.includes(mode)
       ? accessibilityModes.filter((m: string) => m !== mode)
       : [...accessibilityModes, mode];
@@ -216,12 +216,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                         { id: 'highContrast', label: 'High Contrast', icon: <Eye size={18} /> },
                         { id: 'dyslexia', label: 'Dyslexia Mode', icon: <Type size={18} /> },
                         { id: 'colorblind', label: 'Color-Blind Mode', icon: <Palette size={18} /> },
+                        { id: 'reducedMotion', label: 'Reduced Motion', icon: <span className="text-base">🐢</span> },
+                        { id: 'boldText', label: 'Bold Text', icon: <span className="text-base font-black">B</span> },
+                        { id: 'underlineLinks', label: 'Underline Links', icon: <span className="text-base">🔗</span> },
+                        { id: 'sepia', label: 'Sepia Reading', icon: <span className="text-base">📜</span> },
                       ].map((mode) => {
                         const selected = accessibilityModes.includes(mode.id);
                         return (
                           <button
                             key={mode.id}
-                            onClick={() => toggleAccessibilityMode(mode.id as 'highContrast' | 'dyslexia' | 'colorblind')}
+                            onClick={() => toggleAccessibilityMode(mode.id as AccessibilityMode)}
                             className={`flex items-center justify-between rounded-2xl border-2 p-3 transition-all ${selected ? 'border-brand bg-brand/10 text-brand' : 'border-slate-100 bg-white text-slate-600'}`}
                           >
                             <span className="flex items-center gap-2 text-sm font-bold">

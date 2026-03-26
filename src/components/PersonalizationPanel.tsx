@@ -50,6 +50,30 @@ const ACCESSIBILITY_OPTIONS: AccessibilityOption[] = [
     label: 'Color-Blind Mode',
     description: 'Color palette adjusted for color blindness',
     icon: <Palette size={20} />
+  },
+  {
+    id: 'reducedMotion',
+    label: 'Reduced Motion',
+    description: 'Minimizes animations and transitions',
+    icon: <span className="text-base">🐢</span>
+  },
+  {
+    id: 'boldText',
+    label: 'Bold Text',
+    description: 'Makes text heavier and easier to scan',
+    icon: <span className="text-base font-black">B</span>
+  },
+  {
+    id: 'underlineLinks',
+    label: 'Underline Links',
+    description: 'Underlines links for clear discoverability',
+    icon: <span className="text-base">🔗</span>
+  },
+  {
+    id: 'sepia',
+    label: 'Sepia Reading',
+    description: 'Warmer reading tone for visual comfort',
+    icon: <span className="text-base">📜</span>
   }
 ];
 

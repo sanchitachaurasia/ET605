@@ -10,7 +10,15 @@ export enum GameFormat {
 
 export type LearningPath = 'A' | 'B' | 'C';
 export type LearningStyle = 'visual' | 'auditory' | 'readWrite' | 'kinesthetic' | 'mixed';
-export type AccessibilityLevel = 'standard' | 'highContrast' | 'dyslexia' | 'colorblind';
+export type AccessibilityLevel =
+  | 'standard'
+  | 'highContrast'
+  | 'dyslexia'
+  | 'colorblind'
+  | 'reducedMotion'
+  | 'boldText'
+  | 'underlineLinks'
+  | 'sepia';
 export type AccessibilityMode = Exclude<AccessibilityLevel, 'standard'>;
 
 // Learner profile for personalization

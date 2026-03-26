@@ -44,6 +44,36 @@ html.a11y-colorblind {
   filter: saturate(0.88) hue-rotate(-8deg);
 }
 
+html.a11y-reduced-motion *,
+html.a11y-reduced-motion *::before,
+html.a11y-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.a11y-bold-text body,
+html.a11y-bold-text p,
+html.a11y-bold-text span,
+html.a11y-bold-text li,
+html.a11y-bold-text button,
+html.a11y-bold-text label,
+html.a11y-bold-text input,
+html.a11y-bold-text textarea {
+  font-weight: 600 !important;
+}
+
+html.a11y-underline-links a {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+html.a11y-sepia {
+  filter: sepia(0.35) saturate(0.9);
+}
+
 .card-gradient {
   @apply bg-gradient-to-br from-white to-slate-50;
 }
