@@ -31,6 +31,11 @@ export default function PostTest() {
       return;
     }
 
+    // Wait for session to be fully hydrated from localStorage
+    if (!session.studentId) {
+      return;
+    }
+
     const saved = session.postTestProgress;
     if (!saved) {
       setIsProgressInitialized(true);

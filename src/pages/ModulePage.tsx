@@ -29,10 +29,18 @@ export default function ModulePage() {
   const lastPersistedModuleStateRef = useRef('');
 
   useEffect(() => {
-    setCurrentConceptIdx(moduleProgress?.currentConceptIdx || 0);
-    setShowFinalAssessment(moduleProgress?.showFinalAssessment || false);
-    setFinalAssessmentIdx(moduleProgress?.finalAssessmentIdx || 0);
-  }, [moduleId]);
+    if (!session || !session.studentId) {
+      // Session not yet hydrated from localStorage
+      return;
+    }
+    
+    const prog = session.moduleProgress?.find(p => p.moduleId === moduleId);
+    if (prog) {
+      setCurrentConceptIdx(prog.currentConceptIdx || 0);
+      setShowFinalAssessment(prog.showFinalAssessment || false);
+      setFinalAssessmentIdx(prog.finalAssessmentIdx || 0);
+    }
+  }, [moduleId, session?.studentId]);
 
   useEffect(() => {
     if (!session || !moduleId) return;
