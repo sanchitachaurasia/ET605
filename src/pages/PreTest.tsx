@@ -15,6 +15,7 @@ import { useResponsive } from '../components/ResponsiveLayout';
 export default function PreTest() {
   const isRestoringRef = useRef(false);
   const lastPersistedRef = useRef('');
+  const [isProgressInitialized, setIsProgressInitialized] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
@@ -40,11 +41,16 @@ export default function PreTest() {
   }, [session, navigate]);
 
   useEffect(() => {
-    if (!session || session.preTestDone || !session.preTestProgress) {
+    if (!session || session.preTestDone) {
       return;
     }
 
     const saved = session.preTestProgress;
+    if (!saved) {
+      setIsProgressInitialized(true);
+      return;
+    }
+
     isRestoringRef.current = true;
 
     setCurrentIdx(saved.currentIdx ?? 0);
@@ -64,11 +70,12 @@ export default function PreTest() {
 
     window.setTimeout(() => {
       isRestoringRef.current = false;
+      setIsProgressInitialized(true);
     }, 0);
   }, [session]);
 
   useEffect(() => {
-    if (!session || session.preTestDone || isRestoringRef.current) {
+    if (!session || session.preTestDone || isRestoringRef.current || !isProgressInitialized) {
       return;
     }
 
@@ -99,6 +106,7 @@ export default function PreTest() {
     updateSession({ preTestProgress: payload });
   }, [
     session,
+    isProgressInitialized,
     currentIdx,
     score,
     correctAnswers,
