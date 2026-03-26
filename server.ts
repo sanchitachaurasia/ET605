@@ -7,6 +7,7 @@ import sessionRoutes from "./src/backend/sessionRoutes";
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
+  const isDev = process.env.NODE_ENV === "development";
   const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
     .split(",")
     .map((origin) => origin.trim())
@@ -62,7 +63,7 @@ async function startServer() {
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (isDev) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

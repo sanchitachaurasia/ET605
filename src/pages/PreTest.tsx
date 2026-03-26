@@ -338,7 +338,7 @@ export default function PreTest() {
     )}>
       <div className={cn(
         "mx-auto w-full",
-        isMobile ? "max-w-full" : "max-w-2xl"
+        "max-w-none"
       )}>
         {/* Header with Profile Details, Logout and Skip Options */}
         <div className="mb-6 sm:mb-8">
