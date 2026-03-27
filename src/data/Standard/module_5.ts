@@ -1,5 +1,96 @@
 import { Module, GameFormat } from '../../types';
 
+const inline_2_1_q1 = {
+  id: 'inline_2_1_q1',
+  text: 'A frequency table: Dog=7, Cat=10, Fish=6, Rabbit=5. Which animal is MOST popular?',
+  hint: 'Most popular = highest frequency. Find the biggest number in the Frequency column.',
+  remedialBrief: 'Cat has frequency 10 — the largest value. Most popular = Cat.',
+  remedialDetail: 'Scan the frequency column. The values are 7, 10, 6, and 5. The largest number is 10, which corresponds to Cat.',
+  styles: {
+    [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: 'Dog', value: 7 },
+          { label: 'Cat', value: 10 },
+          { label: 'Fish', value: 6 },
+          { label: 'Rabbit', value: 5 },
+        ],
+      },
+      options: ['Dog', 'Cat', 'Fish', 'Rabbit'],
+      correctAnswer: 'Cat'
+    }
+  }
+};
+const inline_2_1_q2 = {
+  id: 'inline_2_1_q2',
+  text: 'Pictograph of cars: one symbol = 50 cars. September shows 4 full symbols and 1 half symbol. How many cars?',
+  hint: 'Full symbols × value. Half symbol = half the value. Then add both.',
+  remedialBrief: '4 × 50 = 200. Half symbol = 25. Total = 200 + 25 = 225 cars.',
+  remedialDetail: 'Step 1: Count full symbols and multiply: 4 × 50 = 200. Step 2: Half symbol = scale ÷ 2 = 50 ÷ 2 = 25. Step 3: Add: 200 + 25 = 225.',
+  styles: {
+    [GameFormat.RAINDROP]: {
+      visual: {
+        kind: 'pictograph',
+        rows: [{ label: 'September', symbols: '🚗🚗🚗🚗◐' }],
+        key: 'Key: 1 symbol = 50 cars (half = 25)',
+      },
+      options: ['200', '225', '250', '175'],
+      correctAnswer: '225'
+    }
+  }
+};
+const inline_2_1_q3 = {
+  id: 'inline_2_1_q3',
+  text: 'Double bar graph: Hindi 2005-06=50, 2006-07=45. Maths 2005-06=30, 2006-07=70. Which subject showed a DECREASE in performance?',
+  hint: 'Decrease = later value is LOWER than earlier value. Check each subject.',
+  remedialBrief: 'Hindi: 50 → 45 = decreased (−5). Maths: 30 → 70 = increased (+40). Answer: Hindi.',
+  remedialDetail: 'Decrease means the second (later) value is SMALLER than the first. Hindi went from 50 to 45, so it decreased. Maths went from 30 to 70, so it increased.',
+  styles: {
+    [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: 'Hindi 05-06', value: 50 },
+          { label: 'Hindi 06-07', value: 45 },
+          { label: 'Maths 05-06', value: 30 },
+          { label: 'Maths 06-07', value: 70 },
+        ],
+      },
+      options: ['Maths', 'Hindi', 'Both subjects', 'Neither subject'],
+      correctAnswer: 'Hindi'
+    }
+  }
+};
+const inline_2_1_q4 = {
+  id: 'inline_2_1_q4',
+  text: 'A double bar graph shows boys vs girls marks in 5 subjects. Boys scores: Maths=40, Science=60, English=55, Hindi=70, Art=45. Girls scores: Maths=55, Science=50, English=65, Hindi=65, Art=50. In how many subjects did BOYS outperform GIRLS?',
+  hint: 'Outperform means score HIGHER. Compare boys vs girls in each subject one by one.',
+  remedialBrief: 'Science: 60 > 50 (boys win). Hindi: 70 > 65 (boys win). All others: girls scored higher. Count = 2 subjects.',
+  remedialDetail: 'Go subject by subject: Maths: B40 < G55. Science: B60 > G50 (Win). English: B55 < G65. Hindi: B70 > G65 (Win). Art: B45 < G50. Total wins = 2.',
+  styles: {
+    [GameFormat.DRAG_SORT]: {
+      visual: {
+        kind: 'bar',
+        data: [
+          { label: 'Maths B', value: 40 },
+          { label: 'Maths G', value: 55 },
+          { label: 'Science B', value: 60 },
+          { label: 'Science G', value: 50 },
+          { label: 'English B', value: 55 },
+          { label: 'English G', value: 65 },
+          { label: 'Hindi B', value: 70 },
+          { label: 'Hindi G', value: 65 },
+          { label: 'Art B', value: 45 },
+          { label: 'Art G', value: 50 },
+        ],
+      },
+      options: ['1 subject', '2 subjects', '3 subjects', '4 subjects'],
+      correctAnswer: '2 subjects'
+    }
+  }
+};
+
 const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
@@ -15,278 +106,411 @@ function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
 }
 
 const moduleData: Module = {
-    id: '2.5',
-    title: 'Real-World Data Applications',
-    concepts: [
-      {
-        id: 'c2_5_1',
-        title: 'Data in Sports & Gaming',
-        textContent: 'Sports teams use data to make winning decisions. Cricket teams analyse batting averages, bowling statistics, and field placements. Gaming companies track player behaviour, win rates, and item popularity. By organising this data, teams win championships and games become more fun.',
-        difficulty: 'medium',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'Champion\'s Secret Weapon: How Data Wins Games',
-          scenario: 'The Indian cricket team was losing matches. Coach Sharma realized: "We have the data — player statistics, opposition weaknesses, match conditions — but we\'re not using it!" She hired a data analyst. Within 6 months, by organizing player performance data and opponent patterns, the team won the World Cup. Data = Strategy = Victory!',
-          realWorldConnection: 'Every professional sports team (IPL, Premier League, NBA, FIFA) has a data analytics department. Athletes track: heart rate, speed, agility, accuracy. Teams use this data to choose players, plan strategies, and win championships.',
-          studentChallenge: 'You will analyse real cricket statistics and predict which player should play next based on data, just like professional coaches do!'
+  id: '2.1',
+  title: 'Data Organisation & Types of Graphs',
+  concepts: [
+    {
+      id: 'c2_1_1',
+      title: 'Why Do We Need to Organise Data?',
+      textContent: `<div class="duration-badge" style="background:var(--b-light);color:var(--b-hue);">⏱ Estimated reading time: 10–14 minutes &nbsp;·&nbsp; Path B — Standard</div>
+
+<div class="section-block" id="s1b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 1 of 6</p>
+      <h2 class="section-title">Why Do We Need to Organise Data?</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>You've collected data before — maybe in a survey, or counting something for a project. But here's the thing: collecting data is only half the job. Raw, unorganised data is like a room full of puzzle pieces — all the information is there, but it's completely unusable until you put it in order. <span class="vcue">[Show a messy list of 20 sports responses]</span> Can you immediately tell which sport is most popular from this list? No. So let's understand why organisation transforms data from useless to powerful.</p>
+
+        <div class="stage-marker explore"></div>
+        <p>Here are the favourite sports of 20 students: Cricket, Football, Cricket, Badminton, Cricket, Kho-Kho, Football, Cricket, Badminton, Football, Cricket, Cricket, Badminton, Kho-Kho, Football, Cricket, Badminton, Cricket, Football, Cricket. <span class="vcue">[Show list]</span> Count how many times Cricket appears — go ahead. Now imagine doing this for 200 students. The problem is obvious. Raw data hides its answers. Organised data reveals them.</p>
+
+        <div class="stage-marker explain"></div>
+        <p>Organising data means arranging it so that patterns become visible, comparisons become possible, and questions get answered at a glance. The tools we use for this are frequency tables, pictographs, and bar graphs — each suited to different types of data and different questions. The process always starts the same way: identify your categories, count your values, and build a structure around those counts. <span class="vcue">[Show the sports data sorted into a four-row table with counts]</span> Cricket: 9, Football: 5, Badminton: 4, Kho-Kho: 2. The most popular sport is now instantly readable.</p>
+
+        <div class="stage-marker elaborate"></div>
+        <p>The key insight here is that the data itself didn't change — only its arrangement did. All 20 responses are still present. But now you can answer: most popular sport (Cricket, 9 votes), least popular (Kho-Kho, 2), how many more chose Cricket over Football (9 − 5 = 4). Organised data doesn't just store information — it enables reasoning.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Quick Check</span>
+          A canteen records 30 lunch orders: Daal-Chawal (12 times), Rajma-Chawal (8 times), Chole-Chawal (6 times), Pulao (4 times). Is this data already organised? What two questions can you immediately answer from it?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 1</h3>
+        <div class="practice-q">The following are daily temperatures (°C) recorded for 10 days: 32, 35, 33, 36, 35, 34, 32, 36, 35, 33. Organise this data and find which temperature occurred most frequently. What does this tell you about the weather that week?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Organised: 32°C — 2 times, 33°C — 2 times, 34°C — 1 time, 35°C — 3 times, 36°C — 2 times. Most frequent temperature: 35°C. This suggests the weather was consistently warm (35°C was the most typical day), with no extreme fluctuations. The range was only 4°C (32 to 36), suggesting stable weather conditions that week.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T2 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 0,
+      videoEndSeconds: 40,
+      videoCheckpointPrompt: 'Pause and answer: What problem did raw data create for Raj?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 1',
+      guidedPracticeItems: [
+        {
+          question: 'A shopkeeper notes the colours of 15 shirts sold in a day: Red, Blue, Red, White, Blue, Red, Green, Blue, White, Red, Blue, Red, White, Green, Blue. Without making a table, can you tell which colour was sold the most? Now organise the data and check your answer.',
+          answer: 'Without a table, it is genuinely difficult to be certain. After organising: Red appears 5 times, Blue appears 5 times, White appears 3 times, Green appears 2 times. Both Red and Blue are equally most sold — something that is hard to spot in the raw list. This shows exactly why organisation matters.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder_sports',
-        workedExamples: [
-          {
-            explanation: 'Example 1: Cricket Batting Average',
-            steps: [
-              'Player A: scored 50, 75, 60, 85 runs in 4 matches.',
-              'Average = (50+75+60+85) ÷ 4 = 270 ÷ 4 = 67.5 runs per match',
-              'Player B: scored 40, 45, 42, 48 runs in 4 matches. Average = 43.75',
-              'Decision: Hire Player A (higher average).'
-            ]
-          },
-          {
-            explanation: 'Example 2: Win Rate Analysis',
-            steps: [
-              'Team A won: 12 games out of 20 total. Win rate = 12÷20 = 60%',
-              'Team B won: 15 games out of 25 total. Win rate = 15÷25 = 60%',
-              'Draw: Same win rate, but Team B\'s consistency is better (fewer losses).',
-              'Real decision: Compare not just win rate but also consistency and recent form.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Gaming Item Popularity',
-            steps: [
-              'Survey 100 players: 35 prefer sword, 28 prefer magic staff, 37 prefer bow.',
-              'Organize: Sword=35%, Magic=28%, Bow=37%.',
-              'Decision: Make bow more powerful/available in the game to increase engagement.',
-              'Result: Players are happier, game sales increase.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Field Position Strategy',
-            steps: [
-              'Batsman A hits left 60% of the time, straight 25%, right 15%.',
-              'Place fielders on the left side (most vulnerable).',
-              'Batsman A scores fewer runs against this strategy.',
-              'Coach Sharma uses data to win! This is why data = winning.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Sports Uses Numbers',
-            content: 'Every sport uses numbers—scores, averages, winning percentages. When you organize these numbers, you can make better decisions. If a batter has a 67% accuracy, they\'re better than someone with 45% accuracy. Data shows the truth!'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: Strategy Through Data',
-            content: 'Professional coaches don\'t rely on gut feeling. They use data: "Player X fails against left-arm spinners 70% of the time" → avoid playing Player X against left-arm spinners. This data-driven strategy makes teams unbeatable.'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Be a Sports Analyst',
-            content: 'You are hired as a sports analyst for the Indian cricket team. Given player statistics (batting average, recent form, success rate against specific bowlers), choose the best playing XI. Justify your choices using data. Real coaches do this every day!'
-          }
-        ],
-        realWorldApplications: [
-          'Professional cricket team selection',
-          'NFL player draft decisions',
-          'Esports team strategy optimization',
-          'Video game balancing based on usage statistics',
-          'Injury prevention through performance tracking'
-        ],
-        questions: [
-          {
-            id: 'c2_5_1_q1',
-            text: 'A cricket player scored 45, 60, 50, and 55 runs in 4 matches. What is their average score?',
-            options: ['52.5', '55', '57.5', '60'],
-            correctAnswer: '52.5',
-            format: GameFormat.RAINDROP,
-            difficulty: 'medium',
-            hint: 'Add all scores and divide by the number of matches.',
-            remedialBrief: 'Average = Sum ÷ Count. (45+60+50+55) ÷ 4 = 210 ÷ 4 = 52.5',
-            remedialDetail: 'This is exactly what sports analysts do! They calculate averages to compare player performances. Player with higher average is usually better.'
-          }
-        ]
-      },
-      {
-        id: 'c2_5_2',
-        title: 'Data in Business & Marketing',
-        textContent: 'Businesses collect data on customer preferences, sales trends, and competitor prices. By analysing this data, companies decide: which products to stock, how to price, which customers to target. Amazon, Flipkart, and every successful business uses data to make money.',
-        difficulty: 'medium',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'The Shopkeeper\'s Smart Decision',
-          scenario: 'Raja runs a small shop. He was losing business to big stores like Amazon. One day, he started tracking: "Which items do customers ask for?" Within a month, his data showed: Everyone wants phone cases, but I stock only shirts! He changed inventory based on data. In 3 months, his profit doubled!',
-          realWorldConnection: 'Target, Walmart, IKEA, and every successful business have entire teams analyzing customer data. They know: "What time do people shop?" "Which products are trending?" "Should we increase prices?" Data = Smart Business Decisions = Success',
-          studentChallenge: 'You will help Raja organize customer data and predict which products he should stock next month to maximize profit!'
+        {
+          question: 'Give one example from your daily life where data is collected but might be hard to understand if it\'s left unorganised.',
+          answer: 'Possible examples: a register of all the marks scored in a test (hard to see average or highest without sorting), a list of all items purchased in a week (hard to know which item was bought most often), a record of temperatures every hour in a day (hard to see patterns without ordering).'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q1,
+          ...inline_2_1_q1.styles[GameFormat.DRAG_SORT],
+          format: GameFormat.DRAG_SORT,
+          difficulty: 'easy'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_2',
+      title: 'Tally Marks & Frequency Tables',
+      textContent: `<div class="section-block" id="s2b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 2 of 6</p>
+      <h2 class="section-title">Tally Marks &amp; Frequency Tables</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>The fastest way to organise raw data while counting it is tally marks. You already know the idea — group counts in fives so totals are readable at a glance. The frequency table is the structured result: a table with categories, their tally marks, and their frequency counts. Let's see this in action on a real dataset. <span class="vcue">[Show favourite subject survey data]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>A class of 20 students named their favourite subject. Responses: Art, Maths, Science, Maths, English, Art, Maths, Science, Art, English, Maths, Science, Maths, Art, English, Science, Maths, Art, Maths, English. Sort these using tally marks as we go through them together.</p>
+
+        <div class="stage-marker explain"></div>
+        <p>One tally mark per item as we encounter it. Every fifth mark is the crossing diagonal. When finished, count each row's marks to get the frequency. The total of all frequencies must equal the total number of data points — this is your verification. <span class="vcue">[Show completed table]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>Subject</th><th>Tally Marks</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>Art</td><td class="tally">|||| |</td><td class="num">5</td></tr>
+            <tr><td>Maths</td><td class="tally">|||| ||</td><td class="num">7</td></tr>
+            <tr><td>Science</td><td class="tally">||||</td><td class="num">4</td></tr>
+            <tr><td>English</td><td class="tally">||||</td><td class="num">4</td></tr>
+            <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>20 ✓</strong></td></tr>
+          </tbody>
+        </table>
+
+        <div class="stage-marker elaborate"></div>
+        <p>From this table: Maths is most popular (7), Science and English are equally liked (4 each), Art is in the middle (5). A teacher seeing this data might decide to make Science and English lessons more engaging, since those subjects have the fewest enthusiasts. This is data informing a real decision — which is the whole point.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Quick Check</span>
+          Make a frequency table for: Red, Blue, Green, Red, Yellow, Blue, Red, Green, Blue, Red, Yellow, Blue, Green, Red, Blue (15 items). Which colour has frequency 5? Does your total verify correctly?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 2</h3>
+        <div class="practice-q">A survey asked 24 people their preferred mode of transport: Car, Bus, Train, Two-wheeler, Car, Bus, Car, Train, Two-wheeler, Car, Bus, Car, Two-wheeler, Train, Car, Bus, Car, Train, Two-wheeler, Car, Bus, Car, Two-wheeler, Train. Build the frequency table. Which mode is most preferred? What percentage of people prefer Bus? (Round to 1 decimal place.)</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Car: 9, Bus: 6, Train: 5, Two-wheeler: 4. Total = 24 ✓. Most preferred: Car (9 times). Bus percentage: (6/24) × 100 = 25.0%. Car is preferred by 37.5% of respondents — a clear majority, suggesting most people find personal vehicles more convenient.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T3 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 40,
+      videoEndSeconds: 80,
+      videoCheckpointPrompt: 'Pause and answer: Why do tally marks use groups of 5?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 2',
+      guidedPracticeItems: [
+        {
+          question: 'A class of 25 students was asked about their pet at home. Make a complete frequency table with tally marks. Which pet is most common?',
+          answer: 'Corrected totals: Dog = 10, Cat = 6, None = 5, Fish = 4. Total = 25. Most common pet: Dog.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder_business',
-        workedExamples: [
-          {
-            explanation: 'Example 1: Product Popularity Check',
-            steps: [
-              'Last month, customers asked for: Phone cases 45 times, Chargers 30 times, Headphones 15 times.',
-              'Organize: Phone cases (45) > Chargers (30) > Headphones (15)',
-              'Decision: Stock 100 phone cases, 60 chargers, 30 headphones next month.',
-              'Result: Fewer unsold items, happier customers, more profit.'
-            ]
-          },
-          {
-            explanation: 'Example 2: Flash Sale Timing',
-            steps: [
-              'Track daily sales: Monday-Thursday are slow (20 customers/day). Friday-Sunday are busy (80 customers/day).',
-              'Insight: People shop on weekends!',
-              'Strategy: Have a big sale Friday-Sunday. Stock fewer items Monday-Thursday.',
-              'Result: Better inventory management, less storage cost.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Customer Segmentation',
-            steps: [
-              'Survey 100 customers: 40 are students, 35 are office workers, 25 are housewives.',
-              'Insight: Students want budget items, office workers want premium items.',
-              'Strategy: Advertise differently to each group. Students: "Buy cheap, save money!" Office: "Premium quality, impress your image!"',
-              'Result: Higher conversion rate, more sales.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Competitor Price Analysis',
-            steps: [
-              'Raja checked prices: Amazon charges ₹500 for charger, local shop charges ₹450, Flipkart ₹480.',
-              'Insight: Customers prefer cheaper options.',
-              'Decision: Price at ₹470 (cheaper than rivals, but higher margin than local).',
-              'Result: Customers switch to Raja. More business!'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Businesses Use Numbers',
-            content: 'Every business asks: "What do customers want?" "How much should I charge?" "When is my busy season?" By organizing data about customer behavior, business owners make smart decisions that earn more profit.'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: Data-Driven Business',
-            content: 'Companies like Amazon know exactly what you want BEFORE you know you want it! How? Data! They track your browsing, comparing with millions of other customers, and recommend products you\'ll probably buy. This is why top businesses are so successful—they use data!'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Your Own Shop Strategy',
-            content: 'Imagine you open a café. You collect data: Mondays 50 customers, Fridays 150 customers. Coffee sales up 30% in winter. Young people prefer cold drinks, older people prefer hot. Based on this data, plan your strategy: inventory, staffing, pricing, marketing. Present why your decisions are smart!'
-          }
-        ],
-        realWorldApplications: [
-          'E-commerce recommendation systems (Amazon, Flipkart)',
-          'Retail inventory management (Walmart, Target)',
-          'Pricing strategy optimization',
-          'Customer segmentation for marketing',
-          'Social media engagement analytics'
-        ],
-        questions: [
-          {
-            id: 'c2_5_2_q1',
-            text: 'A shop sold: Monday 30 items, Tuesday 35, Wednesday 28, Thursday 32, Friday 50. On which day was the best sale?',
-            options: ['Monday', 'Tuesday', 'Wednesday', 'Friday'],
-            correctAnswer: 'Friday',
-            format: GameFormat.RAINDROP,
-            difficulty: 'easy',
-            hint: 'Find the day with the highest number of items sold.',
-            remedialBrief: 'Compare all days: 30, 35, 28, 32, 50. Friday (50) is the highest.',
-            remedialDetail: 'A smart shopkeeper would stock MORE items on Friday because that\'s when customers buy the most. This is how data helps business!'
-          }
-        ]
-      },
-      {
-        id: 'c2_5_3',
-        title: 'Data in Health & Environment',
-        textContent: 'Doctors use data to diagnose diseases. Environmentalists use data to track pollution and protect nature. Governments use data to plan cities and predict climate. Data saves lives and protects our planet.',
-        difficulty: 'medium',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'Doctor Sharma Saves Lives With Data',
-          scenario: 'Dr. Sharma analysed health data from 5000 patients in her hospital. She found: "Patients smoking cigarettes have 8x higher lung cancer risk." She warned her patients. 200 people quit smoking. Within 5 years, cancer cases dropped 40%. By organizing medical data, Dr. Sharma saved hundreds of lives!',
-          realWorldConnection: 'During COVID-19, scientists tracked infection data across countries. This data helped governments decide lockdowns, testing strategies, and vaccine priorities. Without data, millions more would have died. Data literally saves lives!',
-          studentChallenge: 'You will analyse health statistics from your school and recommend ways to improve student health based on data.'
+        {
+          question: 'If a frequency table shows four items with frequencies 8, 12, 5, and 10, what is the total number of data points?',
+          answer: 'Total = 35 data points.'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q2,
+          ...inline_2_1_q2.styles[GameFormat.RAINDROP],
+          format: GameFormat.RAINDROP,
+          difficulty: 'easy'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_3',
+      title: 'Pictographs',
+      textContent: `<div class="section-block" id="s3b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 3 of 6</p>
+      <h2 class="section-title">Pictographs</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>A pictograph turns frequency data into a visual of symbols — each symbol representing a fixed count called the scale. The key (or legend) defines this scale. The power of a pictograph is immediate visual comparison; its limitation is that large numbers require many symbols, making it unwieldy. Knowing when to use it — and when a bar graph is better — is a key skill. <span class="vcue">[Show a city-wise car sales pictograph]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>Car sales data: Mumbai 500, Delhi 300, Chennai 400, Kolkata 200. If each car symbol = 100 cars, draw the pictograph. Now try: what if a city sold 350 cars? How many symbols would you draw? <span class="pcue">(Think: 3.5 symbols — 3 full and 1 half)</span></p>
+
+        <div class="stage-marker explain"></div>
+        <p>The scale you choose matters enormously. Too small a scale (e.g., 1 symbol = 10 for data in hundreds) creates rows with too many symbols — messy and hard to count. Too large a scale loses precision — fractional symbols become unavoidable. A good rule: aim for no more than 10 symbols in the longest row. Divide your maximum value by 10 to find a reasonable scale, then round up to a clean number.</p>
+
+        <div class="pictograph">
+          <div class="bar-chart-title">Cars Sold by City — Pictograph (🚗 = 100 cars)</div>
+          <div class="picto-row"><span class="picto-label">Mumbai</span><span class="picto-symbol">🚗🚗🚗🚗🚗</span></div>
+          <div class="picto-row"><span class="picto-label">Delhi</span><span class="picto-symbol">🚗🚗🚗</span></div>
+          <div class="picto-row"><span class="picto-label">Chennai</span><span class="picto-symbol">🚗🚗🚗🚗</span></div>
+          <div class="picto-row"><span class="picto-label">Kolkata</span><span class="picto-symbol">🚗🚗</span></div>
+          <div class="picto-key">🚗 = 100 cars</div>
+        </div>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Application</span>
+          A pictograph shows book sales. Key: 📚 = 50 books. Shelf A has 4.5 symbols, Shelf B has 3 symbols, Shelf C has 6 symbols. How many books were sold from each shelf? What is the total? If the store wants to restock the most sold shelf first, which one is it?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 3</h3>
+        <div class="practice-q">Design a pictograph for the data: Students choosing extracurricular activities — Sports: 80, Music: 60, Drama: 45, Art: 35. Choose an appropriate scale. Explain your choice. Which activity would require a half symbol at your chosen scale?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Suitable scale: 1 symbol = 10 students. Symbols per activity: Sports: 8, Music: 6, Drama: 4.5, Art: 3.5. Drama (45) and Art (35) both require half symbols. At scale = 20: Sports: 4, Music: 3, Drama: 2.5, Art: 1.5 — both Drama and Art need half symbols again. At scale = 10, the rows are manageable (max 8 symbols) so this is a good choice. Drama requires a half symbol at scale 10.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T4 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 80,
+      videoEndSeconds: 120,
+      videoCheckpointPrompt: 'Pause and answer: What does the KEY in a pictograph represent?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 3',
+      guidedPracticeItems: [
+        {
+          question: 'In a pictograph, the key shows ★ = 10 students. Drama has 3.5 stars, Science has 5 stars, Sports has 4 stars. Find all counts.',
+          answer: 'Drama = 35, Science = 50, Sports = 40. Science has the most participants.'
         },
-        videoUrl: 'https://www.youtube.com/embed/placeholder_health',
-        workedExamples: [
-          {
-            explanation: 'Example 1: Disease Risk Analysis',
-            steps: [
-              'Data: Out of 100 smokers, 15 developed lung disease. Out of 100 non-smokers, 2 developed lung disease.',
-              'Risk: Smokers = 15%, Non-smokers = 2%',
-              'Insight: Smoking increases disease risk by 7.5x!',
-              'Action: Launch anti-smoking campaign to save lives.'
-            ]
-          },
-          {
-            explanation: 'Example 2: Pollution Tracking',
-            steps: [
-              'Measure air pollution (PM2.5) in different cities: City A (350), City B (180), City C (95).',
-              'Insight: City A is 3.7x more polluted than City C!',
-              'Decision: City A needs urgent pollution control measures.',
-              'Action: Ban factories, promote green vehicles, plant trees. Pollution drops.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Vaccination Coverage',
-            steps: [
-              'Survey: 85% of children in Village A are vaccinated. 40% in Village B.',
-              'Insight: Village B has low immunity!',
-              'Decision: Run vaccination camp in Village B.',
-              'Result: Diseases prevented, children stay healthy.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Water Quality Monitoring',
-            steps: [
-              'Test water: pH = 7 (safe), Bacteria = 500 (safe), Chemicals = 2.1 (high!)',
-              'Insight: Chemical levels are unsafe. Drinking this water causes diarrhea.',
-              'Action: Install water filtration, reduce industrial discharge.',
-              'Result: Diarrhea cases drop 80%.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Health Data Saves Lives',
-            content: 'Doctors track numbers: temperature, blood pressure, sugar levels. By comparing YOUR numbers to healthy ranges, doctors diagnose disease early. Numbers = Health = Life saved!'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: Public Health Through Data',
-            content: 'Governments track: infection rates, death rates, hospital capacity. During pandemics, this data decides: "Do we need lockdowns?" "Are hospitals overwhelmed?" "Is vaccine working?" Data-driven health policy saves millions of lives!'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: School Health Investigation',
-            content: 'Collect health data from your school: How many students exercise regularly? How many eat fruits daily? How many sleep 8+ hours? Organize this data. Find patterns. Recommend interventions. Example: "75% of students sleep <7 hours. Recommendation: Schools should start later so students sleep more." Real public health officials do this work!'
-          }
-        ],
-        realWorldApplications: [
-          'Disease diagnosis and treatment planning',
-          'Epidemiological tracking (COVID, flu)',
-          'Environmental pollution monitoring',
-          'Climate change prediction via temperature data',
-          'Water quality testing and management',
-          'Vaccination coverage planning'
-        ],
-        questions: [
-          {
-            id: 'c2_5_3_q1',
-            text: 'If 8 out of 50 students in a school have asthma, what is the percentage?',
-            options: ['10%', '16%', '20%', '25%'],
-            correctAnswer: '16%',
-            format: GameFormat.RAINDROP,
-            difficulty: 'medium',
-            hint: 'Percentage = (Part ÷ Total) × 100. (8 ÷ 50) × 100',
-            remedialBrief: '(8 ÷ 50) × 100 = 0.16 × 100 = 16%',
-            remedialDetail: 'Doctors use this data to recommend: "This school has above-average asthma rates. We should improve air quality and provide medical support."'
-          }
-        ]
-      }
-    ]
-  };
+        {
+          question: 'Choose a suitable key for Apples: 250, Bananas: 175, Oranges: 300, Mangoes: 125 and justify.',
+          answer: 'A suitable key is 1 symbol = 25 fruits, giving 10, 7, 12, and 5 symbols respectively.'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q3,
+          ...inline_2_1_q3.styles[GameFormat.DRAG_SORT],
+          format: GameFormat.DRAG_SORT,
+          difficulty: 'medium'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_4',
+      title: 'Bar Graphs & Double Bar Graphs',
+      textContent: `<div class="section-block" id="s4b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 4 of 6</p>
+      <h2 class="section-title">Bar Graphs &amp; Double Bar Graphs</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Bar graphs solve the limitations of pictographs — they handle any size of number cleanly, and the height of the bar encodes the value precisely using a numerical scale. They're the most versatile and widely used graph type. Adding a second set of bars (a double bar graph) enables direct comparison between two groups across the same categories. <span class="vcue">[Show school enrolment bar graph]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>School enrolment data: 2019: 420, 2020: 380, 2021: 450, 2022: 510, 2023: 490. From the raw numbers, identify: in which year did enrolment drop? By how much did it increase from 2020 to 2022? Now see if a bar graph makes these answers faster to find. <span class="vcue">[Show bar graph]</span></p>
+
+        <div class="bar-chart">
+          <div class="bar-chart-title">School Enrolment 2019–2023</div>
+          <div class="bar-row"><span class="bar-label">2019</span><div class="bar-track"><div class="bar-fill" style="width:76%">420</div></div></div>
+          <div class="bar-row"><span class="bar-label">2020</span><div class="bar-track"><div class="bar-fill" style="width:69%">380</div></div></div>
+          <div class="bar-row"><span class="bar-label">2021</span><div class="bar-track"><div class="bar-fill" style="width:82%">450</div></div></div>
+          <div class="bar-row"><span class="bar-label">2022</span><div class="bar-track"><div class="bar-fill" style="width:93%">510</div></div></div>
+          <div class="bar-row"><span class="bar-label">2023</span><div class="bar-track"><div class="bar-fill" style="width:89%">490</div></div></div>
+        </div>
+
+        <div class="stage-marker explain"></div>
+        <p>In a double bar graph, each category gets two bars — one per group — drawn side by side in different colours. A legend maps colours to groups. This enables two types of comparison simultaneously: comparing the two groups within the same category (looking at one pair of bars), and tracking each group's trend across categories (looking at bars of one colour across the graph). <span class="vcue">[Show double bar graph with boys/girls enrolment per year]</span></p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Analysis Question</span>
+          In a double bar graph showing Maths vs Science scores for 5 students, you notice that the Maths bars are consistently taller in the lower-scoring students, but the Science bars are taller for the higher-scoring students. What might this pattern suggest about these students?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 4</h3>
+        <div class="practice-q">A student's scores across 5 subjects in two consecutive exams: Exam 1 — Maths: 72, Science: 68, English: 80, Hindi: 65, Social: 74. Exam 2 — Maths: 78, Science: 74, English: 76, Hindi: 70, Social: 82. Describe what a double bar graph of this data would look like. In which subjects did the student improve? In which did they decline?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Improvement (Exam 2 score higher): Maths (+6), Science (+6), Hindi (+5), Social Studies (+8). Decline: English (−4). The double bar graph would show almost all Exam 2 bars (second bar in each pair) slightly taller than Exam 1 bars, except for English where the second bar is shorter. The greatest improvement visible would be Social Studies — its pair of bars would show the largest height difference. This student seems to have improved overall but needs attention on English.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T5 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 120,
+      videoEndSeconds: 140,
+      videoCheckpointPrompt: 'Pause and answer: When should you use a double bar graph?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 4',
+      guidedPracticeItems: [
+        {
+          question: 'Draw/describe a bar graph for scores: Maths 85, Science 72, English 90, Hindi 68, Social Studies 78. Which subject needs focus?',
+          answer: 'Use 0–100 scale. Lowest score is Hindi (68), then Science (72). Focus on Hindi first.'
+        },
+        {
+          question: 'Why must bars start from zero?',
+          answer: 'Starting above zero exaggerates differences and can mislead interpretation.'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q4,
+          ...inline_2_1_q4.styles[GameFormat.DRAG_SORT],
+          format: GameFormat.DRAG_SORT,
+          difficulty: 'medium'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_5',
+      title: 'Reading & Interpreting Graphs',
+      textContent: `<div class="section-block" id="s5b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 5 of 6</p>
+      <h2 class="section-title">Reading &amp; Interpreting Graphs</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Reading a graph is a skill distinct from making one. A graph well-read yields insights — a trend spotted, an anomaly noticed, a comparison made. A graph poorly read leads to wrong conclusions, especially if the scale is manipulated. Let's develop critical reading skills. <span class="vcue">[Show a student's 5-test score trend graph]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>Test scores over 5 tests: 55, 62, 58, 70, 75. <span class="vcue">[Show bar graph]</span> Identify: (a) the general trend, (b) the one anomaly, (c) the rate of improvement from Test 3 to Test 5. Now: what would you tell this student about their performance? Can you predict Test 6?</p>
+
+        <div class="stage-marker explain"></div>
+        <p>Interpretation has three levels. Level one — descriptive: state what the graph shows (values, highest, lowest). Level two — analytical: identify patterns, trends, anomalies, and comparisons. Level three — inferential: draw conclusions about what the data means and make predictions. Most students stop at level one. Strong data literacy means reaching level three routinely. Also — always check the Y-axis start point. A non-zero Y-axis exaggerates differences. This is the most common way graphs mislead.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Critical Thinking</span>
+          Two bar graphs show the same rainfall data. Graph A has a Y-axis from 0 to 200mm. Graph B has a Y-axis from 100mm to 150mm. In Graph B, one bar looks almost 4 times taller than another. In Graph A, the difference looks small. Which graph tells the truth? Which might be used to alarm readers unnecessarily?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 5</h3>
+        <div class="practice-q">A double bar graph shows online vs offline sales for a store over 4 quarters. Q1: Online 40, Offline 80. Q2: Online 55, Offline 75. Q3: Online 70, Offline 65. Q4: Online 90, Offline 55. Interpret this data at all three levels — descriptive, analytical, and inferential. What business decision does this data support?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Descriptive: Online sales ranged from 40 to 90, growing each quarter. Offline sales ranged from 55 to 80, declining each quarter. The two lines crossed between Q2 and Q3. Analytical: There is a clear crossover trend — online sales are rising sharply (+50 over 4 quarters) while offline sales are falling steadily (−25). Q3 is the crossover point. Inferential: Consumer preference is shifting significantly toward online purchasing. The business should invest more in their online platform, increase inventory available online, and potentially reconsider the cost of maintaining physical store space. This data strongly supports expanding the digital sales channel.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T6 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 400,
+      videoStartSeconds: 340,
+      videoEndSeconds: 425,
+      videoCheckpointPrompt: 'Pause and answer: Which graph clue can reveal misleading data?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 5',
+      guidedPracticeItems: [
+        {
+          question: 'Runs in 6 matches: 120, 185, 95, 210, 175, 160. Find highest, lowest, and trend type.',
+          answer: 'Highest = 210, lowest = 95, and the trend is mixed/fluctuating.'
+        }
+      ],
+      questions: [
+        {
+          id: 'c2_1_5_q1',
+          text: 'Which type of graph would be most appropriate for comparing average rainfall across 12 months?',
+          options: ['Pictograph', 'Bar Graph', 'Histogram', 'Pie Chart'],
+          correctAnswer: 'Bar Graph',
+          format: GameFormat.RAINDROP,
+          difficulty: 'hard',
+          hint: 'Think about discrete categories (months) vs continuous data.',
+          remedialBrief: 'Months are categories (discrete), not a continuous range, so use a bar graph with gaps.',
+          remedialDetail: 'Pictographs work but are less precise. Histograms are for continuous data. Pie charts show parts of a whole. Bar graphs compare values across categories — perfect for months!'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_6',
+      title: 'Class Activity: Be a Data Detective',
+      textContent: `<div class="section-block" id="s6b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 6 of 6</p>
+      <h2 class="section-title">Class Activity: Be a Data Detective</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Every tool from this module now comes together in one investigation. A data detective doesn't just organise and represent — they investigate, interpret, and recommend. The best data analysis always ends with a decision that someone can act on. Let's apply the full pipeline to a real scenario. <span class="vcue">[Show "Case File" folder]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>Class 8B's Science test marks (30 students, out of 50): 42, 28, 35, 47, 22, 38, 42, 50, 35, 28, 42, 33, 47, 22, 35, 28, 38, 42, 33, 50, 35, 22, 42, 47, 28, 38, 33, 35, 47, 42. <span class="vcue">[Show raw list]</span> Before organising — what can you already infer? What can't you tell yet?</p>
+
+        <div class="stage-marker elaborate"></div>
+        <p>Group into three ranges: Below 30 (7 students), 30–39 (11 students), 40+ (12 students). <span class="vcue">[Show frequency table and bar graph]</span> The bar graph shows that the majority of students (23 out of 30) scored 30 or above, suggesting reasonable overall understanding. The 7 students below 30 represent the teacher's priority group for follow-up. The data doesn't tell us why they struggled — that requires teacher investigation — but it tells us clearly how many and at what level.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Detective Assignment</span>
+          You receive monthly attendance data for Class 8: April 92%, May 88%, June 75%, July 71%, August 85%, September 90%. Build a bar graph and write a two-sentence interpretation that a principal could act on. Include one specific recommendation.
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Final Consolidation — Path B</h3>
+        <div class="practice-q">A school canteen recorded daily sales for one week: Monday 120, Tuesday 95, Wednesday 140, Thursday 130, Friday 180, Saturday 60, Sunday 0. (a) Make a frequency table. (b) Describe a bar graph of this data. (c) Identify the trend and explain it in terms of the school week. (d) If the canteen manager can only fully staff on 4 days, which days should they choose and why?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">(a) Table: Mon-120, Tue-95, Wed-140, Thu-130, Fri-180, Sat-60, Sun-0. Total = 725. (b) Bar graph shows a peak on Friday (tallest bar), a clear dip on Saturday, and zero on Sunday. The bars rise through the week Monday to Friday then drop sharply. (c) The trend follows the school week — highest on Friday (end of week, busiest social day), lowest on weekend (fewer students). Wednesday and Thursday also show strong sales mid-week. (d) The four days the manager should fully staff: Friday (highest, 180), Wednesday (140), Thursday (130), and Monday (120). These four days account for 570 of 725 total sales — about 79% of revenue.</div>
+      </div>
+    </div>
+
+  </div><!-- end panel-b -->`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 600,
+      videoStartSeconds: 425,
+      videoEndSeconds: 520,
+      videoCheckpointPrompt: 'Pause and answer: What are the 3 steps in your class data project?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Final Reflection — Module 2.1',
+      guidedPracticeItems: [
+        {
+          question: 'A friend says, "I don\'t need graphs — I can just read numbers from a table." Respond using two examples from this module.',
+          answer: 'Tables give exact values, while graphs reveal patterns instantly. Example: enrolment dip is easier to spot in bars than raw numbers; score trends and dips become obvious visually over time.'
+        }
+      ],
+      questions: [
+        {
+          id: 'c2_1_6_q1',
+          text: 'If you were conducting a survey on favorite foods in your class, what would be the best graph format to present your findings?',
+          options: ['Pictograph with food symbols', 'Bar graph by category', 'Histogram', 'All of the above could work'],
+          correctAnswer: 'Bar graph by category',
+          format: GameFormat.RAINDROP,
+          difficulty: 'medium',
+          hint: 'Think about whether food categories are discrete (separate) or continuous (ranges).',
+          remedialBrief: 'Food types are categories, not continuous data. Bar graphs (with gaps) are best for comparing categories.',
+          remedialDetail: 'Pictographs work but are less standard for this. Histograms are for continuous grouping like height ranges or test scores, not discrete categories like food types.'
+        }
+      ]
+    }
+  ]
+};
 
 export const module_5: Module = filterModuleByPath(moduleData, 'B');
