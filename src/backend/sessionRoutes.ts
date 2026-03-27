@@ -143,6 +143,53 @@ const stripUndefinedDeep = (input: any): any => {
   return input === undefined ? undefined : input;
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const isRetryableFirestoreError = (error: any) => {
+  const code = Number(error?.code);
+  const message = String(error?.message || '').toLowerCase();
+  return (
+    code === 4 || // DEADLINE_EXCEEDED
+    code === 10 || // ABORTED
+    code === 13 || // INTERNAL
+    code === 14 || // UNAVAILABLE
+    message.includes('deadline exceeded') ||
+    message.includes('unavailable') ||
+    message.includes('aborted')
+  );
+};
+
+const withFirestoreRetry = async <T>(
+  label: string,
+  operation: () => Promise<T>,
+  maxAttempts = 4
+): Promise<T> => {
+  let attempt = 0;
+  let lastError: any;
+
+  while (attempt < maxAttempts) {
+    attempt += 1;
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      const retryable = isRetryableFirestoreError(error);
+      if (!retryable || attempt >= maxAttempts) {
+        throw error;
+      }
+
+      const delayMs = Math.min(3000, 250 * Math.pow(2, attempt - 1));
+      console.warn(`${label} failed on attempt ${attempt}/${maxAttempts}, retrying in ${delayMs}ms`, {
+        code: error?.code,
+        message: error?.message,
+      });
+      await sleep(delayMs);
+    }
+  }
+
+  throw lastError;
+};
+
 const isMissingIndexError = (error: any) => {
   const message = String(error?.message || '').toLowerCase();
   const code = String(error?.code || '').toLowerCase();
@@ -422,7 +469,7 @@ router.post('/telemetry/batch', verifyToken, async (req: Request, res: Response)
     const ipAddress = getClientIp(req);
     const geo = await fetchGeoIp(ipAddress);
     const eventsToStore = events.slice(0, 2000);
-    const chunkSize = 450;
+    const chunkSize = 200;
 
     for (let i = 0; i < eventsToStore.length; i += chunkSize) {
       const chunk = eventsToStore.slice(i, i + chunkSize);
@@ -447,7 +494,7 @@ router.post('/telemetry/batch', verifyToken, async (req: Request, res: Response)
         batch.set(eventRef, eventDoc);
       }
 
-      await batch.commit();
+      await withFirestoreRetry(`telemetry-batch-commit-${i / chunkSize + 1}`, () => batch.commit());
     }
 
     const summaryRef = db.collection('students').doc(user.uid).collection('analytics').doc('summary');
@@ -482,7 +529,7 @@ router.post('/telemetry/batch', verifyToken, async (req: Request, res: Response)
       summaryUpdate.uniqueCountries = admin.firestore.FieldValue.arrayUnion(...uniqueCountries);
     }
 
-    await summaryRef.set(summaryUpdate, { merge: true });
+    await withFirestoreRetry('telemetry-summary-upsert', () => summaryRef.set(summaryUpdate, { merge: true }));
 
     res.json({ success: true, stored: eventsToStore.length });
   } catch (error: any) {

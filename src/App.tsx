@@ -11,7 +11,6 @@ import {
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import PreTest from './pages/PreTest';
-import PreferenceSurvey from './pages/PreferenceSurvey';
 import PathAssignment from './pages/PathAssignment';
 import AdminDashboard from './pages/AdminDashboard';
 import ModulePage from './pages/ModulePage';
@@ -140,7 +139,6 @@ export default function App() {
       <Route path="/login" element={!session ? <LoginPage /> : <Navigate to={session.preTestDone ? "/dashboard" : "/pre-test"} />} />
       <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
       <Route path="/pre-test" element={session ? <PreTest /> : <Navigate to="/login" />} />
-      <Route path="/preference-survey" element={session ? <PreferenceSurvey /> : <Navigate to="/login" />} />
       <Route path="/path-assignment" element={session ? <PathAssignment /> : <Navigate to="/login" />} />
       <Route path="/module/:moduleId" element={session ? <ModulePage /> : <Navigate to="/login" />} />
       <Route path="/post-test" element={session ? <PostTest /> : <Navigate to="/login" />} />
