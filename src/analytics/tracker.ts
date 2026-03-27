@@ -7,7 +7,7 @@ export interface InternalAnalytics {
 }
 
 export interface AnalyticsEvent {
-  type: 'question_attempt' | 'hint_view' | 'module_start' | 'module_end' | 'idle_detected';
+  type: 'question_attempt' | 'hint_view' | 'module_start' | 'module_end' | 'idle_detected' | 'pretest_skipped';
   timestamp: string;
   data: any;
 }

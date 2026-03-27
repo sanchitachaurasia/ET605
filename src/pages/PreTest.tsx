@@ -279,9 +279,11 @@ export default function PreTest() {
     const getPath = (correctCount: number, total: number): 'A' | 'B' | 'C' => {
       const ratio = correctCount / total;
       if (ratio < 0.4) return 'A';
-      if (ratio < 0.75) return 'B';
+      if (ratio < 0.7) return 'B';
       return 'C';
     };
+
+    const overallPath = getPath(score, preTestQuestions.length);
 
     const m21Correct = [0, 1, 3, 4].filter(i => correctAnswers[preTestQuestions[i].id]).length;
     const m22Correct = [0, 6].filter(i => correctAnswers[preTestQuestions[i].id]).length;
@@ -325,7 +327,7 @@ export default function PreTest() {
     // Store results for finish handler
     const tempResults = {
       preTestScore: finalScore, 
-      learningPath: path21, 
+      learningPath: overallPath,
       preTestFeedback: avgFeedback,
       recommendedStyle: rec,
       learnerProfile: {
