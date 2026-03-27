@@ -106,583 +106,411 @@ function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
 }
 
 const moduleData: Module = {
-    id: '2.1',
-    title: 'Data Organisation & Types of Graphs',
-    concepts: [
-      {
-        id: 'c2_1_1',
-        title: 'Why Do We Need to Organise Data?',
-        textContent: 'Your teacher asks: "Which sport is most popular in Class 8?" Every student calls out at the same time. You hear: Cricket, Football, Cricket, Badminton, Cricket, Football, Tennis, Cricket … Can you tell which sport is most popular? No — it is noise. You need to COLLECT, ORGANISE, and COUNT responses systematically. That is exactly what Data Handling teaches you to do.',
-        difficulty: 'easy',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'Raj\'s Mystery: Finding the Most Popular Lunch',
-          scenario: 'The school cafeteria manager, Mrs. Patel, is confused. Every day, she cooks different lunch options, but she doesn\'t know which one students prefer most. She asked 50 students: "What is your favourite lunch?" The answers came as a long, chaotic list: "Pizza, Dosa, Pizza, Biryani, Pizza, Dosa, Pasta, Pizza, Dosa, Biryani…" With data like this, Mrs. Patel cannot make good decisions. She turns to Raj for help.',
-          realWorldConnection: 'Netflix uses data organisation to find your favourite shows. Google uses it to understand search trends. Amazon uses it to find popular products. Your school cafeteria uses it to plan menus. Without organisation, data is just noise!',
-          studentChallenge: 'You are now like Raj. By the end of this module, you\'ll be able to take messy data and turn it into clear graphs that answer questions instantly.'
-        },
-        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-        videoStartSeconds: 0,
-        videoEndSeconds: 40,
-        videoCheckpointPrompt: 'Pause and answer: What problem did raw data create for Raj?',
-        workedExamples: [
-          {
-            explanation: 'Example 1: The Problem That Graphs Solve',
-            steps: [
-              'Imagine you have collected 50 responses to "What is your favourite sport?" as a raw list.',
-              'Reading it takes 2 minutes and you still cannot answer: "Which sport is most popular?"',
-              'Frequency tables, pictographs, and bar graphs exist to solve this exact problem.',
-              'With a graph, you see the answer in 5 seconds by looking at the tallest bar.'
-            ]
-          },
-          {
-            explanation: 'Example 2: Why Companies Care About Data',
-            steps: [
-              'McDonald\'s collects data on which menu items customers order.',
-              'By organising this data, they see that burgers are most popular.',
-              'They stock more burgers and fewer salads.',
-              'Result: happier customers, more sales.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Your School',
-            steps: [
-              'Your school collects data on student grades in Math, Science, English.',
-              'By organising this data, they see which students need extra help.',
-              'They provide tutoring to struggling students.',
-              'Result: better grades, better learning outcomes.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Making Personal Decisions',
-            steps: [
-              'You track your test scores: 75, 82, 78, 85, 88 (5 tests).',
-              'Organised, you see: average = 81.6, trend = improving.',
-              'You realise studying more helps.',
-              'Decision: continue with your study plan.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Why Data Matters',
-            content: 'Data is simply facts and numbers. Organized data shows patterns that raw data hides. For example, if you list all colors in a rainbow in order (red, orange, yellow, green, blue, indigo, violet), you instantly remember the pattern. Compare this to listing colors randomly: "blue, red, indigo, orange, violet, yellow, green." Much harder to remember! Same with numbers — organized is always clearer than chaos.'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: The Power of Organisation',
-            content: 'When you organise data, you enable people to make decisions quickly. A doctor organises patient symptoms to diagnose disease. A coach organises player statistics to build a winning team. A teacher organises test scores to identify struggling students. Without organisation, these decisions take forever and tend to be wrong.'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Real-World Application',
-            content: 'Think of a decision your parents need to make. Example: "Which school is best for our child?" They collect data on: exam results, sports facilities, fees, commute time. By organising this data (maybe in a table or chart), they can compare schools and make a good decision. You try: Pick a decision (best phone, best pizza topping, best vacation destination) and think about what data you\'d collect and how you\'d organise it.'
-          }
-        ],
-        realWorldApplications: [
-          'Netflix recommendations based on watch history',
-          'Google search trends analysis',
-          'School cafeteria menu planning',
-          'Weather forecasting',
-          'Sports team strategies'
-        ],
-        questions: [
-          {
-            ...inline_2_1_q1,
-            ...inline_2_1_q1.styles[GameFormat.DRAG_SORT],
-            format: GameFormat.DRAG_SORT,
-            difficulty: 'easy'
-          }
-        ]
-      },
-      {
-        id: 'c2_1_2',
-        title: 'Tally Marks & Frequency Tables',
-        textContent: 'A Frequency Distribution Table organises data by listing every category with its tally marks and frequency. Every time a value appears, make ONE stroke: |. After 4 strokes (||||), the 5th stroke crosses them diagonally: |||| — this completes a group of 5. Tally marks in groups of 5 make counting fast and error-free.',
-        difficulty: 'easy',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'Counting Like Ancient Humans',
-          scenario: 'Hundreds of years ago, shepherds needed to count sheep. Marking on paper one-by-one (1, 2, 3, 4, 5…) was slow. Then someone discovered "grouping by 5" using tally marks. Suddenly, counting 1000 sheep wasn\'t painful — divide into groups of 5, done! This ancient method is still the fastest way humans count by hand today.',
-          realWorldConnection: 'Tally marks are used in modern surveys, opinion polls, game scoring, and even by emergency responders counting victims. It\'s a 2000-year-old method that\'s still faster than any modern app for quick, manual counting.',
-          studentChallenge: 'In the next activity, you\'ll use tally marks to count real survey responses and build your first frequency table.'
-        },
-        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-        videoStartSeconds: 40,
-        videoEndSeconds: 80,
-        videoCheckpointPrompt: 'Pause and answer: Why do tally marks use groups of 5?',
-        workedExamples: [
-          {
-            explanation: 'Example 1: Basic Tally Marks Method',
-            steps: [
-              'Raw data: "Red, Blue, Red, Green, Red, Blue, Red, Green, Blue, Red" (10 items)',
-              'Step 1: List categories in a table (Red, Blue, Green).',
-              'Step 2: Go through data one-by-one left-to-right. For each "Red", mark | in the Red row.',
-              'Step 3: After 4 marks (||||), the 5th mark crosses them diagonally: ||||. This makes groups of 5.',
-              'Step 4: Count tally groups. Red: 1 group of 5 + 0 extra = 5. Blue: 1 group of 5 = 2 remaining = Wait, recount... (This teaches carefulness!)'
-            ]
-          },
-          {
-            explanation: 'Example 2: Building a Frequency Table',
-            steps: [
-              'Draw a table with 3 columns: Category, Tally, Frequency.',
-              'Fill in Category column: Apple, Banana, Orange.',
-              'Process raw data one item at a time, adding tally marks.',
-              'Count tally groups. Each group of 5 = 5. Remaining marks = add extra.',
-              'Write frequency (total count) in the Frequency column.'
-            ]
-          },
-          {
-            explanation: 'Example 3: The Error-Catching Power of Tally Groups',
-            steps: [
-              'A student counts 23 items by writing: 23 individual marks (takes forever, easy to miscount).',
-              'Expert uses: ||| ||| ||| ||| ||| | (5 groups + 3 extra = clear, quick, hard to miscount).',
-              'Because marks are grouped, you can instantly see "5 complete groups" = at least 25. If you see less, you know something\'s wrong.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Speed Comparison',
-            steps: [
-              'Time to count 100 items by writing individual marks: 5+ minutes.',
-              'Time to count 100 items with tally groups (20 groups): 1-2 minutes.',
-              'Time to count 100 items by just reading organized tally: 10 seconds.',
-              'This is why tally marks in groups of 5 are still used in professional surveys!'
-            ]
-          },
-          {
-            explanation: 'Example 5: Avoiding Common Mistakes',
-            steps: [
-              'WRONG: Making 6 marks for one group. ✗',
-              'RIGHT: Always stop at 4, then cross with the 5th. ✓',
-              'WRONG: Mixing up single marks and groups. ✗',
-              'RIGHT: Keep marks organized; clearly separate each group of 5. ✓'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: The Purpose of Tally Marks',
-            content: 'Tally marks are just a way to count. Instead of writing numbers (1, 2, 3, 4, 5), you draw marks ( | | | | | ). They\'re grouped by 5 because humans find it easier to recognize 5 things at a glance than 20 separate marks. It\'s like bundles — 10 pencils in a bundle is easier to count than 10 loose pencils scattered on a desk.'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: Why Groups of 5?',
-            content: 'Humans naturally think in groups of 5 because we have 5 fingers. When you count on your fingers, you use one hand (5 fingers) as one unit. Groups of 5 make counting mentally efficient — you "see" 5 as one chunk. That\'s why tally marks use groups of 5, and that\'s why many currencies have 5-unit coins (5 rupees, 5 dollars, etc.).'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Tally Challenges',
-            content: 'Practice 1: Use tally marks to count the letters in this sentence. Practice 2: Count the number of E\s in the alphabet (answer: 1). Practice 3: Create your own frequency table for eye colors in your class. Challenge: Can you think of situations where tally marks would be faster than a calculator?'
-          }
-        ],
-        realWorldApplications: [
-          'Market research surveys',
-          'Restaurant food order tallying',
-          'Sports referees counting fouls',
-          'Wildlife habitat surveys',
-          'Opinion polls'
-        ],
-        questions: [
-          {
-            ...inline_2_1_q2,
-            ...inline_2_1_q2.styles[GameFormat.RAINDROP],
-            format: GameFormat.RAINDROP,
-            difficulty: 'easy'
-          }
-        ]
-      },
-      {
-        id: 'c2_1_3',
-        title: 'Types of Graphs: Pictographs',
-        textContent: 'A pictograph represents data using pictures or symbols. Each symbol stands for a fixed number of items. A pictograph is ideal for showing quantities that are large or when visual appeal matters. Always include a KEY (LEGEND) showing what one symbol represents.',
-        difficulty: 'medium',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'The Symbol That Tells a Story',
-          scenario: 'Raj\'s school did a survey: "How many books did you read last month?" Results: Student A read 5, B read 10, C read 15, etc. Writing numbers (5, 10, 15) is boring. Using book symbols 📚 is exciting! A teacher shows Raj: 📚📚📚📚📚 = 25 books. Instantly, Raj understands "wow, that\'s a lot!" without even checking the number.',
-          realWorldConnection: 'Pictographs are used in: newspaper infographics, children\'s books, marketing presentations, environmental reports (tree icons for forest coverage, rainfall drops for precipitation), and health reports (heart icons for cardiovascular data).',
-          studentChallenge: 'You\'ll create your own pictograph using symbols to represent class data. The goal: make your graph so clear that someone can understand it without numbers!'
-        },
-        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-        videoStartSeconds: 80,
-        videoEndSeconds: 120,
-        videoCheckpointPrompt: 'Pause and answer: What does the KEY in a pictograph represent?',
-        workedExamples: [
-          {
-            explanation: 'Example 1: Creating a Pictograph Scale',
-            steps: [
-              'Data: India produced 100 million cars, China produced 250 million cars.',
-              'Choosing scale: 1 car symbol 🚗 = 50 million cars (chosen to fit nicely on paper).',
-              'India: 100 ÷ 50 = 2 symbols. China: 250 ÷ 50 = 5 symbols.',
-              'Draw: India: 🚗🚗. China: 🚗🚗🚗🚗🚗.',
-              'Always include the KEY showing "🚗 = 50 million cars."'
-            ]
-          },
-          {
-            explanation: 'Example 2: Using Fractional Symbols',
-            steps: [
-              'Data: Country A has 75 trees, Country B has 100 trees.',
-              'Scale: 1 tree symbol 🌲 = 50 trees.',
-              'Country A: 75 ÷ 50 = 1.5 symbols. So draw: 🌲 + (half symbol 🌲/2).',
-              'Country B: 100 ÷ 50 = 2 symbols. So draw: 🌲🌲.',
-              'The KEY must show the full symbol and clearly indicate half-symbol value.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Choosing Appropriate Symbols',
-            steps: [
-              'Data is about fruits sold. Symbol should be a fruit 🍎, not a person 👤.',
-              'Data is about water usage. Symbol should be a drop 💧, not a car 🚗.',
-              'Data is about students in sports. Symbol can be a player 🏃 or sport equipment ⚽.',
-              'Rule: Symbol must be RELATED to the data for instant understanding.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Scale Selection Matters',
-            steps: [
-              'If 1 symbol = 1 item, and data is 500-1000 items, the graph becomes TOO LARGE.',
-              'If 1 symbol = 1000 items, and data ranges from 500-2000, many categories show incomplete symbols.',
-              'Good scale: makes graph fit on paper (not too large), minimizes fractional symbols (not too small).',
-              'Example: 500, 600, 700 items → scale of 1 symbol = 100 items works well.'
-            ]
-          },
-          {
-            explanation: 'Example 5: Reading a Pictograph',
-            steps: [
-              'Given pictograph: Apple: 🍎🍎🍎. Banana: 🍌🍌. Orange: 🍌🍌🍌.',
-              'KEY: 🍎 = 20 apples. 🍌 = 20 bananas.',
-              'Count symbols: Apple = 3 × 20 = 60. Banana = 2 × 20 = 40. Orange = 3 × 20 = 60.',
-              'The graph instantly shows: Apple and Orange are equally popular, Banana less so.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Pictographs in Daily Life',
-            content: 'You see pictographs every day — on weather apps (☀️ for sunny, 🌧️ for rainy), in health diagrams (❤️ for heart health), and in kids books. A pictograph is just a graph where numbers are replaced by pictures. Instead of saying "5 apples," you draw 🍎🍎🍎🍎🍎. It\'s simpler to understand at a glance.'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: Why Pictographs Matter',
-            content: 'Pictographs are universal. A child in China, Brazil, or Kenya can understand a pictograph without reading a single word. That\'s why international organizations use them. Also, pictographs engage emotion — seeing 💪💪💪 (strength) feels better than reading "3 strength." This makes data memorable.'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Design a Pictograph',
-            content: 'Challenge 1: Collect data on favorite fruits in your class. Design a pictograph with appropriate symbols and scale. Challenge 2: Create a pictograph showing water usage (in liters) by different activities (shower, washing, cooking). Challenge 3: Find a pictograph online (health report, environmental data) and explain why that symbol was chosen.'
-          }
-        ],
-        realWorldApplications: [
-          'Weather app visualizations',
-          'Health and fitness tracking apps',
-          'Environmental reports (carbon footprint, pollution levels)',
-          'Income distribution charts in newspapers',
-          'Literacy rate infographics'
-        ],
-        questions: [
-          {
-            ...inline_2_1_q3,
-            ...inline_2_1_q3.styles[GameFormat.DRAG_SORT],
-            format: GameFormat.DRAG_SORT,
-            difficulty: 'medium'
-          }
-        ]
-      },
-      {
-        id: 'c2_1_4',
-        title: 'Types of Graphs: Bar Graphs & Double Bar Graphs',
-        textContent: 'A bar graph represents data using rectangular bars of equal width. The KEY RULE: GAPS must exist between bars. The horizontal axis shows categories, and the vertical axis shows frequency/values. A double bar graph compares TWO datasets for the same categories.',
-        difficulty: 'medium',
-        estimatedTimeSeconds: 300,
-        storyNarrative: {
-          title: 'Comparing Teams Using Bars',
-          scenario: 'Two cricket teams played 5 matches. Team A scores: 150, 165, 140, 175, 160. Team B scores: 145, 160, 155, 170, 165. Looking at the lists, it\'s hard to say which team is better. But draw two bars side-by-side for each match… instantly, you see Team A has higher bars on average. That\'s the power of bar graphs!',
-          realWorldConnection: 'Bar graphs are ubiquitous: news articles comparing countries\' GDP, election results (candidate A vs B), sports statistics (team performance), company sales by quarter, and school enrollment by year. Any comparison of values across categories uses bar graphs.',
-          studentChallenge: 'You\'ll build your own bar graph using the BAR BUILDER game format, and analyze double bar graphs to make comparisons.'
-        },
-        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-        videoStartSeconds: 120,
-        videoEndSeconds: 140,
-        videoCheckpointPrompt: 'Pause and answer: When should you use a double bar graph?',
-        workedExamples: [
-          {
-            explanation: 'Example 1: Drawing a Simple Bar Graph',
-            steps: [
-              'Data: Cricket team runs — Batsman A (50 runs), B (75), C (60), D (85).',
-              'Step 1: Draw x-axis (horizontal) with 0 spacing between labels.',
-              'Step 2: Draw y-axis (vertical) with frequency scale (0, 20, 40, 60, 80, 100).',
-              'Step 3: For Batsman A, draw a bar from 0 to 50 (height = 50).',
-              'Step 4: Leave a gap, then draw Batsman B bar (height = 75).',
-              'Step 5: Repeat for C and D. All bars have equal width; gaps between them are equal.'
-            ]
-          },
-          {
-            explanation: 'Example 2: The Critical Rule — Gaps Between Bars',
-            steps: [
-              'WRONG: Drawing bars touching each other (||||||||). This is HISTOGRAM format.',
-              'RIGHT: Drawing bars with gaps: | | | | . This is BAR GRAPH format.',
-              'Why the difference? Bars represent CATEGORIES (sport, color, name). Categories are separate.',
-              'Histograms represent CONTINUOUS DATA (heights 160-169, 170-179). These overlap, so no gaps.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Reading a Bar Graph',
-            steps: [
-              'Given: A bar graph of test scores by subject. Math bar height = 85, Science = 75, English = 70.',
-              'Reading: Align the top of each bar with the y-axis scale.',
-              'Interpretation: Student did best in Math (85), worst in English (70).',
-              'Comparison: Math is 15 points higher than Science (85 − 70 = 15).'
-            ]
-          },
-          {
-            explanation: 'Example 4: Creating a Double Bar Graph',
-            steps: [
-              'Data: Rainfall in City A (100mm) vs City B (120mm) for January. City A (80mm) vs B (150mm) for February.',
-              'Draw x-axis with months (Jan, Feb). Draw y-axis with rainfall scale.',
-              'For January, draw two bars: City A to 100, City B to 120 (place side-by-side with small gap).',
-              'For February, draw two bars: City A to 80, City B to 150.',
-              'Use different colors (or patterns) for City A and B. Include legend showing which color = which city.'
-            ]
-          },
-          {
-            explanation: 'Example 5: Interpreting Double Bar Graphs',
-            steps: [
-              'Looking at the double bar graph above, what story does it tell?',
-              'January: Both cities have similar rainfall. City B slightly higher.',
-              'February: Huge difference! City B has much heavier rainfall (150mm vs 80mm).',
-              'Conclusion: City B experiences more dramatic seasonal rainfall variation.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Bars Show Amounts',
-            content: 'A bar graph is like stacking blocks. Taller bars = bigger numbers. Shorter bars = smaller numbers. That\'s it. Bar graphs let you compare amounts at a glance. Looking at bars, you instantly see which is biggest without reading numbers. This is why bar graphs are so powerful.'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: Bars vs Histograms',
-            content: 'Bar graphs have gaps because they show categories (separate groups). Histograms have no gaps because they show continuous ranges (where one range touches the next). Example: "Favorite color" (categories) uses bar graphs with gaps. "Height of students" (continuous ranges like 150-160, 160-170) uses histograms with no gaps. This is the fundamental difference that confuses many students — understanding this distinction will make you excellent at data visualization.'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Build Your Own Double Bar Graph',
-            content: 'Collect data for double bar comparison: Boys vs Girls in your class for each sport (cricket, badminton, tennis). Create a double bar graph. Analyze: Which sport is more popular among girls? Which among boys? Is there a gender difference in sport preferences? Present your findings to the class.'
-          }
-        ],
-        realWorldApplications: [
-          'Sales comparison across quarters',
-          'Election results (candidate A vs B by region)',
-          'Sports statistics (team A vs team B by season)',
-          'Student performance across subjects',
-          'Market share comparisons between companies'
-        ],
-        questions: [
-          {
-            ...inline_2_1_q4,
-            ...inline_2_1_q4.styles[GameFormat.DRAG_SORT],
-            format: GameFormat.DRAG_SORT,
-            difficulty: 'medium'
-          }
-        ]
-      },
-      {
-        id: 'c2_1_5',
-        title: 'Reading & Interpreting Real Graphs',
-        textContent: 'Real graphs from newspapers, reports, and websites often contain misleading features. A truncated y-axis (not starting from 0) can exaggerate differences. Unequal spacing can distort visual perception. Learning to read critically means checking the scale, noting the source, and questioning the data presentation.',
-        difficulty: 'hard',
-        estimatedTimeSeconds: 400,
-        storyNarrative: {
-          title: 'Fact vs Fiction: Are All Graphs Trustworthy?',
-          scenario: 'A politician shows a graph claiming: "Economic growth is booming!" The graph shows sales jumping from 50 to 51. Looks impressive, right? But look at the y-axis — it starts at 45, not 0. The true 2% growth looks like a huge 90° jump! This is a LYING GRAPH. Raj learns to question graphs and uncover the truth.',
-          realWorldConnection: 'Politicians, advertisers, and companies use misleading graphs daily. Toothpaste companies show graphs with truncated axes to make their product look better. Media outlets exaggerate trends with poor scaling. Learning to read graphs critically is a life skill — it makes you immune to manipulation!',
-          studentChallenge: 'You\'ll analyze real-world graphs (some truthful, some misleading) and identify which are intentionally deceptive and why.'
-        },
-        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-        videoStartSeconds: 340,
-        videoEndSeconds: 425,
-        videoCheckpointPrompt: 'Pause and answer: Which graph clue can reveal misleading data?',
-        workedExamples: [
-          {
-            explanation: 'Example 1: The Truncated Axis Trick',
-            steps: [
-              'Graph A: Bar from 0 to 50. Bar from 0 to 51. Visually similar heights.',
-              'Graph B (misleading): Y-axis starts at 45. Bar 1 goes to 50 (very short). Bar 2 goes to 51 (very tall).',
-              'Same data, different graphs. Graph B makes a 2% increase look like 400%!',
-              'Red flag: Always check what the y-axis starts at. If not 0, be suspicious.'
-            ]
-          },
-          {
-            explanation: 'Example 2: Unequal Spacing Deception',
-            steps: [
-              'True data: 2020 (100), 2021 (200), 2022 (300), 2023 (400).',
-              'Honest graph: Equal spacing, values double each year (honest).',
-              'Deceptive graph: Cramped spacing for small growth years, huge spacing for big growth years.',
-              'Visual impression: Growth looks inconsistent/dramatic when it\'s actually consistent.',
-              'Red flag: Unequal spacing without mathematical reason = deception.'
-            ]
-          },
-          {
-            explanation: 'Example 3: Missing Context',
-            steps: [
-              'Graph shows: "Ice cream sales soar!" with sales jumping from 100 to 200.',
-              'Context missing: Is this for a day? A season? A decade?',
-              'True story: Ice cream sales are higher in summer (expected). Without time context, the graph is meaningless.',
-              'Red flag: Graphs without clear time frames, units, or data source are suspicious.'
-            ]
-          },
-          {
-            explanation: 'Example 4: Contradictory Dual Axes',
-            steps: [
-              'Graph shows: Temperature (left y-axis, 0-40°C) and Rainfall (right y-axis, 0-500mm).',
-              'Left axis scaled to make temperature look steady. Right axis scaled to make rainfall volatile.',
-              'Same data, two different visual stories!',
-              'Red flag: Dual axes without equal proportional scaling = deception.'
-            ]
-          },
-          {
-            explanation: 'Example 5: Identifying Honest vs Misleading Graphs',
-            steps: [
-              'Honest graph: Y-axis starts at 0, equal spacing, clear labels, cited source, recent data.',
-              'Misleading graph: Truncated axis, weird spacing, unlabeled, no source, old data.',
-              'Your role: As a student, learn to question graphs. Ask: "Who made this?" "What is the source?" "Does the scale look fair?"',
-              'Become a graph detective! Protect yourself from lies.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Always Check the Axis',
-            content: 'The most common graph lie is the truncated y-axis. If a graph\'s y-axis starts at 80 instead of 0, small differences look huge. Always look at what the axis starts with. If it doesn\'t start at 0 (and it\'s a bar/column graph), be careful. Ask yourself: "Why did they start here? Are they hiding something?"'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: The Psychology of Graphs',
-            content: 'Humans judge visuals emotionally before reading numbers. A tall bar feels "bigger" even if the difference is tiny. This is why misleading graphs work — they exploit visual perception. Advertisers and politicians know this. They manipulate graphs to trigger emotions (fear, excitement, pride). Learning to read graphs critically means you\'re learning to protect yourself from emotional manipulation.'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Graph Detectives',
-            content: 'Challenge 1: Find a graph in a news article online. Analyze: Is the y-axis fair? Are the axes labeled clearly? What story is the graph telling? Is the story supported by the actual data? Challenge 2: Take honest data and create two graphs — one honest, one deceptive. Show both to classmates and see if they notice the difference. Challenge 3: Follow a company or politician you know and analyze how they present data in their reports. Are their graphs fair?'
-          }
-        ],
-        realWorldApplications: [
-          'Political campaign advertising',
-          'Company financial reports',
-          'News media infographics',
-          'Social media data visualizations',
-          'Marketing and product comparisons',
-          'COVID-19 pandemic statistics'
-        ],
-        questions: [
-          {
-            id: 'c2_1_5_q1',
-            text: 'Which type of graph would be most appropriate for comparing average rainfall across 12 months?',
-            options: ['Pictograph', 'Bar Graph', 'Histogram', 'Pie Chart'],
-            correctAnswer: 'Bar Graph',
-            format: GameFormat.RAINDROP,
-            difficulty: 'hard',
-            hint: 'Think about discrete categories (months) vs continuous data.',
-            remedialBrief: 'Months are categories (discrete), not a continuous range, so use a bar graph with gaps.',
-            remedialDetail: 'Pictographs work but are less precise. Histograms are for continuous data. Pie charts show parts of a whole. Bar graphs compare values across categories — perfect for months!'
-          }
-        ]
-      },
-      {
-        id: 'c2_1_6',
-        title: 'Class Data Project: Be a Data Detective',
-        textContent: 'Apply everything you\'ve learned! Collect real data from your class, organize it using frequency tables and tally marks, and create graphs (pictograph, bar graph, or both). Present your findings to the class. This is how real data scientists work.',
-        difficulty: 'medium',
-        estimatedTimeSeconds: 600,
-        storyNarrative: {
-          title: 'Be a Data Detective in Your Class',
-          scenario: 'Raj decides to investigate: "What is the true favorite food in Class 8?" He collects data by surveying all 40 students. Results are messy: "Dosa, Pizza, Dosa, Dosa, Pizza, Burger, Biryani…" Using frequency tables, tally marks, and bar graphs, Raj discovers: Dosa is #1 (15 students), Pizza #2 (12), Burger #3 (8), Biryani #4 (5). He presents this to the class. Mrs. Patel uses this data to improve the cafeteria menu. Raj becomes a hero!',
-          realWorldConnection: 'Companies hire data scientists to do exactly this. Researchers use these methods to answer questions about society. Government uses data collection for census (population surveys). Your work here mirrors real-world data analysis!',
-          studentChallenge: 'You will become a data detective. Choose a question about your class, collect data, organize it, visualize it, and present findings.'
-        },
-        videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-        videoStartSeconds: 425,
-        videoEndSeconds: 520,
-        videoCheckpointPrompt: 'Pause and answer: What are the 3 steps in your class data project?',
-        workedExamples: [
-          {
-            explanation: 'Example Project 1: Favorite Sport Survey',
-            steps: [
-              'Question: "Which sport is most popular in our class?"',
-              'Data collection: Ask all 35 classmates, record responses.',
-              'Organization: Create frequency table. Cricket (12), Badminton (10), Tennis (8), Football (5).',
-              'Visualization: Draw bar graph. Cricket bar is tallest.',
-              'Presentation: "Cricket is most popular (12 students). Badminton is close (10). Football is least popular (5)."',
-              'Insight: Maybe the school should invest more cricket equipment!'
-            ]
-          },
-          {
-            explanation: 'Example Project 2: How Much Sleep Do Students Get?',
-            steps: [
-              'Question: "How many hours of sleep do 8th graders get on average?"',
-              'Data collection: Ask 30 students about yesterday\'s sleep (8h, 6h, 9h, 7h, etc.).',
-              'Organization: Group into intervals (6-7h, 7-8h, 8-9h, 9-10h). Create frequency table.',
-              'Visualization: Draw histogram (no gaps because continuous data). Most students cluster 7-8h.',
-              'Presentation: "Most students (22) sleep 7-8 hours. Some (5) sleep 6-7, few (3) sleep 8+ hours."',
-              'Insight: Most students get healthy sleep amounts!'
-            ]
-          },
-          {
-            explanation: 'Example Project 3: Comparing Boys\' and Girls\' Preferences',
-            steps: [
-              'Question: "Do boys and girls like the same foods?"',
-              'Data collection: Ask 20 boys and 20 girls about 3 foods.',
-              'Organization: Create two frequency tables (one for boys, one for girls).',
-              'Visualization: Draw double bar graph (boys vs girls for each food).',
-              'Presentation: "Pizza is popular among both. Boys prefer Biryani; girls prefer Dosa. They differ!"',
-              'Insight: Gender influences food preferences in our class.'
-            ]
-          }
-        ],
-        remediationLevels: [
-          {
-            level: 1,
-            title: 'Gentle Review: Project Steps Overview',
-            content: 'Step 1: Ask a question. Step 2: Collect data (ask friends/family). Step 3: Organize using tables and tally marks. Step 4: Draw a graph (bar, pictograph, or histogram). Step 5: Write findings (which category is most popular, any patterns?). Step 6: Present to class. That\'s it! You\'re now a data analyst!'
-          },
-          {
-            level: 2,
-            title: 'Deeper Explanation: From Data to Insight',
-            content: 'Raw data is just numbers. But when you organize and visualize data, you discover stories. Example: If you survey "favorite subject" and find Math is #1, you can conclude "most students like Math" or "we need more fun Math activities." Data is useless without interpretation. Your job is to look at the graph and ask: "What does this mean? Why does this pattern exist? What should we do with this information?"'
-          },
-          {
-            level: 3,
-            title: 'Interactive Practice: Design Your Own Survey',
-            content: 'Project guidance: (1) Choose a question about your class (favorite subject, breakfast, extracurricular activity, etc.). (2) Decide how to collect data (survey, observation, count). (3) Aim for at least 30 responses. (4) Organize using tally marks and frequency table. (5) Create at least one graph. (6) Write 3-5 sentences explaining findings. (7) Present to class (2-3 min talk). Good projects investigate real, interesting questions and present data honestly.'
-          }
-        ],
-        realWorldApplications: [
-          'Market research for businesses',
-          'Public health surveys',
-          'Environmental impact studies',
-          'Student satisfaction feedback',
-          'Product rating analysis'
-        ],
-        questions: [
-          {
-            id: 'c2_1_6_q1',
-            text: 'If you were conducting a survey on favorite foods in your class, what would be the best graph format to present your findings?',
-            options: ['Pictograph with food symbols', 'Bar graph by category', 'Histogram', 'All of the above could work'],
-            correctAnswer: 'Bar graph by category',
-            format: GameFormat.RAINDROP,
-            difficulty: 'medium',
-            hint: 'Think about whether food categories are discrete (separate) or continuous (ranges).',
-            remedialBrief: 'Food types are categories, not continuous data. Bar graphs (with gaps) are best for comparing categories.',
-            remedialDetail: 'Pictographs work but are less standard for this. Histograms are for continuous grouping like height ranges or test scores, not discrete categories like food types.'
-          }
-        ]
-      }
-    ]
-  };
+  id: '2.1',
+  title: 'Data Organisation & Types of Graphs',
+  concepts: [
+    {
+      id: 'c2_1_1',
+      title: 'Why Do We Need to Organise Data?',
+      textContent: `<div class="duration-badge" style="background:var(--b-light);color:var(--b-hue);">⏱ Estimated reading time: 10–14 minutes &nbsp;·&nbsp; Path B — Standard</div>
 
-export const module_1: Module = filterModuleByPath(moduleData, 'B');
+<div class="section-block" id="s1b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 1 of 6</p>
+      <h2 class="section-title">Why Do We Need to Organise Data?</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>You've collected data before — maybe in a survey, or counting something for a project. But here's the thing: collecting data is only half the job. Raw, unorganised data is like a room full of puzzle pieces — all the information is there, but it's completely unusable until you put it in order. <span class="vcue">[Show a messy list of 20 sports responses]</span> Can you immediately tell which sport is most popular from this list? No. So let's understand why organisation transforms data from useless to powerful.</p>
+
+        <div class="stage-marker explore"></div>
+        <p>Here are the favourite sports of 20 students: Cricket, Football, Cricket, Badminton, Cricket, Kho-Kho, Football, Cricket, Badminton, Football, Cricket, Cricket, Badminton, Kho-Kho, Football, Cricket, Badminton, Cricket, Football, Cricket. <span class="vcue">[Show list]</span> Count how many times Cricket appears — go ahead. Now imagine doing this for 200 students. The problem is obvious. Raw data hides its answers. Organised data reveals them.</p>
+
+        <div class="stage-marker explain"></div>
+        <p>Organising data means arranging it so that patterns become visible, comparisons become possible, and questions get answered at a glance. The tools we use for this are frequency tables, pictographs, and bar graphs — each suited to different types of data and different questions. The process always starts the same way: identify your categories, count your values, and build a structure around those counts. <span class="vcue">[Show the sports data sorted into a four-row table with counts]</span> Cricket: 9, Football: 5, Badminton: 4, Kho-Kho: 2. The most popular sport is now instantly readable.</p>
+
+        <div class="stage-marker elaborate"></div>
+        <p>The key insight here is that the data itself didn't change — only its arrangement did. All 20 responses are still present. But now you can answer: most popular sport (Cricket, 9 votes), least popular (Kho-Kho, 2), how many more chose Cricket over Football (9 − 5 = 4). Organised data doesn't just store information — it enables reasoning.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Quick Check</span>
+          A canteen records 30 lunch orders: Daal-Chawal (12 times), Rajma-Chawal (8 times), Chole-Chawal (6 times), Pulao (4 times). Is this data already organised? What two questions can you immediately answer from it?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 1</h3>
+        <div class="practice-q">The following are daily temperatures (°C) recorded for 10 days: 32, 35, 33, 36, 35, 34, 32, 36, 35, 33. Organise this data and find which temperature occurred most frequently. What does this tell you about the weather that week?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Organised: 32°C — 2 times, 33°C — 2 times, 34°C — 1 time, 35°C — 3 times, 36°C — 2 times. Most frequent temperature: 35°C. This suggests the weather was consistently warm (35°C was the most typical day), with no extreme fluctuations. The range was only 4°C (32 to 36), suggesting stable weather conditions that week.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T2 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 0,
+      videoEndSeconds: 40,
+      videoCheckpointPrompt: 'Pause and answer: What problem did raw data create for Raj?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 1',
+      guidedPracticeItems: [
+        {
+          question: 'A shopkeeper notes the colours of 15 shirts sold in a day: Red, Blue, Red, White, Blue, Red, Green, Blue, White, Red, Blue, Red, White, Green, Blue. Without making a table, can you tell which colour was sold the most? Now organise the data and check your answer.',
+          answer: 'Without a table, it is genuinely difficult to be certain. After organising: Red appears 5 times, Blue appears 5 times, White appears 3 times, Green appears 2 times. Both Red and Blue are equally most sold — something that is hard to spot in the raw list. This shows exactly why organisation matters.'
+        },
+        {
+          question: 'Give one example from your daily life where data is collected but might be hard to understand if it\'s left unorganised.',
+          answer: 'Possible examples: a register of all the marks scored in a test (hard to see average or highest without sorting), a list of all items purchased in a week (hard to know which item was bought most often), a record of temperatures every hour in a day (hard to see patterns without ordering).'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q1,
+          ...inline_2_1_q1.styles[GameFormat.DRAG_SORT],
+          format: GameFormat.DRAG_SORT,
+          difficulty: 'easy'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_2',
+      title: 'Tally Marks & Frequency Tables',
+      textContent: `<div class="section-block" id="s2b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 2 of 6</p>
+      <h2 class="section-title">Tally Marks &amp; Frequency Tables</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>The fastest way to organise raw data while counting it is tally marks. You already know the idea — group counts in fives so totals are readable at a glance. The frequency table is the structured result: a table with categories, their tally marks, and their frequency counts. Let's see this in action on a real dataset. <span class="vcue">[Show favourite subject survey data]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>A class of 20 students named their favourite subject. Responses: Art, Maths, Science, Maths, English, Art, Maths, Science, Art, English, Maths, Science, Maths, Art, English, Science, Maths, Art, Maths, English. Sort these using tally marks as we go through them together.</p>
+
+        <div class="stage-marker explain"></div>
+        <p>One tally mark per item as we encounter it. Every fifth mark is the crossing diagonal. When finished, count each row's marks to get the frequency. The total of all frequencies must equal the total number of data points — this is your verification. <span class="vcue">[Show completed table]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>Subject</th><th>Tally Marks</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>Art</td><td class="tally">|||| |</td><td class="num">5</td></tr>
+            <tr><td>Maths</td><td class="tally">|||| ||</td><td class="num">7</td></tr>
+            <tr><td>Science</td><td class="tally">||||</td><td class="num">4</td></tr>
+            <tr><td>English</td><td class="tally">||||</td><td class="num">4</td></tr>
+            <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>20 ✓</strong></td></tr>
+          </tbody>
+        </table>
+
+        <div class="stage-marker elaborate"></div>
+        <p>From this table: Maths is most popular (7), Science and English are equally liked (4 each), Art is in the middle (5). A teacher seeing this data might decide to make Science and English lessons more engaging, since those subjects have the fewest enthusiasts. This is data informing a real decision — which is the whole point.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Quick Check</span>
+          Make a frequency table for: Red, Blue, Green, Red, Yellow, Blue, Red, Green, Blue, Red, Yellow, Blue, Green, Red, Blue (15 items). Which colour has frequency 5? Does your total verify correctly?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 2</h3>
+        <div class="practice-q">A survey asked 24 people their preferred mode of transport: Car, Bus, Train, Two-wheeler, Car, Bus, Car, Train, Two-wheeler, Car, Bus, Car, Two-wheeler, Train, Car, Bus, Car, Train, Two-wheeler, Car, Bus, Car, Two-wheeler, Train. Build the frequency table. Which mode is most preferred? What percentage of people prefer Bus? (Round to 1 decimal place.)</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Car: 9, Bus: 6, Train: 5, Two-wheeler: 4. Total = 24 ✓. Most preferred: Car (9 times). Bus percentage: (6/24) × 100 = 25.0%. Car is preferred by 37.5% of respondents — a clear majority, suggesting most people find personal vehicles more convenient.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T3 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 40,
+      videoEndSeconds: 80,
+      videoCheckpointPrompt: 'Pause and answer: Why do tally marks use groups of 5?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 2',
+      guidedPracticeItems: [
+        {
+          question: 'A class of 25 students was asked about their pet at home. Make a complete frequency table with tally marks. Which pet is most common?',
+          answer: 'Corrected totals: Dog = 10, Cat = 6, None = 5, Fish = 4. Total = 25. Most common pet: Dog.'
+        },
+        {
+          question: 'If a frequency table shows four items with frequencies 8, 12, 5, and 10, what is the total number of data points?',
+          answer: 'Total = 35 data points.'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q2,
+          ...inline_2_1_q2.styles[GameFormat.RAINDROP],
+          format: GameFormat.RAINDROP,
+          difficulty: 'easy'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_3',
+      title: 'Pictographs',
+      textContent: `<div class="section-block" id="s3b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 3 of 6</p>
+      <h2 class="section-title">Pictographs</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>A pictograph turns frequency data into a visual of symbols — each symbol representing a fixed count called the scale. The key (or legend) defines this scale. The power of a pictograph is immediate visual comparison; its limitation is that large numbers require many symbols, making it unwieldy. Knowing when to use it — and when a bar graph is better — is a key skill. <span class="vcue">[Show a city-wise car sales pictograph]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>Car sales data: Mumbai 500, Delhi 300, Chennai 400, Kolkata 200. If each car symbol = 100 cars, draw the pictograph. Now try: what if a city sold 350 cars? How many symbols would you draw? <span class="pcue">(Think: 3.5 symbols — 3 full and 1 half)</span></p>
+
+        <div class="stage-marker explain"></div>
+        <p>The scale you choose matters enormously. Too small a scale (e.g., 1 symbol = 10 for data in hundreds) creates rows with too many symbols — messy and hard to count. Too large a scale loses precision — fractional symbols become unavoidable. A good rule: aim for no more than 10 symbols in the longest row. Divide your maximum value by 10 to find a reasonable scale, then round up to a clean number.</p>
+
+        <div class="pictograph">
+          <div class="bar-chart-title">Cars Sold by City — Pictograph (🚗 = 100 cars)</div>
+          <div class="picto-row"><span class="picto-label">Mumbai</span><span class="picto-symbol">🚗🚗🚗🚗🚗</span></div>
+          <div class="picto-row"><span class="picto-label">Delhi</span><span class="picto-symbol">🚗🚗🚗</span></div>
+          <div class="picto-row"><span class="picto-label">Chennai</span><span class="picto-symbol">🚗🚗🚗🚗</span></div>
+          <div class="picto-row"><span class="picto-label">Kolkata</span><span class="picto-symbol">🚗🚗</span></div>
+          <div class="picto-key">🚗 = 100 cars</div>
+        </div>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Application</span>
+          A pictograph shows book sales. Key: 📚 = 50 books. Shelf A has 4.5 symbols, Shelf B has 3 symbols, Shelf C has 6 symbols. How many books were sold from each shelf? What is the total? If the store wants to restock the most sold shelf first, which one is it?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 3</h3>
+        <div class="practice-q">Design a pictograph for the data: Students choosing extracurricular activities — Sports: 80, Music: 60, Drama: 45, Art: 35. Choose an appropriate scale. Explain your choice. Which activity would require a half symbol at your chosen scale?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Suitable scale: 1 symbol = 10 students. Symbols per activity: Sports: 8, Music: 6, Drama: 4.5, Art: 3.5. Drama (45) and Art (35) both require half symbols. At scale = 20: Sports: 4, Music: 3, Drama: 2.5, Art: 1.5 — both Drama and Art need half symbols again. At scale = 10, the rows are manageable (max 8 symbols) so this is a good choice. Drama requires a half symbol at scale 10.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T4 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 80,
+      videoEndSeconds: 120,
+      videoCheckpointPrompt: 'Pause and answer: What does the KEY in a pictograph represent?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 3',
+      guidedPracticeItems: [
+        {
+          question: 'In a pictograph, the key shows ★ = 10 students. Drama has 3.5 stars, Science has 5 stars, Sports has 4 stars. Find all counts.',
+          answer: 'Drama = 35, Science = 50, Sports = 40. Science has the most participants.'
+        },
+        {
+          question: 'Choose a suitable key for Apples: 250, Bananas: 175, Oranges: 300, Mangoes: 125 and justify.',
+          answer: 'A suitable key is 1 symbol = 25 fruits, giving 10, 7, 12, and 5 symbols respectively.'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q3,
+          ...inline_2_1_q3.styles[GameFormat.DRAG_SORT],
+          format: GameFormat.DRAG_SORT,
+          difficulty: 'medium'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_4',
+      title: 'Bar Graphs & Double Bar Graphs',
+      textContent: `<div class="section-block" id="s4b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 4 of 6</p>
+      <h2 class="section-title">Bar Graphs &amp; Double Bar Graphs</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Bar graphs solve the limitations of pictographs — they handle any size of number cleanly, and the height of the bar encodes the value precisely using a numerical scale. They're the most versatile and widely used graph type. Adding a second set of bars (a double bar graph) enables direct comparison between two groups across the same categories. <span class="vcue">[Show school enrolment bar graph]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>School enrolment data: 2019: 420, 2020: 380, 2021: 450, 2022: 510, 2023: 490. From the raw numbers, identify: in which year did enrolment drop? By how much did it increase from 2020 to 2022? Now see if a bar graph makes these answers faster to find. <span class="vcue">[Show bar graph]</span></p>
+
+        <div class="bar-chart">
+          <div class="bar-chart-title">School Enrolment 2019–2023</div>
+          <div class="bar-row"><span class="bar-label">2019</span><div class="bar-track"><div class="bar-fill" style="width:76%">420</div></div></div>
+          <div class="bar-row"><span class="bar-label">2020</span><div class="bar-track"><div class="bar-fill" style="width:69%">380</div></div></div>
+          <div class="bar-row"><span class="bar-label">2021</span><div class="bar-track"><div class="bar-fill" style="width:82%">450</div></div></div>
+          <div class="bar-row"><span class="bar-label">2022</span><div class="bar-track"><div class="bar-fill" style="width:93%">510</div></div></div>
+          <div class="bar-row"><span class="bar-label">2023</span><div class="bar-track"><div class="bar-fill" style="width:89%">490</div></div></div>
+        </div>
+
+        <div class="stage-marker explain"></div>
+        <p>In a double bar graph, each category gets two bars — one per group — drawn side by side in different colours. A legend maps colours to groups. This enables two types of comparison simultaneously: comparing the two groups within the same category (looking at one pair of bars), and tracking each group's trend across categories (looking at bars of one colour across the graph). <span class="vcue">[Show double bar graph with boys/girls enrolment per year]</span></p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Analysis Question</span>
+          In a double bar graph showing Maths vs Science scores for 5 students, you notice that the Maths bars are consistently taller in the lower-scoring students, but the Science bars are taller for the higher-scoring students. What might this pattern suggest about these students?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 4</h3>
+        <div class="practice-q">A student's scores across 5 subjects in two consecutive exams: Exam 1 — Maths: 72, Science: 68, English: 80, Hindi: 65, Social: 74. Exam 2 — Maths: 78, Science: 74, English: 76, Hindi: 70, Social: 82. Describe what a double bar graph of this data would look like. In which subjects did the student improve? In which did they decline?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Improvement (Exam 2 score higher): Maths (+6), Science (+6), Hindi (+5), Social Studies (+8). Decline: English (−4). The double bar graph would show almost all Exam 2 bars (second bar in each pair) slightly taller than Exam 1 bars, except for English where the second bar is shorter. The greatest improvement visible would be Social Studies — its pair of bars would show the largest height difference. This student seems to have improved overall but needs attention on English.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T5 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 300,
+      videoStartSeconds: 120,
+      videoEndSeconds: 140,
+      videoCheckpointPrompt: 'Pause and answer: When should you use a double bar graph?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 4',
+      guidedPracticeItems: [
+        {
+          question: 'Draw/describe a bar graph for scores: Maths 85, Science 72, English 90, Hindi 68, Social Studies 78. Which subject needs focus?',
+          answer: 'Use 0–100 scale. Lowest score is Hindi (68), then Science (72). Focus on Hindi first.'
+        },
+        {
+          question: 'Why must bars start from zero?',
+          answer: 'Starting above zero exaggerates differences and can mislead interpretation.'
+        }
+      ],
+      questions: [
+        {
+          ...inline_2_1_q4,
+          ...inline_2_1_q4.styles[GameFormat.DRAG_SORT],
+          format: GameFormat.DRAG_SORT,
+          difficulty: 'medium'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_5',
+      title: 'Reading & Interpreting Graphs',
+      textContent: `<div class="section-block" id="s5b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 5 of 6</p>
+      <h2 class="section-title">Reading &amp; Interpreting Graphs</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Reading a graph is a skill distinct from making one. A graph well-read yields insights — a trend spotted, an anomaly noticed, a comparison made. A graph poorly read leads to wrong conclusions, especially if the scale is manipulated. Let's develop critical reading skills. <span class="vcue">[Show a student's 5-test score trend graph]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>Test scores over 5 tests: 55, 62, 58, 70, 75. <span class="vcue">[Show bar graph]</span> Identify: (a) the general trend, (b) the one anomaly, (c) the rate of improvement from Test 3 to Test 5. Now: what would you tell this student about their performance? Can you predict Test 6?</p>
+
+        <div class="stage-marker explain"></div>
+        <p>Interpretation has three levels. Level one — descriptive: state what the graph shows (values, highest, lowest). Level two — analytical: identify patterns, trends, anomalies, and comparisons. Level three — inferential: draw conclusions about what the data means and make predictions. Most students stop at level one. Strong data literacy means reaching level three routinely. Also — always check the Y-axis start point. A non-zero Y-axis exaggerates differences. This is the most common way graphs mislead.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Critical Thinking</span>
+          Two bar graphs show the same rainfall data. Graph A has a Y-axis from 0 to 200mm. Graph B has a Y-axis from 100mm to 150mm. In Graph B, one bar looks almost 4 times taller than another. In Graph A, the difference looks small. Which graph tells the truth? Which might be used to alarm readers unnecessarily?
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 5</h3>
+        <div class="practice-q">A double bar graph shows online vs offline sales for a store over 4 quarters. Q1: Online 40, Offline 80. Q2: Online 55, Offline 75. Q3: Online 70, Offline 65. Q4: Online 90, Offline 55. Interpret this data at all three levels — descriptive, analytical, and inferential. What business decision does this data support?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Descriptive: Online sales ranged from 40 to 90, growing each quarter. Offline sales ranged from 55 to 80, declining each quarter. The two lines crossed between Q2 and Q3. Analytical: There is a clear crossover trend — online sales are rising sharply (+50 over 4 quarters) while offline sales are falling steadily (−25). Q3 is the crossover point. Inferential: Consumer preference is shifting significantly toward online purchasing. The business should invest more in their online platform, increase inventory available online, and potentially reconsider the cost of maintaining physical store space. This data strongly supports expanding the digital sales channel.</div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- T6 -->
+
+<hr class="section-divider">`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 400,
+      videoStartSeconds: 340,
+      videoEndSeconds: 425,
+      videoCheckpointPrompt: 'Pause and answer: Which graph clue can reveal misleading data?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Guided Practice — Topic 5',
+      guidedPracticeItems: [
+        {
+          question: 'Runs in 6 matches: 120, 185, 95, 210, 175, 160. Find highest, lowest, and trend type.',
+          answer: 'Highest = 210, lowest = 95, and the trend is mixed/fluctuating.'
+        }
+      ],
+      questions: [
+        {
+          id: 'c2_1_5_q1',
+          text: 'Which type of graph would be most appropriate for comparing average rainfall across 12 months?',
+          options: ['Pictograph', 'Bar Graph', 'Histogram', 'Pie Chart'],
+          correctAnswer: 'Bar Graph',
+          format: GameFormat.RAINDROP,
+          difficulty: 'hard',
+          hint: 'Think about discrete categories (months) vs continuous data.',
+          remedialBrief: 'Months are categories (discrete), not a continuous range, so use a bar graph with gaps.',
+          remedialDetail: 'Pictographs work but are less precise. Histograms are for continuous data. Pie charts show parts of a whole. Bar graphs compare values across categories — perfect for months!'
+        }
+      ]
+    },
+    {
+      id: 'c2_1_6',
+      title: 'Class Activity: Be a Data Detective',
+      textContent: `<div class="section-block" id="s6b">
+      <p class="section-eyebrow" style="color:var(--b-mid)">Topic 6 of 6</p>
+      <h2 class="section-title">Class Activity: Be a Data Detective</h2>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Every tool from this module now comes together in one investigation. A data detective doesn't just organise and represent — they investigate, interpret, and recommend. The best data analysis always ends with a decision that someone can act on. Let's apply the full pipeline to a real scenario. <span class="vcue">[Show "Case File" folder]</span></p>
+
+        <div class="stage-marker explore"></div>
+        <p>Class 8B's Science test marks (30 students, out of 50): 42, 28, 35, 47, 22, 38, 42, 50, 35, 28, 42, 33, 47, 22, 35, 28, 38, 42, 33, 50, 35, 22, 42, 47, 28, 38, 33, 35, 47, 42. <span class="vcue">[Show raw list]</span> Before organising — what can you already infer? What can't you tell yet?</p>
+
+        <div class="stage-marker elaborate"></div>
+        <p>Group into three ranges: Below 30 (7 students), 30–39 (11 students), 40+ (12 students). <span class="vcue">[Show frequency table and bar graph]</span> The bar graph shows that the majority of students (23 out of 30) scored 30 or above, suggesting reasonable overall understanding. The 7 students below 30 represent the teacher's priority group for follow-up. The data doesn't tell us why they struggled — that requires teacher investigation — but it tells us clearly how many and at what level.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <div class="callout question">
+          <span class="callout-label">Detective Assignment</span>
+          You receive monthly attendance data for Class 8: April 92%, May 88%, June 75%, July 71%, August 85%, September 90%. Build a bar graph and write a two-sentence interpretation that a principal could act on. Include one specific recommendation.
+        </div>
+      </div>
+      <div class="practice-box">
+        <h3>Final Consolidation — Path B</h3>
+        <div class="practice-q">A school canteen recorded daily sales for one week: Monday 120, Tuesday 95, Wednesday 140, Thursday 130, Friday 180, Saturday 60, Sunday 0. (a) Make a frequency table. (b) Describe a bar graph of this data. (c) Identify the trend and explain it in terms of the school week. (d) If the canteen manager can only fully staff on 4 days, which days should they choose and why?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">(a) Table: Mon-120, Tue-95, Wed-140, Thu-130, Fri-180, Sat-60, Sun-0. Total = 725. (b) Bar graph shows a peak on Friday (tallest bar), a clear dip on Saturday, and zero on Sunday. The bars rise through the week Monday to Friday then drop sharply. (c) The trend follows the school week — highest on Friday (end of week, busiest social day), lowest on weekend (fewer students). Wednesday and Thursday also show strong sales mid-week. (d) The four days the manager should fully staff: Friday (highest, 180), Wednesday (140), Thursday (130), and Monday (120). These four days account for 570 of 725 total sales — about 79% of revenue.</div>
+      </div>
+    </div>
+
+  </div><!-- end panel-b -->`,
+      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      estimatedTimeSeconds: 600,
+      videoStartSeconds: 425,
+      videoEndSeconds: 520,
+      videoCheckpointPrompt: 'Pause and answer: What are the 3 steps in your class data project?',
+      workedExamples: [],
+      guidedPracticeTitle: 'Final Reflection — Module 2.1',
+      guidedPracticeItems: [
+        {
+          question: 'A friend says, "I don\'t need graphs — I can just read numbers from a table." Respond using two examples from this module.',
+          answer: 'Tables give exact values, while graphs reveal patterns instantly. Example: enrolment dip is easier to spot in bars than raw numbers; score trends and dips become obvious visually over time.'
+        }
+      ],
+      questions: [
+        {
+          id: 'c2_1_6_q1',
+          text: 'If you were conducting a survey on favorite foods in your class, what would be the best graph format to present your findings?',
+          options: ['Pictograph with food symbols', 'Bar graph by category', 'Histogram', 'All of the above could work'],
+          correctAnswer: 'Bar graph by category',
+          format: GameFormat.RAINDROP,
+          difficulty: 'medium',
+          hint: 'Think about whether food categories are discrete (separate) or continuous (ranges).',
+          remedialBrief: 'Food types are categories, not continuous data. Bar graphs (with gaps) are best for comparing categories.',
+          remedialDetail: 'Pictographs work but are less standard for this. Histograms are for continuous grouping like height ranges or test scores, not discrete categories like food types.'
+        }
+      ]
+    }
+  ]
+};
+
+export const module_1: Module = filterModuleByPath(moduleData, 'A');
