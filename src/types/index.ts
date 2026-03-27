@@ -143,6 +143,7 @@ export interface ModuleProgress {
   masteryMap: Record<string, 'untried' | 'mastered' | 'masteredWithSupport' | 'struggling' | 'attempted'>;
   attemptsCount: Record<string, number>;
   currentConceptIdx?: number;
+  currentConceptStage?: 'content' | 'examples' | 'questions';
   showFinalAssessment?: boolean;
   finalAssessmentIdx?: number;
 }
@@ -250,6 +251,11 @@ export interface RemediationLevel {
   examples?: string[];
 }
 
+export interface GuidedPracticeItem {
+  question: string;
+  answer: string;
+}
+
 export interface Concept {
   id: string;
   title: string;
@@ -268,6 +274,8 @@ export interface Concept {
     steps: string[];
     explanation: string;
   }[];
+  guidedPracticeTitle?: string;
+  guidedPracticeItems?: GuidedPracticeItem[];
   remediationLevels?: RemediationLevel[];
   questions: Question[];
   path?: LearningPath;

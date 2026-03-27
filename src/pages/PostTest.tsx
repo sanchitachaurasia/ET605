@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, ArrowRight, Star, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
-import { postTestQuestions } from '../data/chapterData';
+import { postTestQuestions } from '../data/Post-Test/questions';
 import { GameQuestion } from '../components/GameQuestion';
 import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';

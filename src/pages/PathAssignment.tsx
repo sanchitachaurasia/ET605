@@ -20,9 +20,9 @@ export default function PathAssignment() {
   if (!session) return null;
 
   const pathInfo = {
-    A: { label: 'Explorer Path', desc: 'We will build your skills step by step!', icon: Compass, color: 'bg-emerald-500' },
-    B: { label: 'Adventurer Path', desc: 'You have a solid base; let\'s go further!', icon: Map, color: 'bg-blue-500' },
-    C: { label: 'Pioneer Path', desc: 'You are ready to move fast and go deep!', icon: Zap, color: 'bg-indigo-600' },
+    A: { label: 'Foundational Path', desc: 'We will build your skills step by step!', icon: Compass, color: 'bg-emerald-500' },
+    B: { label: 'Standard Path', desc: 'You have a solid base; let\'s go further!', icon: Map, color: 'bg-blue-500' },
+    C: { label: 'Advanced Path', desc: 'You are ready to move fast and go deep!', icon: Zap, color: 'bg-indigo-600' },
   }[session.learningPath];
 
   return (

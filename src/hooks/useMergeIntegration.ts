@@ -7,7 +7,7 @@ import {
   markSessionAsSubmitted,
   isDuplicateSubmission
 } from '../integration/payloadRetryManager';
-import { chapterData } from '../data/chapterData';
+import { getChapterDataForPath } from '../data/Standard/pathData';
 import { SessionMetrics } from '../types';
 import { saveSessionPayload } from '../lib/firebaseAuth';
 import {
@@ -38,6 +38,8 @@ export const submitMergePayload = async (
   if (isDuplicateSubmission(session.chapterSessionId)) {
     console.warn(`Duplicate submission detected for session ${session.chapterSessionId}, reusing same session_id`);
   }
+
+  const chapterData = getChapterDataForPath(session?.learningPath || 'B');
 
   // Compute total questions and hints by tallying from chapterData
   let totalHints = 0;

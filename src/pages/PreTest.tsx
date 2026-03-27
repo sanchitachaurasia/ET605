@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LogOut, ChevronRight } from 'lucide-react';
 import { GameQuestion } from '../components/GameQuestion';
 import { LearningStyleQuiz } from '../components/LearningStyleQuiz';
-import { preTestQuestions } from '../data/chapterData';
+import { preTestQuestions } from '../data/Pre-Test/questions';
 import { useSessionStore } from '../store/sessionStore';
 import { trackEvent } from '../analytics/tracker';
 import { logout } from '../lib/firebaseAuth';

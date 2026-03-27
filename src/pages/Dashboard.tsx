@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { BookOpen, Lock, LogOut, Play, Settings, Star } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
-import { chapterData } from '../data/chapterData';
+import { getChapterDataForPath } from '../data/Standard/pathData';
 import { RocketProgress } from '../components/RocketProgress';
 import { SettingsModal } from '../components/SettingsModal';
 import { useResponsive, ResponsiveContainer } from '../components/ResponsiveLayout';
@@ -20,7 +20,7 @@ export default function Dashboard() {
 
   const settings = session.settings || { darkMode: false };
   const learnerProfile = session.learnerProfile;
-  const modules = chapterData;
+  const modules = getChapterDataForPath(session.learningPath || 'B');
 
   const isModuleLocked = (index: number) => {
     if (!session.preTestDone) return true;
@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   const completedCount = session.moduleProgress.filter((p) => p.completed).length;
   const learnerLabel = learnerProfile?.preferredStyle || 'mixed';
-  const pathLabel = session.learningPath === 'A' ? 'Explorer' : session.learningPath === 'C' ? 'Pioneer' : 'Adventurer';
+  const pathLabel = session.learningPath === 'A' ? 'Foundational' : session.learningPath === 'C' ? 'Advanced' : 'Standard';
 
   const handleLogout = () => {
     clearSession();

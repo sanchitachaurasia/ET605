@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { chapterData } from '../data/chapterData';
+import { getChapterDataForPath } from '../data/Standard/pathData';
 import { ConceptBlock } from '../components/ConceptBlock';
 import { GameQuestion } from '../components/GameQuestion';
 import { RemediationBlock } from '../components/RemediationBlock';
@@ -13,8 +13,26 @@ import { SettingsModal } from '../components/SettingsModal';
 import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
 import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
-import { remedialContentBank, getReferenceTagsForQuestion } from '../data/remedialContentBank';
+import { remedialContentBank, getReferenceTagsForQuestion } from '../data/Standard/remedialContentBank';
 import { trackTelemetryEvent, updateTrackingModule, flushTrackingEvents } from '../analytics/telemetry';
+
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractDurationBadgeText(textContent?: string): string | null {
+  if (!textContent) return null;
+  const match = textContent.match(/<div class="duration-badge"[^>]*>([\s\S]*?)<\/div>/i);
+  if (!match?.[1]) return null;
+  const plain = match[1].replace(/<[^>]+>/g, '');
+  return decodeHtmlEntities(plain);
+}
 
 export default function ModulePage() {
   useMergeIntegration();
@@ -28,8 +46,8 @@ export default function ModulePage() {
   const [currentConceptIdx, setCurrentConceptIdx] = useState(() => moduleProgress?.currentConceptIdx || 0);
   const [showFinalAssessment, setShowFinalAssessment] = useState(() => moduleProgress?.showFinalAssessment || false);
   const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => moduleProgress?.finalAssessmentIdx || 0);
-  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>('content');
-  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>('content');
+  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>(() => moduleProgress?.currentConceptStage || 'content');
+  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => moduleProgress?.currentConceptStage || 'content');
   const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -67,6 +85,9 @@ export default function ModulePage() {
       setCurrentConceptIdx(prog.currentConceptIdx || 0);
       setShowFinalAssessment(prog.showFinalAssessment || false);
       setFinalAssessmentIdx(prog.finalAssessmentIdx || 0);
+      const restoredStage = prog.currentConceptStage || 'content';
+      setConceptStage(restoredStage);
+      setConceptEntryStage(restoredStage);
     }
   }, [moduleId, session?.studentId, session?.moduleProgress]);
 
@@ -148,6 +169,7 @@ export default function ModulePage() {
     const serialized = JSON.stringify({
       moduleId,
       currentConceptIdx,
+      conceptStage,
       showFinalAssessment,
       finalAssessmentIdx,
     });
@@ -162,6 +184,7 @@ export default function ModulePage() {
       newProgress[modIdx] = {
         ...newProgress[modIdx],
         currentConceptIdx,
+        currentConceptStage: conceptStage,
         showFinalAssessment,
         finalAssessmentIdx,
       };
@@ -175,15 +198,17 @@ export default function ModulePage() {
         masteryMap: {},
         attemptsCount: {},
         currentConceptIdx,
+        currentConceptStage: conceptStage,
         showFinalAssessment,
         finalAssessmentIdx,
       });
     }
 
     updateSession({ moduleProgress: newProgress });
-  }, [session, moduleId, currentConceptIdx, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
+  }, [session, moduleId, currentConceptIdx, conceptStage, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
 
-  const module = chapterData.find((m) => m.id === moduleId);
+  const moduleCatalog = getChapterDataForPath(path);
+  const module = moduleCatalog.find((m) => m.id === moduleId);
 
   if (!module || !session) return <div>Module not found</div>;
 
@@ -196,6 +221,7 @@ export default function ModulePage() {
   };
 
   const currentConcept = filteredConcepts[currentConceptIdx];
+  const moduleDurationBadge = extractDurationBadgeText(currentConcept?.textContent);
   const conceptStageWeight = conceptStage === 'content' ? 0.33 : conceptStage === 'examples' ? 0.66 : 1;
   const progress = showFinalAssessment
     ? 100
@@ -287,6 +313,7 @@ export default function ModulePage() {
     if (currentConceptIdx < filteredConcepts.length - 1) {
       const nextIdx = currentConceptIdx + 1;
       setCurrentConceptIdx(nextIdx);
+      setConceptStage('content');
       setConceptEntryStage('content');
       setConceptEntryQuestionMode('first');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -294,7 +321,7 @@ export default function ModulePage() {
       const newProgress = [...(session.moduleProgress || [])];
       const modIdx = newProgress.findIndex((p) => p.moduleId === moduleId);
       if (modIdx >= 0) {
-        newProgress[modIdx] = { ...newProgress[modIdx], currentConceptIdx: nextIdx };
+        newProgress[modIdx] = { ...newProgress[modIdx], currentConceptIdx: nextIdx, currentConceptStage: 'content' };
       } else {
         newProgress.push({
           moduleId: moduleId!,
@@ -305,6 +332,7 @@ export default function ModulePage() {
           masteryMap: {},
           attemptsCount: {},
           currentConceptIdx: nextIdx,
+          currentConceptStage: 'content',
         });
       }
       updateSession({ moduleProgress: newProgress });
@@ -375,11 +403,11 @@ export default function ModulePage() {
     <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
       <header
         className={cn(
-          'sticky top-3 z-20 mx-auto mb-6 w-[calc(100%-2rem)] max-w-6xl rounded-full border px-4 py-3 shadow-sm backdrop-blur-md transition-colors sm:px-6',
+          'sticky top-3 z-20 mx-auto mb-6 w-[calc(100%-2.5rem)] max-w-[84rem] rounded-full border px-5 py-3 shadow-sm backdrop-blur-md transition-colors sm:px-7',
           settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-[#d8d2c5] bg-white/85'
         )}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-5">
+          <div className="mx-auto flex max-w-[84rem] items-center justify-between gap-5">
           <button
             onClick={handleExitClick}
             className={cn(
@@ -392,7 +420,14 @@ export default function ModulePage() {
 
           <div className="flex-1">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-widest text-slate-500">{showFinalAssessment ? 'Module Assessment' : `Module ${module.id}: ${module.title}`}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-xs font-black uppercase tracking-widest text-slate-500">{showFinalAssessment ? 'Module Assessment' : `Module ${module.id}: ${module.title}`}</span>
+                {!showFinalAssessment && moduleDurationBadge && (
+                  <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-black text-blue-800">
+                    {moduleDurationBadge}
+                  </span>
+                )}
+              </div>
               <span className="text-sm font-bold text-brand">{showFinalAssessment ? `${finalAssessmentIdx + 1} / ${allQuestions.length}` : `${currentConceptIdx + 1} / ${filteredConcepts.length}`}</span>
             </div>
             <RocketProgress progress={progress} />
@@ -410,7 +445,7 @@ export default function ModulePage() {
         </div>
       </header>
 
-      <main className="mx-auto mt-5 max-w-6xl px-4 sm:px-6">
+      <main className="mx-auto mt-5 max-w-[84rem] px-4 sm:px-7">
 
         <AnimatePresence mode="wait">
           {!showFinalAssessment ? (
