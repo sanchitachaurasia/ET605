@@ -739,11 +739,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                     </div>
 
                     <div>
-                      <h3 className="mb-4 text-sm font-black uppercase tracking-widest text-slate-400">Learning Mode</h3>
+                      <h3 className="mb-2 text-sm font-black uppercase tracking-widest text-slate-400">Content Order</h3>
+                      <p className="mb-4 text-xs font-semibold text-slate-500">
+                        Choose what appears first in each concept. Learners can optionally reveal the other format inside the lesson.
+                      </p>
                       <div className="flex rounded-2xl bg-slate-100 p-1">
                         {[
-                          { id: 'video', label: 'Video First' },
-                          { id: 'text', label: 'Text First' },
+                          { id: 'video', label: 'Video First (Optional Text)' },
+                          { id: 'text', label: 'Text First (Optional Video)' },
                         ].map((mode) => (
                           <button
                             key={mode.id}
@@ -754,6 +757,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                           </button>
                         ))}
                       </div>
+                      <p className="mt-2 text-[11px] font-semibold text-slate-500">
+                        Changes apply immediately to the current lesson view.
+                      </p>
                     </div>
 
                     <div>

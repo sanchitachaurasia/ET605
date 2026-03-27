@@ -1,19 +1,12 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Concept, LearningPath } from '../types';
 import { GameQuestion } from './GameQuestion';
 import { RemediationBlock } from './RemediationBlock';
 import { useConstraintEngine } from '../hooks/useConstraintEngine';
 import { useSessionStore } from '../store/sessionStore';
-import { remedialContentBank, getReferenceTagsForQuestion } from '../data/remedialContentBank';
+import { remedialContentBank, getReferenceTagsForQuestion } from '../data/Standard/remedialContentBank';
 import { trackTelemetryEvent } from '../analytics/telemetry';
-
-declare global {
-  interface Window {
-    YT?: any;
-    onYouTubeIframeAPIReady?: () => void;
-  }
-}
 
 function buildSegmentedVideoUrl(concept: Concept): string {
   const url = concept.videoUrl;
@@ -26,20 +19,7 @@ function buildSegmentedVideoUrl(concept: Concept): string {
   const separator = url.includes('?') ? '&' : '?';
   const params: string[] = ['rel=0', 'modestbranding=1'];
 
-  if (typeof concept.videoStartSeconds === 'number') {
-    params.push(`start=${concept.videoStartSeconds}`);
-  }
-
-  if (typeof concept.videoEndSeconds === 'number') {
-    params.push(`end=${concept.videoEndSeconds}`);
-  }
-
   return `${url}${separator}${params.join('&')}`;
-}
-
-function extractYouTubeVideoId(url: string): string | null {
-  const match = url.match(/youtube\.com\/embed\/([^?&]+)/);
-  return match?.[1] || null;
 }
 
 interface ConceptBlockProps {
@@ -84,21 +64,51 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const [startTime, setStartTime] = React.useState(Date.now());
   const [showRushingPrompt, setShowRushingPrompt] = React.useState(false);
   const [contentReviewed, setContentReviewed] = React.useState(false);
-  const [segmentComplete, setSegmentComplete] = React.useState(false);
+  const [showSecondaryContent, setShowSecondaryContent] = React.useState(false);
+  const [practiceCountdowns, setPracticeCountdowns] = React.useState<Record<number, number>>({});
+  const [practiceStarted, setPracticeStarted] = React.useState<Record<number, boolean>>({});
+  const [practiceAnswerVisible, setPracticeAnswerVisible] = React.useState<Record<number, boolean>>({});
+  const [practiceCompleted, setPracticeCompleted] = React.useState<Record<number, boolean>>({});
+  const [practiceSkipped, setPracticeSkipped] = React.useState<Record<number, boolean>>({});
+  const [showSkipAllConfirm, setShowSkipAllConfirm] = React.useState(false);
   const [conceptStage, setConceptStage] = React.useState<'content' | 'examples' | 'questions'>('content');
   const checkpointRef = React.useRef<HTMLDivElement | null>(null);
   const rushingPromptRef = React.useRef<HTMLDivElement | null>(null);
-  const localVideoRef = React.useRef<HTMLVideoElement | null>(null);
-  const ytPlayerRef = React.useRef<any>(null);
-  const ytPollRef = React.useRef<number | null>(null);
-  const youtubeContainerId = React.useMemo(() => `yt-segment-${concept.id}`, [concept.id]);
 
   React.useEffect(() => {
     setStartTime(Date.now());
     setContentReviewed(false);
     setShowRushingPrompt(false);
-    setSegmentComplete(false);
-  }, [concept.id]);
+    setShowSecondaryContent(false);
+    setPracticeCountdowns({});
+    setPracticeStarted({});
+    setPracticeAnswerVisible({});
+    setPracticeCompleted({});
+    setPracticeSkipped({});
+    setShowSkipAllConfirm(false);
+  }, [concept.id, settings.contentMode]);
+
+  React.useEffect(() => {
+    const hasRunningTimer = Object.values(practiceCountdowns as Record<number, number>).some((value) => value > 0);
+    if (!hasRunningTimer) {
+      return;
+    }
+
+    const timerId = window.setInterval(() => {
+      setPracticeCountdowns((prev) => {
+        const next: Record<number, number> = { ...prev };
+        Object.keys(next).forEach((key) => {
+          const idx = Number(key);
+          if (next[idx] > 0) {
+            next[idx] -= 1;
+          }
+        });
+        return next;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timerId);
+  }, [practiceCountdowns]);
 
   React.useEffect(() => {
     setConceptStage(entryStage);
@@ -139,22 +149,8 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     return () => window.clearTimeout(id);
   }, [showRushingPrompt]);
 
-  const stopSegmentPoll = React.useCallback(() => {
-    if (ytPollRef.current !== null) {
-      window.clearInterval(ytPollRef.current);
-      ytPollRef.current = null;
-    }
-  }, []);
-
-  const markSegmentComplete = React.useCallback(() => {
-    if (segmentComplete) return;
-    setSegmentComplete(true);
-    window.setTimeout(() => {
-      checkpointRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 150);
-  }, [segmentComplete]);
-
   const checkRushing = (): boolean => {
+    if (settings.contentMode === 'video') return false;
     if (contentReviewed) return false;
     const actualTime = Date.now() - startTime;
     const expectedTime = Math.max(10000, (concept.textContent.length / 100) * 10000);
@@ -216,6 +212,9 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       event_data: {
         action: 'examples_to_questions',
         concept_id: concept.id,
+        guided_practice_total: concept.guidedPracticeItems?.length || 0,
+        guided_practice_completed: guidedPracticeCompletedCount,
+        guided_practice_skipped: guidedPracticeSkippedCount,
       }
     });
     setConceptStage('questions');
@@ -266,148 +265,6 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const segmentedVideoUrl = buildSegmentedVideoUrl(concept);
   const hasYouTubeEmbed = concept.videoUrl.includes('youtube.com/embed/');
   const isLocalVideoFile = /\.mp4($|\?)/i.test(concept.videoUrl) || concept.videoUrl.startsWith('/');
-  const youtubeVideoId = React.useMemo(() => extractYouTubeVideoId(concept.videoUrl), [concept.videoUrl]);
-
-  React.useEffect(() => {
-    if (settings.contentMode !== 'video' || hasYouTubeEmbed || !isLocalVideoFile) {
-      return;
-    }
-
-    const video = localVideoRef.current;
-    if (!video) {
-      return;
-    }
-
-    const startAt = typeof concept.videoStartSeconds === 'number' ? concept.videoStartSeconds : 0;
-    const endAt = concept.videoEndSeconds;
-
-    const onLoadedMetadata = () => {
-      if (startAt > 0) {
-        video.currentTime = startAt;
-      }
-    };
-
-    const onTimeUpdate = () => {
-      if (typeof endAt === 'number' && video.currentTime >= endAt) {
-        video.pause();
-        markSegmentComplete();
-      }
-    };
-
-    const onEnded = () => {
-      markSegmentComplete();
-    };
-
-    video.addEventListener('loadedmetadata', onLoadedMetadata);
-    video.addEventListener('timeupdate', onTimeUpdate);
-    video.addEventListener('ended', onEnded);
-
-    return () => {
-      video.removeEventListener('loadedmetadata', onLoadedMetadata);
-      video.removeEventListener('timeupdate', onTimeUpdate);
-      video.removeEventListener('ended', onEnded);
-    };
-  }, [
-    concept.id,
-    concept.videoEndSeconds,
-    concept.videoStartSeconds,
-    hasYouTubeEmbed,
-    isLocalVideoFile,
-    markSegmentComplete,
-    settings.contentMode,
-  ]);
-
-  React.useEffect(() => {
-    if (settings.contentMode !== 'video' || !hasYouTubeEmbed || !youtubeVideoId) {
-      return;
-    }
-
-    const setupPlayer = () => {
-      if (!window.YT?.Player) {
-        return;
-      }
-
-      if (ytPlayerRef.current?.destroy) {
-        ytPlayerRef.current.destroy();
-      }
-
-      ytPlayerRef.current = new window.YT.Player(youtubeContainerId, {
-        videoId: youtubeVideoId,
-        playerVars: {
-          rel: 0,
-          modestbranding: 1,
-          start: concept.videoStartSeconds,
-          end: concept.videoEndSeconds,
-          origin: window.location.origin,
-        },
-        events: {
-          onStateChange: (event: any) => {
-            const state = event.data;
-            const playerState = window.YT?.PlayerState;
-
-            if (state === playerState?.PLAYING && typeof concept.videoEndSeconds === 'number') {
-              stopSegmentPoll();
-              ytPollRef.current = window.setInterval(() => {
-                const player = ytPlayerRef.current;
-                if (!player?.getCurrentTime) return;
-
-                const currentTime = player.getCurrentTime();
-                if (currentTime >= concept.videoEndSeconds! - 0.2) {
-                  stopSegmentPoll();
-                  if (player.stopVideo) {
-                    player.stopVideo();
-                  }
-                  markSegmentComplete();
-                }
-              }, 500);
-              return;
-            }
-
-            stopSegmentPoll();
-
-            if (state === playerState?.ENDED) {
-              markSegmentComplete();
-            }
-          },
-        },
-      });
-    };
-
-    if (window.YT?.Player) {
-      setupPlayer();
-    } else {
-      const script = document.createElement('script');
-      script.src = 'https://www.youtube.com/iframe_api';
-      script.async = true;
-      document.body.appendChild(script);
-
-      const previousReady = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        if (typeof previousReady === 'function') {
-          previousReady();
-        }
-        setupPlayer();
-      };
-    }
-
-    return () => {
-      stopSegmentPoll();
-      if (ytPlayerRef.current?.destroy) {
-        ytPlayerRef.current.destroy();
-        ytPlayerRef.current = null;
-      }
-    };
-  }, [
-    concept.id,
-    concept.videoEndSeconds,
-    concept.videoStartSeconds,
-    hasYouTubeEmbed,
-    markSegmentComplete,
-    settings.contentMode,
-    stopSegmentPoll,
-    youtubeContainerId,
-    youtubeVideoId,
-  ]);
 
   const showQuestions = showQuestionsInBlock && filteredQuestions.length > 0;
   const showExampleStage = conceptStage === 'examples';
@@ -415,18 +272,18 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
   const pathMeta = path === 'A'
     ? {
-        label: 'Explorer Path Examples',
+        label: 'Foundational Path Examples',
         tone: 'Guided walkthroughs with concrete checkpoints.',
         badgeClass: 'bg-emerald-100 text-emerald-800 border-emerald-200',
       }
     : path === 'C'
       ? {
-          label: 'Pioneer Path Examples',
+          label: 'Advanced Path Examples',
           tone: 'Challenge-first examples with deeper reasoning.',
           badgeClass: 'bg-violet-100 text-violet-800 border-violet-200',
         }
       : {
-          label: 'Adventurer Path Examples',
+          label: 'Standard Path Examples',
           tone: 'Balanced examples for understanding and application.',
           badgeClass: 'bg-sky-100 text-sky-800 border-sky-200',
         };
@@ -461,6 +318,196 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     };
   });
 
+  const renderedLessonHtml = React.useMemo(() => {
+    // Strip inline event handlers from authored HTML content before rendering.
+    return concept.textContent.replace(/\son\w+="[^"]*"/g, '');
+  }, [concept.textContent]);
+
+  const primaryContentMode = settings.contentMode === 'video' ? 'video' : 'text';
+  const secondaryContentMode = primaryContentMode === 'video' ? 'text' : 'video';
+
+  const renderLessonText = () => (
+    <motion.div
+      key={`${concept.id}-text`}
+      initial={{ opacity: 0, y: 16, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className="lesson-content-shell"
+    >
+      <div
+        className="lesson-rich-content"
+        dangerouslySetInnerHTML={{ __html: renderedLessonHtml }}
+      />
+    </motion.div>
+  );
+
+  const renderLessonVideo = () => (
+    <motion.div
+      key={`${concept.id}-video`}
+      initial={{ opacity: 0, y: 18, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.38, ease: 'easeOut' }}
+      className="mx-auto mt-1 max-w-6xl space-y-4"
+    >
+      <div className="aspect-video rounded-2xl bg-slate-100 overflow-hidden border-2 border-slate-200 shadow-md">
+        {hasYouTubeEmbed ? (
+          <iframe
+            title={`${concept.title} video`}
+            src={segmentedVideoUrl}
+            className="h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        ) : isLocalVideoFile ? (
+          <video
+            controls
+            className="h-full w-full bg-black"
+            src={concept.videoUrl}
+            preload="metadata"
+          />
+        ) : (
+          <iframe
+            title={`${concept.title} video`}
+            src={concept.videoUrl}
+            className="h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        )}
+      </div>
+
+      {concept.videoCheckpointPrompt && (
+        <motion.div
+          ref={checkpointRef}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.08 }}
+          className="rounded-2xl border border-blue-200 bg-blue-50 p-4"
+        >
+          <p className="text-xs font-black uppercase tracking-wider text-blue-700">Think & reflect</p>
+          <p className="mt-1 text-sm font-semibold text-blue-900">{concept.videoCheckpointPrompt}</p>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+
+  const startGuidedPractice = (idx: number) => {
+    setPracticeStarted((prev) => ({ ...prev, [idx]: true }));
+    setPracticeCountdowns((prev) => ({ ...prev, [idx]: 10 }));
+    setPracticeAnswerVisible((prev) => ({ ...prev, [idx]: false }));
+    setPracticeSkipped((prev) => ({ ...prev, [idx]: false }));
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'guided_practice_started',
+        concept_id: concept.id,
+        question_index: idx + 1,
+      },
+    });
+  };
+
+  const showGuidedAnswer = (idx: number) => {
+    if ((practiceCountdowns[idx] || 0) > 0) return;
+    if (!practiceAnswerVisible[idx]) {
+      setPracticeCompleted((prev) => ({ ...prev, [idx]: true }));
+      setPracticeSkipped((prev) => ({ ...prev, [idx]: false }));
+      trackTelemetryEvent('navigation', {
+        module_id: moduleId,
+        event_data: {
+          action: 'guided_practice_answer_revealed',
+          concept_id: concept.id,
+          question_index: idx + 1,
+        },
+      });
+    }
+    setPracticeAnswerVisible((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const openSkipAllGuidedPracticePrompt = () => {
+    if (!hasGuidedPractice || guidedPracticeResolvedCount >= guidedPracticeTotal) return;
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'guided_practice_skip_all_prompted',
+        concept_id: concept.id,
+      },
+    });
+    setShowSkipAllConfirm(true);
+  };
+
+  const cancelSkipAllGuidedPractice = () => {
+    setShowSkipAllConfirm(false);
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'guided_practice_skip_all_cancelled',
+        concept_id: concept.id,
+      },
+    });
+  };
+
+  const confirmSkipAllGuidedPractice = () => {
+    const skippedMap: Record<number, boolean> = {};
+    for (let idx = 0; idx < guidedPracticeTotal; idx += 1) {
+      skippedMap[idx] = true;
+    }
+
+    setPracticeSkipped(skippedMap);
+    setPracticeCompleted({});
+    setPracticeAnswerVisible({});
+    setPracticeStarted({});
+    setPracticeCountdowns({});
+    setShowSkipAllConfirm(false);
+
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'guided_practice_skipped_all',
+        concept_id: concept.id,
+        guided_practice_total: guidedPracticeTotal,
+      },
+    });
+
+    if (showQuestions) {
+      trackTelemetryEvent('navigation', {
+        module_id: moduleId,
+        event_data: {
+          action: 'guided_practice_skip_all_auto_advance',
+          concept_id: concept.id,
+          target_stage: 'questions',
+        },
+      });
+      setConceptStage('questions');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    trackTelemetryEvent('navigation', {
+      module_id: moduleId,
+      event_data: {
+        action: 'guided_practice_skip_all_auto_advance',
+        concept_id: concept.id,
+        target_stage: 'complete_concept',
+      },
+    });
+    onComplete();
+  };
+
+  const hasGuidedPractice = !!concept.guidedPracticeItems?.length;
+  const guidedPracticeTotal = concept.guidedPracticeItems?.length || 0;
+  const guidedPracticeCompletedCount = React.useMemo(
+    () => Object.values(practiceCompleted).filter(Boolean).length,
+    [practiceCompleted]
+  );
+  const guidedPracticeSkippedCount = React.useMemo(
+    () => Object.values(practiceSkipped).filter(Boolean).length,
+    [practiceSkipped]
+  );
+  const guidedPracticeResolvedCount = guidedPracticeCompletedCount + guidedPracticeSkippedCount;
+  const isGuidedPracticeComplete = !hasGuidedPractice || guidedPracticeResolvedCount >= guidedPracticeTotal;
+
   return (
     <div className="space-y-8">
       {conceptStage === 'content' && (
@@ -478,57 +525,57 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
               Previous Page
             </button>
           )}
-
-          <h2 className="mb-6 text-3xl font-black text-slate-900">{concept.title}</h2>
-          <div className="prose prose-slate max-w-none">
-            <p className="text-lg leading-relaxed text-slate-600">{concept.textContent}</p>
-          </div>
-
-          {settings.contentMode === 'video' && (
-            <div className="mt-8 space-y-4">
-              <div className="aspect-video rounded-2xl bg-slate-100 overflow-hidden border-2 border-slate-200">
-                {hasYouTubeEmbed && youtubeVideoId ? (
-                  <div id={youtubeContainerId} className="h-full w-full" />
-                ) : isLocalVideoFile ? (
-                  <video
-                    ref={localVideoRef}
-                    controls
-                    className="h-full w-full bg-black"
-                    src={concept.videoUrl}
-                    preload="metadata"
-                  />
-                ) : (
-                  <iframe
-                    title={`${concept.title} video segment`}
-                    src={segmentedVideoUrl}
-                    className="h-full w-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                  />
-                )}
-              </div>
-
-              {concept.videoCheckpointPrompt && (
-                <div
-                  ref={checkpointRef}
-                  className="rounded-2xl border border-blue-200 bg-blue-50 p-4"
-                >
-                  <p className="text-xs font-black uppercase tracking-wider text-blue-700">In-video checkpoint</p>
-                  <p className="mt-1 text-sm font-semibold text-blue-900">{concept.videoCheckpointPrompt}</p>
-                  {segmentComplete && (
-                    <p className="mt-2 text-xs font-bold text-emerald-700">Segment complete. Answer this before moving ahead.</p>
-                  )}
-                </div>
-              )}
+          <h2 className="mb-4 text-3xl font-black text-slate-900">{concept.title}</h2>
+          <motion.div
+            layout
+            transition={{ type: 'spring', stiffness: 170, damping: 22 }}
+            className="space-y-4"
+          >
+            <div className="learning-flow-card rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-xs font-black uppercase tracking-widest text-slate-500">Learning Flow</p>
+              <p className="mt-1 text-sm font-semibold text-slate-700">
+                {primaryContentMode === 'video' ? 'Video first is enabled in Settings.' : 'Text first is enabled in Settings.'}
+              </p>
             </div>
-          )}
+
+            {primaryContentMode === 'video' ? renderLessonVideo() : renderLessonText()}
+
+            <motion.div layout className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <p className="text-sm font-bold text-slate-800">
+                {secondaryContentMode === 'video' ? 'Would you like to see video as well?' : 'Would you like to see text as well?'}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setShowSecondaryContent((prev) => !prev)}
+                  className="rounded-xl border border-brand/30 bg-brand/10 px-4 py-2 text-sm font-bold text-brand transition-all hover:bg-brand/20"
+                >
+                  {showSecondaryContent ? (secondaryContentMode === 'video' ? 'Hide Video' : 'Hide Text') : (secondaryContentMode === 'video' ? 'Show Video' : 'Show Text')}
+                </button>
+                <span className="self-center text-xs font-semibold text-slate-500">This follows your live Settings preference automatically.</span>
+              </div>
+            </motion.div>
+
+            <AnimatePresence initial={false}>
+              {showSecondaryContent && (
+                <motion.div
+                  key={`${concept.id}-secondary-${secondaryContentMode}`}
+                  initial={{ opacity: 0, y: 14, scale: 0.985 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.99 }}
+                  transition={{ duration: 0.28, ease: 'easeOut' }}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  {secondaryContentMode === 'video' ? renderLessonVideo() : renderLessonText()}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
           <button
             onClick={handleContinueToExamples}
             className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
           >
-            Next: Path-Specific Examples →
+            Next: Guided Practice →
           </button>
         </motion.div>
       )}
@@ -567,23 +614,140 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
             ))}
           </div>
 
+          {concept.guidedPracticeItems && concept.guidedPracticeItems.length > 0 && (
+            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
+              <h3 className="text-lg font-black text-emerald-900">
+                {concept.guidedPracticeTitle || 'Guided Practice'}
+              </h3>
+              <div className="mt-3 rounded-xl border border-emerald-200 bg-white/80 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-wider text-emerald-700">Required</p>
+                    <p className="mt-1 text-sm font-semibold text-emerald-900">
+                      Complete all guided practice items to continue.
+                    </p>
+                    <p className="mt-1 text-xs font-bold text-emerald-700">
+                      Progress: {guidedPracticeResolvedCount}/{guidedPracticeTotal}
+                    </p>
+                  </div>
+                  <button
+                    onClick={openSkipAllGuidedPracticePrompt}
+                    disabled={isGuidedPracticeComplete}
+                    className="rounded-lg border border-amber-400 bg-amber-50 px-3 py-2 text-xs font-black uppercase tracking-wider text-amber-800 hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Skip all guided practice
+                  </button>
+                </div>
+              </div>
+              <div className="mt-4 space-y-4">
+                {concept.guidedPracticeItems.map((item, idx) => {
+                  const countdown = practiceCountdowns[idx] || 0;
+                  const started = !!practiceStarted[idx];
+                  const canShowAnswer = started && countdown === 0;
+                  const completed = !!practiceCompleted[idx];
+                  const skipped = !!practiceSkipped[idx];
+
+                  return (
+                    <div key={`${concept.id}-practice-${idx}`} className="rounded-xl border border-emerald-300 bg-white p-4">
+                      <p className="text-sm font-bold text-emerald-900">Q{idx + 1}. {item.question}</p>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => startGuidedPractice(idx)}
+                          className="rounded-lg bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800"
+                        >
+                          Start Question {idx + 1}
+                        </button>
+                        <span className="text-xs font-semibold text-emerald-700">
+                          {started ? (countdown > 0 ? `Answer unlocks in ${countdown}s` : 'Answer unlocked') : 'Start to begin 10s timer'}
+                        </span>
+                        {completed && (
+                          <span className="rounded-full bg-emerald-100 px-2 py-1 text-[11px] font-black uppercase tracking-wider text-emerald-800">
+                            Completed
+                          </span>
+                        )}
+                          {skipped && (
+                            <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-black uppercase tracking-wider text-amber-800">
+                              Skipped
+                            </span>
+                          )}
+                      </div>
+                      <button
+                        onClick={() => showGuidedAnswer(idx)}
+                        disabled={!canShowAnswer}
+                        className="mt-3 rounded-lg border border-emerald-400 px-3 py-2 text-xs font-bold text-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {practiceAnswerVisible[idx] ? 'Hide Answer' : 'Show Answer'}
+                      </button>
+                      {practiceAnswerVisible[idx] && (
+                        <p className="mt-3 text-sm text-emerald-900">{item.answer}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {showQuestions ? (
             <button
               onClick={handleStartQuestions}
-              className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
+              disabled={!isGuidedPracticeComplete}
+              className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Start Practice Questions
+                {isGuidedPracticeComplete ? 'Start Practice Questions' : `Resolve Guided Practice (${guidedPracticeResolvedCount}/${guidedPracticeTotal})`}
             </button>
           ) : (
             <button
               onClick={handleReadConcept}
-              className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
+              disabled={!isGuidedPracticeComplete}
+              className="mt-8 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Complete Concept
+              {isGuidedPracticeComplete ? 'Complete Concept' : `Complete Guided Practice (${guidedPracticeResolvedCount}/${guidedPracticeTotal})`}
             </button>
           )}
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {showSkipAllConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
+            >
+              <h4 className="text-lg font-black text-slate-900">Skip all guided practice?</h4>
+              <p className="mt-2 text-sm font-medium text-slate-600">
+                You are about to skip all {guidedPracticeTotal} guided practice item{guidedPracticeTotal === 1 ? '' : 's'} for this topic.
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-600">
+                You can still continue, and this action will be recorded in analytics.
+              </p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  onClick={cancelSkipAllGuidedPractice}
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmSkipAllGuidedPractice}
+                  className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-bold text-white hover:bg-amber-600"
+                >
+                  Yes, skip all
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {showRushingPrompt && (
         <motion.div
