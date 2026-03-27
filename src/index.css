@@ -293,13 +293,18 @@ html.a11y-sepia {
   color: #065f46;
   font-weight: 800;
   padding: 0.35rem 0.7rem;
-  pointer-events: none;
-  opacity: 0.8;
+  cursor: pointer;
+  opacity: 1;
 }
 
 .lesson-rich-content .practice-ans {
   margin-top: 0.48rem;
   color: #166534;
+  display: none;
+}
+
+.lesson-rich-content .practice-ans.is-visible {
+  display: block;
 }
 
 .lesson-rich-content .section-divider {

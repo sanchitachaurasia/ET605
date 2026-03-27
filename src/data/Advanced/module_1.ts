@@ -505,4 +505,4 @@ const moduleData: Module = {
   ]
 };
 
-export const module_1: Module = filterModuleByPath(moduleData, 'A');
+export const module_1: Module = filterModuleByPath(moduleData, 'C');

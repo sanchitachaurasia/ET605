@@ -74,6 +74,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const [conceptStage, setConceptStage] = React.useState<'content' | 'examples' | 'questions'>('content');
   const checkpointRef = React.useRef<HTMLDivElement | null>(null);
   const rushingPromptRef = React.useRef<HTMLDivElement | null>(null);
+  const lessonContentRef = React.useRef<HTMLDivElement | null>(null);
 
   React.useEffect(() => {
     setStartTime(Date.now());
@@ -323,6 +324,32 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     return concept.textContent.replace(/\son\w+="[^"]*"/g, '');
   }, [concept.textContent]);
 
+  React.useEffect(() => {
+    const container = lessonContentRef.current;
+    if (!container) return;
+
+    const handleLessonContentClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const button = target.closest('.show-ans-btn') as HTMLButtonElement | null;
+      if (!button || !container.contains(button)) return;
+
+      const practiceBox = button.closest('.practice-box');
+      const answer = practiceBox?.querySelector('.practice-ans') as HTMLElement | null;
+      if (!answer) return;
+
+      event.preventDefault();
+      const isVisible = answer.classList.toggle('is-visible');
+      button.textContent = isVisible ? 'Hide Answer' : 'Show Answer';
+    };
+
+    container.addEventListener('click', handleLessonContentClick);
+    return () => {
+      container.removeEventListener('click', handleLessonContentClick);
+    };
+  }, [renderedLessonHtml]);
+
   const primaryContentMode = settings.contentMode === 'video' ? 'video' : 'text';
   const secondaryContentMode = primaryContentMode === 'video' ? 'text' : 'video';
 
@@ -335,6 +362,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       className="lesson-content-shell"
     >
       <div
+        ref={lessonContentRef}
         className="lesson-rich-content"
         dangerouslySetInnerHTML={{ __html: renderedLessonHtml }}
       />
