@@ -35,7 +35,7 @@ export default function PreTest() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session?.preTestDone) {
+    if (session?.preTestDone && !session?.preTestRetakeInProgress) {
       navigate('/dashboard');
     }
   }, [session, navigate]);
@@ -45,7 +45,7 @@ export default function PreTest() {
       return;
     }
     
-    if (session.preTestDone) {
+    if (session.preTestDone && !session.preTestRetakeInProgress) {
       return;
     }
 
@@ -86,7 +86,7 @@ export default function PreTest() {
   }, [session]);
 
   useEffect(() => {
-    if (!session || session.preTestDone || isRestoringRef.current || !isProgressInitialized) {
+    if (!session || (session.preTestDone && !session.preTestRetakeInProgress) || isRestoringRef.current || !isProgressInitialized) {
       return;
     }
 
@@ -149,9 +149,16 @@ export default function PreTest() {
       timestamp: new Date().toISOString(),
       data: {
         questionsAttempted: currentIdx,
-        phase: 'pre-test'
+        phase: 'pre-test',
+        retakeInProgress: Boolean(session?.preTestRetakeInProgress),
       }
     });
+
+    if (session?.preTestRetakeInProgress) {
+      // Keep previous pretest results and modules active; user can continue retake later.
+      updateSession({ preTestRetakeInProgress: true });
+    }
+
     navigate('/dashboard');
   };
 
@@ -358,15 +365,32 @@ export default function PreTest() {
       ? selectedFormats
       : Object.values(GameFormat);
 
+    // Keep existing module history; only refresh pretest-derived path mapping.
+    const existingProgress = session?.moduleProgress || [];
+    const mergedModuleProgress = results.moduleProgress.map((nextModule: any) => {
+      const existingModule = existingProgress.find((m) => m.moduleId === nextModule.moduleId);
+      if (!existingModule) return nextModule;
+
+      return {
+        ...existingModule,
+        learningPath: nextModule.learningPath,
+      };
+    });
+
+    const missingExistingModules = existingProgress.filter(
+      (existingModule) => !mergedModuleProgress.some((m: any) => m.moduleId === existingModule.moduleId)
+    );
+
     updateSession({ 
       preTestScore: results.preTestScore, 
       learningPath: results.learningPath, 
       preTestDone: true,
+      preTestRetakeInProgress: false,
       preTestProgress: null,
       preTestFeedback: results.preTestFeedback,
       recommendedStyle: results.recommendedStyle,
       learnerProfile: results.learnerProfile,
-      moduleProgress: results.moduleProgress,
+      moduleProgress: [...mergedModuleProgress, ...missingExistingModules],
       settings: {
         ...(session?.settings || {}),
         assessmentStyle: results.style,
