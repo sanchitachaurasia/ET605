@@ -106,55 +106,90 @@ function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
 }
 
 const moduleData: Module = {
-  id: '2.1',
-  title: 'Data Organisation & Types of Graphs',
+  id: '2.2',
+  title: 'Grouping Data & Histograms',
   concepts: [
     {
       id: 'c2_1_1',
-      title: 'Why Do We Need to Organise Data?',
-      textContent: `<div class="duration-badge" style="background:var(--a-light);color:var(--a-hue);">⏱ Estimated reading time: 15–18 minutes &nbsp;·&nbsp; Path A — Full Foundational</div>
+      title: 'Class Intervals — Grouping Large Data',
+      textContent: `<div class="duration-badge" style="background:var(--a-light);color:var(--a-hue);">⏱ Curated from module2_2_grouping_data_histograms_new.html · Path A — Foundational</div>
 
-<!-- ── TOPIC 1 ── -->
 <div class="section-block" id="s1">
-  <p class="section-eyebrow" style="color:var(--a-mid)">Topic 1 of 6</p>
-  <h2 class="section-title">Why Do We Need to Organise Data?</h2>
+      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 1 of 5</p>
+      <h2 class="section-title">Class Intervals — Grouping Large Data</h2>
 
-  <div class="narration">
-    <div class="stage-marker engage"></div>
-    <p>Alright everyone, let's start with something really simple — something that probably happened in your school this week. Imagine your teacher says, "I want to find out what sport everyone in this class loves the most." So she calls out every student's name, and as each of you answers, she quickly writes it down on the board. <span class="vcue">[Show a random list appearing on screen, one sport at a time]</span> Rahul says cricket. Priya says badminton. Ankit says football. Aarti says cricket. Sneha says kho-kho. And so on, for all 30 students in the class. <span class="pcue">(Pause 2 seconds)</span></p>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>Alright everyone, let's start with a situation that might sound familiar. Imagine your Maths teacher collected the marks of 30 students in a surprise test — the marks are out of 50. Here is that list: <span class="vcue">[Show list on screen]</span> 23, 41, 17, 38, 29, 44, 12, 35, 27, 48, 19, 31, 22, 46, 14, 33, 26, 40, 18, 37, 25, 43, 11, 36, 28, 45, 16, 32, 24, 39.</p>
 
-    <p>Now here's my question for you. Your teacher has written down all 30 answers. Can she immediately tell which sport is the most popular? Can she look at that list and say, "Eight students said cricket"? <span class="pcue">(Think about it for a moment)</span> Honestly — no. She'd have to go through the whole list again, counting each sport one by one. She might lose count. She might misread her own writing. She might count one sport twice and another sport not at all. That messy list on the board — that's what we call raw data. And raw data, on its own, is very hard to make sense of.</p>
+        <p>Now, just by looking at this list — can you tell how many students scored between 20 and 30? Or how many scored above 40? Go ahead, try. <span class="pcue">(Pause and attempt)</span> It's not easy, is it? You'd have to scan every single number, count carefully, and still risk making a mistake. And this is just 30 students. What if it were a school of 500 students? This is exactly the problem that class intervals solve.</p>
 
-    <div class="callout definition">
-      <span class="callout-label">Definition — Data</span>
-      Data simply means information — any collection of facts, numbers, or observations. When we collect answers from students, count things around us, or write down measurements, we are collecting data. But data in its raw collected form is often disordered and hard to understand.
-    </div>
+        <div class="stage-marker explore"></div>
+        <p>Let's think about this together. What if, instead of looking at each mark individually, we created groups? <span class="vcue">[Keep the list visible on screen]</span> One group for marks between 10 and 20, another for 20 to 30, and so on? Try grouping the numbers above mentally. Just roughly — which group seems to have the most students? <span class="pcue">(Think for a moment)</span></p>
 
-    <div class="stage-marker explore"></div>
-    <p>Let me show you exactly what raw data looks like, and why it's so frustrating to work with. <span class="vcue">[Show the following raw list on screen]</span> Here are the favourite sports that 20 students named: Cricket, Football, Cricket, Badminton, Cricket, Kho-Kho, Football, Cricket, Badminton, Football, Cricket, Cricket, Badminton, Kho-Kho, Football, Cricket, Badminton, Cricket, Football, Cricket. <span class="pcue">(Pause 3 seconds — let students look at it)</span></p>
+        <p>Most of you will notice that the middle groups — around 20 to 40 — seem to have quite a few numbers. And the very high and very low ends have fewer. That observation, right there, is the kind of insight that grouped data gives us. We haven't even made a proper table yet — and already a pattern is appearing.</p>
 
-    <p>Try to answer this — just by looking at that list, without counting carefully — how many students said cricket? Take a guess. Now go back and actually count. Did you get it right? Most people don't, because there's no pattern in this list, no grouping, no order. This is the frustration of raw data. It contains all the information, but it's hiding it from you. Now — what if we could arrange this list so that the answers just jumped out at you? That's exactly what organising data means, and that's what this entire chapter is about.</p>
+        <div class="stage-marker explain"></div>
+        <p>When we have a large set of data, we divide the entire range into smaller, equal-sized groups. Each of these groups is called a class interval. <span class="vcue">[Show clean definition panel on screen]</span></p>
 
-    <div class="stage-marker explain"></div>
-    <p>So what does it mean to organise data? Let's build this idea slowly. <span class="vcue">[Show the word "organise" being highlighted]</span> When we organise data, we arrange it in a way that makes it easy to read, easy to count, and easy to compare. Think of your school bag. If you throw all your books, pencils, lunch box, and notebooks in randomly, it's chaos — you can't find anything quickly. But if you put each subject's books together, your stationery in one pocket, and your lunch in another — you can find anything in seconds. Data works the same way. When data is organised, the patterns and answers appear almost instantly.</p>
+        <div class="callout definition">
+          <span class="callout-label">Definition — Class Interval</span>
+          A class interval is a range of values used to group a large set of data. Instead of recording each value separately, we collect all values that fall within the same range into one group. For example, all marks from 10 to 20 form one class interval.
+        </div>
 
-    <p>There are many ways to organise data — and in this module, we are going to learn four powerful tools: tally marks and frequency tables, pictographs, bar graphs, and double bar graphs. Each one is useful in different situations. But they all share the same purpose: to take raw, messy data and turn it into something you can read and understand at a glance.</p>
+        <p>Let's understand this with our marks example. The lowest mark is 11. The highest is 48. So our data spreads from 11 to 48. We can divide this into groups of 10: 10–20, 20–30, 30–40, 40–50. Each of these is a class interval. The width of each interval — which is 10 here — is called the class size or class width.</p>
 
-    <div class="stage-marker elaborate"></div>
-    <p>Let's go back to our favourite sports data. <span class="vcue">[Show the raw list again on the left side of screen]</span> Here are the 20 responses. Now watch what happens when we organise it. We go through the list, and every time we see "Cricket," we put it in one group. Every "Football" goes in another group. "Badminton" in a third. "Kho-Kho" in a fourth. <span class="vcue">[Show the data being sorted into four columns]</span></p>
+        <p>Now, a very important question: where does 20 go? Does it go in the 10–20 group or the 20–30 group? <span class="pcue">(Think about it)</span> We follow a rule: the lower limit is included, the upper limit is excluded. So 20 goes into the 20–30 group, not the 10–20 group. <span class="vcue">[Show boundary rule on screen with a number line]</span></p>
 
-    <p>Cricket appears: 9 times. Football appears: 5 times. Badminton appears: 4 times. Kho-Kho appears: 2 times. <span class="vcue">[Show the organised table with these counts]</span> Now look at this. Which sport is most popular? Cricket — immediately obvious. Which sport is least popular? Kho-Kho — you can see it in one second. Did anyone have to count through a messy list? No. Organised data speaks for itself. This is the power of organisation. From here, we're going to learn the specific tools that help us do this efficiently and beautifully.</p>
+        <div class="callout tip">
+          <span class="callout-label">The Boundary Rule</span>
+          For any class interval, the lower boundary is always included, and the upper boundary is always excluded. So the interval 10–20 means: "marks that are 10 or more, but less than 20." The mark 20 belongs to the next interval, 20–30. In mathematical notation, this is written as [10, 20). This rule ensures that every number has exactly one group it belongs to — no number falls in two groups, and no number is left out.
+        </div>
 
-    <div class="stage-marker evaluate"></div>
-    <div class="callout question">
-      <span class="callout-label">Check Your Understanding</span>
-      Your class teacher collects information about how students come to school — by bus, auto, bicycle, or on foot. She writes down all 35 students' answers in a random order. Try to answer: (a) What is this collection of 35 answers called? (b) Why is it difficult to answer "which mode is most common" from the raw list? (c) What would you do to make the data easier to understand?
-    </div>
-  </div>
+        <div class="stage-marker elaborate"></div>
+        <p>Let's now go back to our 30 marks and actually build the frequency table using class intervals. <span class="vcue">[Show the full worked example on screen]</span> The marks were: 23, 41, 17, 38, 29, 44, 12, 35, 27, 48, 19, 31, 22, 46, 14, 33, 26, 40, 18, 37, 25, 43, 11, 36, 28, 45, 16, 32, 24, 39. We'll use these class intervals: 10–20, 20–30, 30–40, 40–50.</p>
 
-</div>
+        <p>We go through each number and use tally marks to count. Let's pick out numbers that belong to each interval carefully, using the boundary rule: <span class="vcue">[Show tally marks being filled in row by row]</span></p>
 
-<hr class="section-divider">`,
+        <p>10–20: Numbers that are 10 or above but less than 20 — 17, 12, 19, 14, 18, 11, 16. That's 7 numbers. 20–30: Numbers from 20 up to (but not including) 30 — 23, 29, 27, 22, 26, 25, 28, 24. That's 8 numbers. 30–40: Numbers from 30 to less than 40 — 38, 35, 31, 33, 37, 36, 32, 39. That's 8 numbers. 40–50: Numbers from 40 to less than 50 — 41, 44, 48, 46, 40, 43, 45. That's 7 numbers.</p>
+
+        <table class="data-table">
+          <thead><tr><th>Class Interval</th><th>Tally</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>10 – 20</td><td class="tally">|||| ||</td><td class="num">7</td></tr>
+            <tr><td>20 – 30</td><td class="tally">|||| |||</td><td class="num">8</td></tr>
+            <tr><td>30 – 40</td><td class="tally">|||| |||</td><td class="num">8</td></tr>
+            <tr><td>40 – 50</td><td class="tally">|||| ||</td><td class="num">7</td></tr>
+            <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>30 ✓</strong></td></tr>
+          </tbody>
+        </table>
+
+        <p>Notice how the total comes to 30 — matching our original number of students. That's a good check to make sure you haven't missed any number or counted one twice. Now you can immediately see things that were invisible before: the data is fairly evenly spread, with the middle two groups being slightly higher. This is the power of grouping.</p>
+
+        <div class="callout tip">
+          <span class="callout-label">Verification — Always Check Your Total</span>
+          After building a grouped frequency table, always add up all the frequencies. The total must equal the total number of data values you started with. If they don't match — you've either missed a value or counted one twice. Go back and recheck each interval carefully.
+        </div>
+
+        <div class="stage-marker evaluate"></div>
+        <p>Here are the heights (in cm) of 20 students in Class 8B: <span class="vcue">[Show new dataset on screen]</span> 142, 155, 138, 161, 149, 153, 136, 158, 145, 162, 140, 157, 148, 165, 143, 152, 139, 160, 147, 154. Using class intervals of size 10 — starting from 130 — build a frequency table for this data. Think about which numbers go into which group, apply the boundary rule carefully, and check that your frequencies add up to 20. <span class="pcue">(Pause — allow student thinking time)</span></p>
+
+        <div class="callout question">
+          <span class="callout-label">Check Your Understanding</span>
+          Heights (in cm) of 20 students: 142, 155, 138, 161, 149, 153, 136, 158, 145, 162, 140, 157, 148, 165, 143, 152, 139, 160, 147, 154. Build a grouped frequency table with intervals 130–140, 140–150, 150–160, 160–170. Which interval has the most students?
+        </div>
+      </div>
+
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 1</h3>
+        <div class="practice-q">Q1. Using the heights dataset above (20 students), complete the grouped frequency table with intervals 130–140, 140–150, 150–160, 160–170. Apply the boundary rule carefully — remember, 140 belongs to the 140–150 group, not the 130–140 group. Verify that your frequencies add up to 20.</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">130–140: 138, 136, 139. Frequency: 3. 140–150: 142, 149, 145, 140, 148, 143, 147. Frequency: 7. 150–160: 155, 153, 158, 157, 152, 154. Frequency: 6. 160–170: 161, 162, 165, 160. Frequency: 4. Total: 3 + 7 + 6 + 4 = 20. ✓ The 140–150 range has the most students — this is the most common height band in the class.</div>
+        <div class="practice-q">Q2. A student says: "The mark 30 belongs to the 20–30 class interval because 30 is the upper limit and the upper limit is included." Is this correct? Explain why or why not.</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">This is incorrect. The boundary rule states that the upper limit is excluded, not included. So 30 does NOT belong to the 20–30 interval. It belongs to the 30–40 interval because 30 is the lower limit of that interval, and lower limits are always included. The interval 20–30 includes all values from 20 up to (but not including) 30.</div>
+      </div>
+    </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
@@ -183,65 +218,150 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_2',
-      title: 'Tally Marks & Frequency Tables',
-      textContent: `<!-- ── TOPIC 2 ── -->
-<div class="section-block" id="s2">
-  <p class="section-eyebrow" style="color:var(--a-mid)">Topic 2 of 6</p>
-  <h2 class="section-title">Tally Marks &amp; Frequency Tables</h2>
+      title: 'What Is a Histogram?',
+      textContent: `<div class="section-block" id="s2">
+      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 2 of 5</p>
+      <h2 class="section-title">What Is a Histogram?</h2>
 
-  <div class="narration">
-    <div class="stage-marker engage"></div>
-    <p>Now that we know WHY we need to organise data, let's learn the first and most fundamental tool: tally marks. <span class="vcue">[Show an image of someone keeping score during a cricket match on paper]</span> Have you ever seen a scorekeeper at a local cricket match? They don't write "1, 2, 3, 4, 5" for every run — they use a quick system of marks. Four vertical lines, and then a diagonal line crossing through them for the fifth. This system lets them count fast, without losing track, and read the total at a glance. That system has a name — it's called tally marks — and you're going to use it the same way to count data.</p>
+      <div class="narration">
+        <div class="stage-marker engage"></div>
+        <p>You've seen bar graphs before — they're great for showing data like favourite sports, number of students in different classes, or books read by students in a month. But here's something to think about: what if the data isn't categories like "football" or "cricket" — but numbers in ranges, like "marks between 20 and 30"? <span class="vcue">[Show a bar graph and a histogram side-by-side on screen]</span></p>
 
-    <div class="callout definition">
-      <span class="callout-label">Definition — Tally Mark</span>
-      A tally mark is a way of recording a count using lines. One mark (|) represents the number 1. When you reach 5, instead of drawing a fifth line, you draw a diagonal line (/) crossing through the previous four, making a bundle of five: ||||̶. This makes it very easy to count totals by reading groups of five.
-    </div>
+        <p>Can a normal bar graph handle that? Well, sort of — but it doesn't quite capture something important: the fact that 20 and 30 are connected on a number line. There's no gap between the 20–30 group and the 30–40 group. They sit right next to each other. A histogram is the graph that is specifically designed for exactly this kind of data. And that's what we're learning today.</p>
 
-    <div class="stage-marker explore"></div>
-    <p>Let's try counting something together — and see why tally marks make it easier. <span class="vcue">[Show this list of subjects students chose as favourite: Art, Maths, Science, Maths, English, Art, Maths, Science, Art, English, Maths, Science, Maths, Art, English, Science, Maths, Art, Maths, English]</span> I want you to count how many students chose Maths as their favourite. Try counting it directly from this list — go ahead. <span class="pcue">(Pause 5 seconds)</span> Did you lose track at any point? Did you have to restart? Now let's use tally marks instead. As I go through the list one item at a time, I put one tally mark under the correct subject. Ready?</p>
+        <div class="stage-marker explore"></div>
+        <p>Look at our frequency table again from Topic 1: <span class="vcue">[Keep the marks frequency table visible]</span> 10–20: 7 students, 20–30: 8 students, 30–40: 8 students, 40–50: 7 students. If you were going to draw this as a graph, what would you put on the horizontal axis? The class intervals — 10–20, 20–30, 30–40, 40–50. And the vertical axis? The frequencies — 7, 8, 8, 7.</p>
 
-    <div class="stage-marker explain"></div>
-    <p>Here's how to build a frequency table using tally marks — step by step. <span class="vcue">[Show an empty table with columns: Subject | Tally | Frequency]</span></p>
+        <p>Now here's the interesting part. Think about whether there should be a gap between the bar for 10–20 and the bar for 20–30. <span class="pcue">(Think about it)</span> There shouldn't be, right? Because 20 is where one interval ends and the next begins. They share that boundary. The data is continuous — it flows from one group to the next without a break. That is the key insight behind a histogram.</p>
 
-    <p>Step one: list all the unique items in the first column. In our case: Art, Maths, Science, English. Step two: go through the raw data, one item at a time. Every time you see an item, draw one tally mark in its row. Step three: when you've gone through all the data, count the tally marks in each row. That count is called the frequency. Frequency simply means how often something appears in the data — it's the number of times it occurs.</p>
+        <div class="stage-marker explain"></div>
+        <p>A histogram is a type of bar graph used to represent grouped continuous data. <span class="vcue">[Show a clean, labelled histogram on screen]</span> Here is what makes it different from an ordinary bar graph:</p>
 
-    <div class="callout definition">
-      <span class="callout-label">Definition — Frequency</span>
-      Frequency is the number of times a particular value or item appears in a set of data. For example, if "Maths" appears 7 times in our list, its frequency is 7.
-    </div>
+        <div class="callout definition">
+          <span class="callout-label">Definition — Histogram</span>
+          A histogram is a graph for displaying grouped continuous data. Unlike a bar graph: (1) the bars touch each other — no gaps — because the data is continuous. (2) The horizontal axis is a proper number line showing class intervals, not separate categories. (3) The vertical axis shows frequency. (4) The height of each bar equals the frequency of that interval (when all intervals have equal width).
+        </div>
 
-    <p>Now let's fill in our table. <span class="vcue">[Animate the table being filled row by row]</span> Going through the list: Art appears 5 times, Maths appears 7 times, Science appears 4 times, English appears 4 times. Here is the complete frequency table:</p>
+        <p>Let's also note what a histogram is NOT: it is not a bar graph with bars pushed together. The touching of bars carries meaning — it tells us the data is measured on a continuous scale, not in separate categories. In a bar graph showing "favourite sports," gaps between bars signal that cricket and football are separate, unconnected categories. In a histogram, no gaps signal that 10–20 and 20–30 are adjacent, connected intervals on the same number line.</p>
 
-    <table class="data-table">
-      <thead><tr><th>Subject</th><th>Tally Marks</th><th>Frequency</th></tr></thead>
-      <tbody>
-        <tr><td>Art</td><td class="tally">|||| |</td><td class="num">5</td></tr>
-        <tr><td>Maths</td><td class="tally">|||| ||</td><td class="num">7</td></tr>
-        <tr><td>Science</td><td class="tally">||||</td><td class="num">4</td></tr>
-        <tr><td>English</td><td class="tally">||||</td><td class="num">4</td></tr>
-        <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>20</strong></td></tr>
-      </tbody>
-    </table>
+        <div class="stage-marker elaborate"></div>
+        <p>Let's draw the histogram for our marks data step by step. <span class="vcue">[Show step-by-step histogram construction on screen]</span></p>
 
-    <div class="callout tip">
-      <span class="callout-label">Important Tip — Verification</span>
-      Always add up all the frequencies at the end. The total must equal the total number of data points you started with. Here, 5 + 7 + 4 + 4 = 20, and we had 20 students. They match — so our table is correct. If they don't match, you made an error somewhere.
-    </div>
+        <p><strong>Step 1:</strong> Draw the axes. The horizontal axis (x-axis) shows marks from 10 to 50, with markings at 10, 20, 30, 40, 50. The vertical axis (y-axis) shows frequency from 0 to at least 8 — mark it at 0, 2, 4, 6, 8, 10.</p>
 
-    <div class="stage-marker elaborate"></div>
-    <p>Now look at this completed frequency table and notice how much easier it is to read. <span class="vcue">[Highlight the Maths row]</span> Which subject is most popular? Maths — with a frequency of 7. Which subjects are equally popular? Science and English — both with frequency 4. How many students were surveyed in total? 20. All of these answers are available immediately, without searching through a messy list. That's the power of a frequency table.</p>
+        <p><strong>Step 2:</strong> Draw the bars. For 10–20, frequency is 7 — draw a bar from 10 to 20 on the x-axis, height 7. For 20–30, frequency is 8 — bar from 20 to 30, height 8. For 30–40, frequency is 8 — bar from 30 to 40, height 8. For 40–50, frequency is 7 — bar from 40 to 50, height 7.</p>
 
-    <div class="stage-marker evaluate"></div>
-    <div class="callout question">
-      <span class="callout-label">Check Your Understanding</span>
-      Here is a list of colours of 18 cars parked in a school parking lot: Red, White, Black, Silver, Red, White, Silver, Black, Red, White, Red, Silver, White, Black, Red, Silver, White, Red. Make a tally marks table and answer: (a) What is the frequency of Red cars? (b) Which colour appears least often? (c) What is the total of all frequencies — does it match 18?
-    </div>
-  </div>
+        <p><strong>Step 3:</strong> Check that bars are touching. There must be no gap between the bar ending at 20 and the bar beginning at 20. They share that edge.</p>
 
-</div>
+        <p><strong>Step 4:</strong> Label the graph. Title: "Distribution of Marks in Surprise Test". X-axis: "Marks (out of 50)". Y-axis: "Number of Students".</p>
 
-<hr class="section-divider">`,
+        <div class="histogram">
+          <div class="histogram-title">Distribution of Marks in Surprise Test</div>
+          <div class="histogram-chart">
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:87.5%">7</div>
+              <div class="hist-label">10–20</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:100%">8</div>
+              <div class="hist-label">20–30</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:100%">8</div>
+              <div class="hist-label">30–40</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:87.5%">7</div>
+              <div class="hist-label">40–50</div>
+            </div>
+          </div>
+          <div class="histogram-axes">
+            <span>← Marks (out of 50)</span>
+            <span>Number of Students ↑</span>
+          </div>
+          <div class="histogram-note">Note: bars touch each other — no gaps — because the data is continuous. Total students: 30.</div>
+        </div>
+
+        <p>Now look at this histogram. What do you see at a glance? The two middle bars are slightly taller — 8 students each — while the end groups have 7. The distribution is nearly even, with a slight concentration in the middle. You can read this in about two seconds just by looking at the graph. That is exactly why histograms are so useful.</p>
+
+        <p>Now let's look at another example. Suppose we recorded the time (in minutes) taken by 25 students to complete a worksheet: <span class="vcue">[Show frequency table on screen]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>Time (minutes)</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>0 – 10</td><td class="num">3</td></tr>
+            <tr><td>10 – 20</td><td class="num">7</td></tr>
+            <tr><td>20 – 30</td><td class="num">9</td></tr>
+            <tr><td>30 – 40</td><td class="num">5</td></tr>
+            <tr><td>40 – 50</td><td class="num">1</td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>25 ✓</strong></td></tr>
+          </tbody>
+        </table>
+
+        <div class="histogram">
+          <div class="histogram-title">Time Taken by Students to Complete Worksheet</div>
+          <div class="histogram-chart">
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:33%">3</div>
+              <div class="hist-label">0–10</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:78%">7</div>
+              <div class="hist-label">10–20</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:100%">9</div>
+              <div class="hist-label">20–30</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:56%">5</div>
+              <div class="hist-label">30–40</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:11%">1</div>
+              <div class="hist-label">40–50</div>
+            </div>
+          </div>
+          <div class="histogram-axes">
+            <span>← Time (minutes)</span>
+            <span>Number of Students ↑</span>
+          </div>
+          <div class="histogram-note">The histogram rises from left, peaks at 20–30, then falls. Most students finished in 20–30 minutes.</div>
+        </div>
+
+        <p>Look at the shape of this histogram. It rises from the left, peaks in the 20–30 minute group, and then falls towards the right. This kind of shape tells us that most students finished the worksheet in 20 to 30 minutes. Very few took less than 10 minutes — and only 1 student took more than 40 minutes. This is called the distribution of the data — and the histogram makes it visible instantly.</p>
+
+        <div class="stage-marker evaluate"></div>
+        <p>Here is your practice task. <span class="vcue">[Show question on screen]</span> The following frequency table shows the number of hours per week that 40 students spent on outdoor activities:</p>
+
+        <table class="data-table">
+          <thead><tr><th>Hours per Week</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>0 – 5</td><td class="num">4</td></tr>
+            <tr><td>5 – 10</td><td class="num">11</td></tr>
+            <tr><td>10 – 15</td><td class="num">14</td></tr>
+            <tr><td>15 – 20</td><td class="num">8</td></tr>
+            <tr><td>20 – 25</td><td class="num">3</td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>40</strong></td></tr>
+          </tbody>
+        </table>
+
+        <div class="callout question">
+          <span class="callout-label">Check Your Understanding</span>
+          Using the outdoor activity data above: (a) Draw the histogram — make sure your bars touch, axes are labelled, and the graph has a title. (b) In which time range did the most students fall? (c) What does the shape of the histogram tell you about outdoor activity habits in this class? (d) Would you use a bar graph or a histogram for this data — and why?
+        </div>
+      </div>
+
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 2</h3>
+        <div class="practice-q">Q1. Looking at the outdoor activity histogram (data above): The tallest bar is for which interval? What does this tell you about students' outdoor habits? What does the shape of the full histogram suggest about whether activity is evenly distributed or concentrated?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">The tallest bar is for 10–15 hours per week, with 14 students. This tells us the most common amount of outdoor activity is 10–15 hours a week — roughly 1.5 to 2 hours per day. The shape shows a peak in the middle (10–15) with fewer students at either extreme — very few students spend almost no time outdoors (0–5 hours: 4 students) or a great deal of time (20–25 hours: 3 students). Most students cluster in the middle range, suggesting a moderate and fairly consistent pattern of outdoor activity.</div>
+        <div class="practice-q">Q2. A student is drawing a histogram for the marks data (10–20: 7, 20–30: 8, 30–40: 8, 40–50: 7) and accidentally leaves a gap between each bar, like a normal bar graph. What mistake have they made, and what does that gap incorrectly imply about the data?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">The student has confused a histogram with a bar graph. In a histogram, bars must always touch — there must be no gap between them. The gap would incorrectly imply that the intervals are separate, disconnected categories (like "cricket" vs "football"), when in fact these are continuous intervals on a number line. The value 20 is the shared boundary between the 10–20 and 20–30 intervals — there is no "gap" between these two groups in the data, so there must be no gap in the histogram.</div>
+      </div>
+    </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
@@ -270,50 +390,91 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_3',
-      title: 'Pictographs',
-      textContent: `<!-- ── TOPIC 3 ── -->
-    <div class="section-block" id="s3">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 3 of 6</p>
-      <h2 class="section-title">Pictographs</h2>
+      title: 'Choosing the Right Bin Size',
+      textContent: `<div class="section-block" id="s3">
+      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 3 of 5</p>
+      <h2 class="section-title">Choosing the Right Bin Size</h2>
 
       <div class="narration">
         <div class="stage-marker engage"></div>
-        <p>Alright — we can now organise data into a table. But tables show numbers. And sometimes, numbers alone don't make the strongest impact. Have you ever noticed those colourful charts in newspapers or on TV news, where instead of just writing "50 cars," they show 5 little car icons? <span class="vcue">[Show a newspaper infographic with small icons representing counts]</span> Those are called pictographs, and they're one of the oldest forms of data representation — even ancient civilisations drew pictures to communicate counts. Today we learn how they work and, importantly, how to read them correctly without being misled.</p>
+        <p>Here's a question that probably crossed your mind at some point: when we grouped the 30 marks into intervals of 10, why 10? Why not 5? Or 20? After all, the choice seems a bit arbitrary. But here's the thing — it's not arbitrary at all. The bin size you choose changes how the histogram looks and how much useful information it shows. Let's see this for ourselves. <span class="vcue">[Show the same 30 marks dataset with three different groupings side by side]</span></p>
 
         <div class="stage-marker explore"></div>
-        <p>Let's say a car company wants to show how many cars they sold in four cities. Here is the data: Mumbai — 500 cars, Delhi — 300 cars, Chennai — 400 cars, Kolkata — 200 cars. <span class="vcue">[Show this frequency table on screen]</span> Now, drawing 500 actual tiny cars for Mumbai is obviously impossible. So we use a KEY — one symbol represents a fixed number, say 100 cars. Let's see what this looks like as a pictograph. <span class="vcue">[Show the pictograph being built]</span></p>
+        <p>Let's take our familiar 30 marks — 23, 41, 17, 38, 29, 44, 12, 35, 27, 48, 19, 31, 22, 46, 14, 33, 26, 40, 18, 37, 25, 43, 11, 36, 28, 45, 16, 32, 24, 39 — and try grouping them three different ways. <span class="pcue">(Take a moment to imagine what each table would look like)</span></p>
 
-        <div class="pictograph">
-          <div class="bar-chart-title">Cars Sold by City (🚗 = 100 cars)</div>
-          <div class="picto-row"><span class="picto-label">Mumbai</span><span class="picto-symbol">🚗🚗🚗🚗🚗</span></div>
-          <div class="picto-row"><span class="picto-label">Delhi</span><span class="picto-symbol">🚗🚗🚗</span></div>
-          <div class="picto-row"><span class="picto-label">Chennai</span><span class="picto-symbol">🚗🚗🚗🚗</span></div>
-          <div class="picto-row"><span class="picto-label">Kolkata</span><span class="picto-symbol">🚗🚗</span></div>
-          <div class="picto-key">KEY: 🚗 = 100 cars &nbsp;|&nbsp; Half symbol (🚗½) = 50 cars</div>
-        </div>
+        <p><strong>Option 1 — Bin size of 20:</strong> We'd get just 2 intervals: 10–30 and 30–50. That's very few groups. Would this tell us much about how marks are distributed within each range? Not really — everything gets lumped together.</p>
+
+        <p><strong>Option 2 — Bin size of 10:</strong> We get 4 intervals: 10–20, 20–30, 30–40, 40–50. This gives us a decent overview of the data — not too many groups, not too few.</p>
+
+        <p><strong>Option 3 — Bin size of 5:</strong> We'd get 8 intervals: 10–15, 15–20, 20–25, 25–30, 30–35, 35–40, 40–45, 45–50. More detail — but with only 30 students, some intervals might have just 3 or 4 students. That's very fine-grained.</p>
 
         <div class="stage-marker explain"></div>
-        <p>Let's understand the structure of a pictograph carefully. Every pictograph has three parts. First, the categories — listed in a column on the left, one per row. Second, the symbols — drawn in each row, with the number of symbols representing the data value. Third, and most important, the KEY. <span class="vcue">[Highlight the KEY box in the pictograph]</span></p>
-
-        <p>The key tells you what ONE symbol represents. This is called the scale of the pictograph. In our example, one car symbol equals 100 cars. So to find the actual value for any row, you count the symbols in that row and multiply by the scale. Mumbai has 5 symbols — 5 times 100 equals 500. Delhi has 3 symbols — 3 times 100 equals 300. Simple multiplication.</p>
+        <p>Here is the key insight: a bin size that is too large hides patterns. A bin size that is too small creates so many tiny groups that patterns become hard to read — the histogram looks jagged and noisy. <span class="vcue">[Show visual comparison: too-large bins vs too-small bins vs just-right bins]</span></p>
 
         <div class="callout definition">
-          <span class="callout-label">What About Half Symbols?</span>
-          Sometimes the data value is not a perfect multiple of the scale. If Mumbai had sold 550 cars, we would draw 5 full car symbols and one half symbol. A half symbol represents half of the scale value. Half of 100 is 50. So 5 full + 1 half = 500 + 50 = 550. Always check: does the data make half symbols necessary? If the scale is 100 and the data value is 650, that's 6.5 symbols — 6 full and 1 half.
+          <span class="callout-label">What Is Bin Size?</span>
+          The bin size (also called class size or class width) is the width of each interval in a grouped frequency table. All bins must have the same size. A good bin size results in a histogram with enough intervals to show the shape of the data, but not so many that the pattern disappears. As a rule of thumb: aim for between 5 and 10 intervals for most datasets in Class 8.
         </div>
 
+        <p>There is a simple formula you can use to get started: Approximate bin size = Range ÷ Number of intervals you want. For our marks data: Range = 48 − 11 = 37. If we want about 4 intervals, bin size ≈ 37 ÷ 4 ≈ 9. We round this up to a convenient number — 10. That's exactly what we did.</p>
+
         <div class="stage-marker elaborate"></div>
-        <p>Now let me show you how to READ a pictograph — because reading it wrong is a very common mistake. <span class="vcue">[Show a new pictograph: Books read by students in a month, symbol = 📚, key says each book = 4 books read]</span> Suppose Aditya has 3 book symbols, Meera has 2.5 book symbols, and Rohan has 4 book symbols. The scale is: 1 symbol = 4 books. <span class="pcue">(Now calculate)</span></p>
-        <p>Aditya: 3 × 4 = 12 books. Meera: 2.5 × 4 = 10 books. Rohan: 4 × 4 = 16 books. <span class="vcue">[Show calculations beside each row]</span> Who read the most? Rohan. Who read exactly 10 books? Meera — because of the half symbol. Now here's the key lesson: if you forget to check the key, you might think Rohan read 4 books, not 16. The key is everything in a pictograph.</p>
+        <p><strong>Example 1 — Marks Data (30 students):</strong> Let's compare bin size 10 vs bin size 5 for our marks. <span class="vcue">[Show both frequency tables side by side on screen]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>With Bin Size 10</th><th>Frequency</th><th>With Bin Size 5</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>10 – 20</td><td class="num">7</td><td>10 – 15</td><td class="num">4</td></tr>
+            <tr><td>20 – 30</td><td class="num">8</td><td>15 – 20</td><td class="num">3</td></tr>
+            <tr><td>30 – 40</td><td class="num">8</td><td>20 – 25</td><td class="num">4</td></tr>
+            <tr><td>40 – 50</td><td class="num">7</td><td>25 – 30</td><td class="num">4</td></tr>
+            <tr><td></td><td></td><td>30 – 35</td><td class="num">4</td></tr>
+            <tr><td></td><td></td><td>35 – 40</td><td class="num">4</td></tr>
+            <tr><td></td><td></td><td>40 – 45</td><td class="num">4</td></tr>
+            <tr><td></td><td></td><td>45 – 50</td><td class="num">3</td></tr>
+          </tbody>
+        </table>
+
+        <p>With bin size 10, the pattern is clear — four groups with similar frequencies, showing an even spread. With bin size 5, we have eight groups, each with 3 or 4 students. The pattern is harder to read. For 30 data points, bin size 10 gives us more useful information. <span class="pcue">(Think: which table would you rather interpret at a glance?)</span></p>
+
+        <p><strong>Example 2 — Temperatures (15 readings):</strong> Now imagine a different situation. A science class records the temperature (in °C) at their school for 15 days: 28, 31, 29, 33, 30, 27, 32, 34, 29, 31, 28, 30, 33, 32, 29. The range is 34 − 27 = 7. If we used bin size 10, we'd get just one interval (20–30... but wait, 31–34 wouldn't fit). That's not useful at all. Here, a bin size of 2 makes much more sense: 26–28, 28–30, 30–32, 32–34, 34–36 — giving us 5 intervals, which is perfect for 15 readings. <span class="vcue">[Show the temperature frequency table on screen]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>Temperature (°C)</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>26 – 28</td><td class="num">2</td></tr>
+            <tr><td>28 – 30</td><td class="num">5</td></tr>
+            <tr><td>30 – 32</td><td class="num">4</td></tr>
+            <tr><td>32 – 34</td><td class="num">3</td></tr>
+            <tr><td>34 – 36</td><td class="num">1</td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>15 ✓</strong></td></tr>
+          </tbody>
+        </table>
+
+        <p>The data clusters around 28–32°C, with fewer very hot or relatively cool days. A bin size of 2 worked well here because the data had a small range — only 7 degrees. If we had used a bin size of 10, we'd lose all this detail. The lesson: bin size depends on the range and the size of the dataset. Always check: does my histogram have between 5 and 10 bars? If yes, your bin size is probably right.</p>
+
+        <div class="callout tip">
+          <span class="callout-label">Quick Decision Guide — Choosing Bin Size</span>
+          Step 1: Find the range (maximum − minimum). Step 2: Decide how many intervals you want (aim for 5 to 10). Step 3: Divide range by that number and round to a convenient value. Step 4: Check — does your starting point make sense? Round down to the nearest convenient value below the minimum. Always verify that all values fit neatly and your total frequency matches the number of data points.
+        </div>
 
         <div class="stage-marker evaluate"></div>
         <div class="callout question">
           <span class="callout-label">Check Your Understanding</span>
-          A pictograph shows ice cream sales over 5 days. The key says: 🍦 = 20 ice creams. Monday has 3 symbols, Tuesday has 4 symbols, Wednesday has 2.5 symbols, Thursday has 5 symbols, Friday has 3.5 symbols. (a) How many ice creams were sold on Wednesday? (b) On which day were the most ice creams sold? (c) What is the total ice cream sales for the week?
+          A class records the number of pages read per week by 20 students: 45, 72, 38, 90, 55, 68, 42, 80, 60, 75, 50, 88, 35, 65, 78, 48, 92, 58, 70, 82. (a) What is the range of this data? (b) If you wanted 6 intervals, what would the approximate bin size be? Round to a convenient number. (c) Write out the class intervals. (d) Build the frequency table. Does your total equal 20?
         </div>
       </div>
 
-<hr class="section-divider">`,
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 3</h3>
+        <div class="practice-q">Q1. Why can't we always use a bin size of 1 (i.e., list every individual value separately)? What would go wrong if we had 100 students and used a bin size of 1?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">If we used a bin size of 1 for 100 students, we might end up with 50 or 60 different intervals — each with just 1 or 2 students. The table would be enormous and impossible to read at a glance. We would lose the ability to see any overall pattern. This defeats the entire purpose of grouping data, which is to make large datasets easier to understand. A bin size of 1 essentially gives you back the original raw data — just in a different format. The whole point of class intervals is to reduce complexity while keeping the meaningful patterns.</div>
+        <div class="practice-q">Q2. The ages (in years) of 18 trees in a garden are: 3, 7, 12, 5, 9, 15, 8, 11, 4, 14, 6, 10, 2, 13, 7, 9, 11, 5. Choose an appropriate bin size and build a grouped frequency table. Verify your total.</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Range = 15 − 2 = 13. Aiming for about 5 intervals: 13 ÷ 5 = 2.6, so we round up to 3. Starting at 0 (convenient value below minimum of 2): intervals are 0–3, 3–6, 6–9, 9–12, 12–15, 15–18. Frequencies: 0–3: 3, 2 = 2. Wait — 3 belongs to 3–6, not 0–3 (boundary rule: lower included, upper excluded). So 0–3: just 2 = 1. 3–6: 3, 5, 4, 6, 5 = 5 (note: 6 goes to 6–9). Let me redo: 0–3: 2 = 1. 3–6: 3, 5, 4, 5 = 4. 6–9: 7, 8, 6, 7 = 4. 9–12: 9, 11, 10, 9, 11 = 5. 12–15: 12, 14, 13 = 3. 15–18: 15 = 1. Total: 1+4+4+5+3+1 = 18 ✓. The modal class is 9–12 years.</div>
+      </div>
+    </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
@@ -342,61 +503,71 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_4',
-      title: 'Bar Graphs & Double Bar Graphs',
-      textContent: `<!-- ── TOPIC 4 ── -->
-    <div class="section-block" id="s4">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 4 of 6</p>
-      <h2 class="section-title">Bar Graphs &amp; Double Bar Graphs</h2>
+      title: 'Histograms vs Bar Graphs — What\'s the Difference?',
+      textContent: `<div class="section-block" id="s4">
+      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 4 of 5</p>
+      <h2 class="section-title">Histograms vs Bar Graphs — What's the Difference?</h2>
 
       <div class="narration">
         <div class="stage-marker engage"></div>
-        <p>Pictographs are great for simple counts, but they have a problem: drawing lots of tiny symbols is tedious, and comparing values isn't always easy. What if I told you there's a way to represent data visually where the HEIGHT of a shape tells you the value — no symbols needed, no counting icons, just one look at how tall a bar is and you immediately know if a value is high or low? <span class="vcue">[Show a bar graph animation appearing on screen]</span> That's a bar graph. And it's arguably the most widely used graph in the world. Let's master it completely today.</p>
+        <p>Here is something that confuses a lot of students — and even some adults: histograms and bar graphs look very similar. Both have bars. Both have a horizontal axis and a vertical axis. So what's the difference? And why does it even matter? <span class="vcue">[Show a bar graph and a histogram side by side on screen]</span></p>
+
+        <p>Look carefully at the two graphs. Can you spot the most obvious visual difference? <span class="pcue">(Take a moment to look)</span> That's right — in one graph, the bars are touching. In the other, there are gaps between the bars. That single difference is not a styling choice. It carries a very important message about the data.</p>
 
         <div class="stage-marker explore"></div>
-        <p>Here's a real scenario. A school tracked how many students were enrolled each year from 2019 to 2023. The data is: 2019 — 420 students, 2020 — 380 students, 2021 — 450 students, 2022 — 510 students, 2023 — 490 students. <span class="vcue">[Show this table]</span> From just reading these five numbers, can you immediately tell: was there a drop at any point? By how much did enrolment grow from 2019 to 2022? Which year had the biggest jump from the previous year? It's hard to see all of this from a table. A bar graph will make every one of these answers visual and instant.</p>
+        <p>Let's think about two different sets of data. First: the number of students who play different sports — Cricket: 12, Football: 18, Badminton: 9, Basketball: 6. Second: the heights of 30 students grouped as 130–140: 4, 140–150: 11, 150–160: 10, 160–170: 5.</p>
+
+        <p>Now here's the question: are "Cricket" and "Football" connected to each other the way "130–140" and "140–150" are connected? <span class="pcue">(Think about this carefully)</span> Cricket and Football are completely separate categories — there's no meaningful "in-between." But 130–140 and 140–150 share a boundary at 140. They are adjacent segments of the same number line. They are connected.</p>
 
         <div class="stage-marker explain"></div>
-        <p>Let's learn the parts of a bar graph. <span class="vcue">[Show a labelled diagram of a bar graph]</span> Every bar graph has the following components. The X-axis is the horizontal line at the bottom — this is where you put your categories, like years, subjects, or names. The Y-axis is the vertical line on the left — this shows the numerical values. You must label both axes clearly.</p>
-        <p>The scale on the Y-axis is a series of evenly spaced numbers, starting from zero and going up to a value slightly above your highest data point. In our school data, the highest value is 510, so the scale might go from 0 to 550 in steps of 50. Each bar starts at zero and rises to the height that matches its data value. All bars must be the same width, and there must be equal gaps between them.</p>
+        <p>This is the core difference. <span class="vcue">[Show highlighted explanation on screen]</span></p>
 
-        <div class="bar-chart">
-          <div class="bar-chart-title">School Enrolment 2019–2023</div>
-          <div class="bar-row"><span class="bar-label">2019</span><div class="bar-track"><div class="bar-fill" style="width:76%">420</div></div></div>
-          <div class="bar-row"><span class="bar-label">2020</span><div class="bar-track"><div class="bar-fill" style="width:69%">380</div></div></div>
-          <div class="bar-row"><span class="bar-label">2021</span><div class="bar-track"><div class="bar-fill" style="width:82%">450</div></div></div>
-          <div class="bar-row"><span class="bar-label">2022</span><div class="bar-track"><div class="bar-fill" style="width:93%">510</div></div></div>
-          <div class="bar-row"><span class="bar-label">2023</span><div class="bar-track"><div class="bar-fill" style="width:89%">490</div></div></div>
-          <p style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono',monospace">Y-axis: Number of Students · X-axis: Year</p>
+        <div class="callout definition">
+          <span class="callout-label">The Key Distinction</span>
+          A bar graph is used for categorical data — data that falls into separate, named groups with no natural order or connection (sports, colours, subjects, types of pets). Gaps between bars show that the categories are separate. A histogram is used for continuous numerical data that has been grouped into class intervals. No gaps between bars show that the intervals are adjacent on a continuous number line. The type of data determines which graph you use — not your preference.
         </div>
 
-        <p>Now look at the bar graph. <span class="vcue">[Highlight the 2020 bar]</span> The dip in 2020 is immediately visible — the bar is shorter than 2019. <span class="vcue">[Highlight the 2022 bar]</span> The peak is clearly 2022. You can see these patterns in seconds. No calculation needed.</p>
+        <p>Let's also look at the axes. In a bar graph, the horizontal axis shows category names — "Cricket," "Football," etc. These are labels, not numbers. You could put them in any order and the graph would still make sense. In a histogram, the horizontal axis is a number line. The order matters — you cannot rearrange the intervals. 130–140 must come before 140–150. <span class="vcue">[Show axis comparison on screen]</span></p>
 
-        <div class="stage-marker explain"></div>
-        <p>Now let's go one step further. What if we want to compare two groups side by side? For example — what if we want to see the number of boys and girls enrolled each year? A double bar graph places two bars next to each other for every category, each bar in a different colour, with a legend explaining which colour represents which group. <span class="vcue">[Show a double bar graph with boys in blue and girls in orange]</span></p>
+        <div class="stage-marker elaborate"></div>
+        <p>Let's put this together with a clear comparison table. <span class="vcue">[Display the comparison table on screen]</span></p>
 
         <table class="data-table">
-          <thead><tr><th>Year</th><th>Boys</th><th>Girls</th></tr></thead>
+          <thead><tr><th>Feature</th><th>Bar Graph</th><th>Histogram</th></tr></thead>
           <tbody>
-            <tr><td>2019</td><td class="num">230</td><td class="num">190</td></tr>
-            <tr><td>2020</td><td class="num">200</td><td class="num">180</td></tr>
-            <tr><td>2021</td><td class="num">240</td><td class="num">210</td></tr>
-            <tr><td>2022</td><td class="num">270</td><td class="num">240</td></tr>
-            <tr><td>2023</td><td class="num">250</td><td class="num">240</td></tr>
+            <tr><td>Type of data</td><td>Categorical (separate groups)</td><td>Continuous (grouped intervals)</td></tr>
+            <tr><td>Gaps between bars</td><td>Yes — shows categories are separate</td><td>No — shows data is continuous</td></tr>
+            <tr><td>Horizontal axis</td><td>Category names (e.g., Cricket, Football)</td><td>Number line with class intervals</td></tr>
+            <tr><td>Vertical axis</td><td>Frequency or count</td><td>Frequency or count</td></tr>
+            <tr><td>Can bars be reordered?</td><td>Yes (usually)</td><td>No — order is fixed by number line</td></tr>
+            <tr><td>Example</td><td>Favourite colours of 30 students</td><td>Heights of 30 students grouped in intervals</td></tr>
           </tbody>
         </table>
 
-        <p><span class="vcue">[Show the double bar graph]</span> In a double bar graph, for each year, we draw two bars side by side — one for boys (blue), one for girls (orange). The legend in the corner tells us which is which. Now you can compare boys vs girls in the same year AND track the trend of both groups across years — all from one graph.</p>
+        <p>Now, a very common misconception: students sometimes think they can choose whichever graph looks nicer. That's not correct. The data itself tells you which graph to use. If you're plotting "favourite ice cream flavours" — that's a bar graph. If you're plotting "the time taken by students to solve a puzzle, grouped in intervals of 5 minutes" — that's a histogram. There's no choice involved.</p>
+
+        <div class="callout tip">
+          <span class="callout-label">A Quick Test — Which Graph Do I Use?</span>
+          Ask yourself: "Is my horizontal axis a list of category names, or a number line?" If it's category names → bar graph. If it's a number line with intervals → histogram. Second check: "Do my groups share boundaries, or are they completely separate?" Shared boundaries = histogram. Completely separate = bar graph.
+        </div>
 
         <div class="stage-marker evaluate"></div>
         <div class="callout question">
           <span class="callout-label">Check Your Understanding</span>
-          Using the double bar graph data above: (a) In which year was the gap between boys and girls enrolment the largest? (b) In 2023, how many more boys than girls were enrolled? (c) Is the difference between boys and girls getting larger or smaller over the years?
+          For each of the following, decide whether you would draw a bar graph or a histogram. Explain your reason in one sentence. (a) Number of students absent each day of the week (Monday to Friday). (b) Time (in minutes) students spend reading each day, grouped in intervals of 10. (c) Favourite subject of students in Class 8. (d) Scores in a math test, grouped as 0–10, 10–20, 20–30, up to 100. (e) Number of books in each section of a library (Fiction, Non-fiction, Science, History).
         </div>
       </div>
+
+      <div class="practice-box">
+        <h3>Guided Practice — Topic 4</h3>
+        <div class="practice-q">Q1. A student draws a histogram to show the number of goals scored by different football teams in a season: Team A: 45, Team B: 38, Team C: 52, Team D: 29, Team E: 61. What mistake has the student made, and which graph should they have used? Why?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">The student has made the wrong choice of graph. A histogram is used for grouped continuous data — data that sits on a number line with adjacent intervals sharing boundaries. "Team A," "Team B," etc. are separate, named categories, not intervals on a number line. There is no shared boundary between Team A's goals and Team B's goals. The correct graph is a bar graph, with gaps between bars to show that the teams are separate categories. In the bar graph, the horizontal axis would show team names, and the vertical axis would show goals scored.</div>
+        <div class="practice-q">Q2. A classmate argues: "In a histogram, the bars happen to touch because the intervals are next to each other — but it's basically the same as a bar graph with thinner gaps." Do you agree or disagree? Explain.</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">Disagree. The touching of bars in a histogram is not incidental — it carries meaning. It tells anyone reading the graph that the data is continuous and the intervals share boundaries. For example, the interval 20–30 ends at 30, and the interval 30–40 starts at 30. The number 30 is the boundary between them — there is no gap in the data at 30, so there must be no gap in the histogram. A "bar graph with thinner gaps" would incorrectly imply there is a gap in the data between 30 and 30, which makes no mathematical sense. The no-gap rule in histograms is not cosmetic; it encodes the continuity of the underlying number line.</div>
       </div>
-
-
-<hr class="section-divider">`,
+    </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
@@ -425,41 +596,111 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_5',
-      title: 'Reading & Interpreting Graphs',
-      textContent: `<!-- ── TOPIC 5 ── -->
-    <div class="section-block" id="s5">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 5 of 6</p>
-      <h2 class="section-title">Reading &amp; Interpreting Graphs</h2>
+      title: 'Real Data Analysis Project — Putting It All Together',
+      textContent: `<div class="section-block" id="s5">
+      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 5 of 5</p>
+      <h2 class="section-title">Real Data Analysis Project — Putting It All Together</h2>
 
       <div class="narration">
         <div class="stage-marker engage"></div>
-        <p>We've learned how to make graphs — now we need to learn how to READ them. And I don't just mean reading the numbers off the Y-axis. I mean really interpreting what a graph is telling you. <span class="vcue">[Show a student's test score bar graph across 5 tests]</span> Imagine you're a student and your teacher shows you this graph of your last 5 test scores. Can you tell whether you're improving? Can you spot if there was one particular test where you really struggled? Can you predict how you might do on the next test? All of this comes from careful interpretation — not just reading numbers, but finding the story behind them.</p>
+        <p>You've learned how to group data, draw histograms, choose bin sizes, and tell the difference between histograms and bar graphs. Now it's time to use all of that together — just like a real data analyst would. In this topic, we're going to work through a complete, real-style data project from beginning to end. <span class="vcue">[Show the project title and dataset on screen]</span></p>
+
+        <p>Here's the scenario: A school counsellor wants to understand how much time Class 8 students spend on their phones every day. She surveyed 30 students and recorded their daily screen time (in minutes). Here is the data she collected: <span class="vcue">[Display the list on screen]</span> 85, 140, 55, 200, 110, 175, 65, 130, 95, 155, 45, 180, 120, 70, 165, 100, 210, 80, 145, 60, 190, 115, 75, 135, 50, 170, 105, 150, 90, 125.</p>
 
         <div class="stage-marker explore"></div>
-        <p>Here are a student's scores in 5 consecutive Maths tests: Test 1 — 55, Test 2 — 62, Test 3 — 58, Test 4 — 70, Test 5 — 75. <span class="vcue">[Show bar graph of these scores]</span> Look at this graph for a moment. <span class="pcue">(Pause 3 seconds)</span> What is the first thing you notice? The general trend? The dip in Test 3? The rise toward the end? All of these are observations — and interpretation means turning observations into understanding and conclusions.</p>
+        <p>Before we do anything else, let's look at this data and ask: what questions could we answer from it? <span class="pcue">(Think for a moment)</span> Here are some interesting ones: How many students use their phone for more than 2 hours (120 minutes) a day? Is high screen time concentrated in a few students, or spread across many? What does the "typical" screen time look like? These are the kinds of questions a histogram can help us answer.</p>
 
         <div class="stage-marker explain"></div>
-        <p>When interpreting any graph, follow three steps. Step one: read the basics — what is the title? What do the X and Y axes represent? What is the scale? This gives you context. Step two: make observations — what is the highest value? The lowest? Are there any sudden rises or drops? Is there a general trend going up or down? Step three: draw conclusions — what do these observations tell us about the real-world situation? Why might the data look this way?</p>
-        <p>For our student's test scores: the observations are that scores dropped from Test 2 to Test 3, then rose steadily. The conclusion might be that the student had a difficult week before Test 3, but then studied harder and improved. Interpretation goes beyond the numbers — it connects data to real life.</p>
+        <p><strong>Step 1 — Find the range.</strong> The highest value is 210 minutes. The lowest is 45 minutes. Range = 210 − 45 = 165 minutes. <span class="vcue">[Show calculation on screen]</span></p>
 
-        <div class="callout tip">
-          <span class="callout-label">Key Vocabulary for Interpretation</span>
-          When interpreting graphs, use these words: Trend (general direction of data over time), Peak (the highest point), Trough (the lowest point), Increase / Decrease, Steady (no significant change), Sharp rise / Sharp fall (sudden big change). Using precise vocabulary makes your interpretation more powerful.
+        <p><strong>Step 2 — Choose a bin size.</strong> We have 30 data points and a range of 165. Aiming for about 6 intervals: 165 ÷ 6 = 27.5. We round to a convenient number — let's use 30 minutes. Starting from 30 (just below the minimum of 45): our intervals are 30–60, 60–90, 90–120, 120–150, 150–180, 180–210. That gives us exactly 6 intervals — perfect.</p>
+
+        <p><strong>Step 3 — Build the frequency table.</strong> Now let's sort each value into its class interval using the boundary rule. <span class="vcue">[Show sorting process on screen]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>Screen Time (minutes)</th><th>Values in This Interval</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>30 – 60</td><td>55, 45, 50</td><td class="num">3</td></tr>
+            <tr><td>60 – 90</td><td>85, 65, 70, 80, 75</td><td class="num">5</td></tr>
+            <tr><td>90 – 120</td><td>110, 95, 100, 115, 105, 90</td><td class="num">6</td></tr>
+            <tr><td>120 – 150</td><td>140, 130, 120, 145, 135, 125</td><td class="num">6</td></tr>
+            <tr><td>150 – 180</td><td>175, 155, 165, 170, 150</td><td class="num">5</td></tr>
+            <tr><td>180 – 210</td><td>200, 180, 210, 190</td><td class="num">4</td></tr>
+            <tr><td><strong>Wait — recheck</strong></td><td colspan="2">3+5+6+6+5+4 = 29. One value missing. Let's check: 210 is listed — does it go in 180–210? Upper limit 210 is excluded... Hmm. Let's extend: 180–210 contains 200, 180, 190 = 3. 210 needs its own interval or we extend to 210–240. Extending: 210 belongs to 210–240. Let's use 180–210 (3 values: 200, 180, 190) and add 210–240 (1 value: 210). But this gives 7 intervals. Simpler fix: use bin size 30 starting at 30, and make the last interval 180–211 (inclusive of 210). Frequency of 180–210: 200, 180, 190, 210 = 4. Total: 3+5+6+6+5+4 = 29 — still missing one. Re-examine: 175 → 150–180. 155 → 150–180. 165 → 150–180. 170 → 150–180. 150 → 150–180. That's 5. And 60 → 60–90. Let's fully recount: 30–60: values &lt; 60: 55, 45, 50 = 3. 60–90: 60–89: 85, 65, 70, 80, 75, 60 = 6 (60 is included in 60–90). Recount: 3+6+6+6+5+4 = 30 ✓</td></tr>
+          </tbody>
+        </table>
+
+        <p>Let's redo this carefully with 60 placed in the correct interval. <span class="vcue">[Show corrected table on screen]</span></p>
+
+        <table class="data-table">
+          <thead><tr><th>Screen Time (minutes)</th><th>Frequency</th></tr></thead>
+          <tbody>
+            <tr><td>30 – 60</td><td class="num">3</td></tr>
+            <tr><td>60 – 90</td><td class="num">6</td></tr>
+            <tr><td>90 – 120</td><td class="num">6</td></tr>
+            <tr><td>120 – 150</td><td class="num">6</td></tr>
+            <tr><td>150 – 180</td><td class="num">5</td></tr>
+            <tr><td>180 – 210</td><td class="num">4</td></tr>
+            <tr><td><strong>Total</strong></td><td class="num"><strong>30 ✓</strong></td></tr>
+          </tbody>
+        </table>
+
+        <div class="histogram">
+          <div class="histogram-title">Daily Screen Time of 30 Students (Minutes)</div>
+          <div class="histogram-chart">
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:50%">3</div>
+              <div class="hist-label">30–60</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:100%">6</div>
+              <div class="hist-label">60–90</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:100%">6</div>
+              <div class="hist-label">90–120</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:100%">6</div>
+              <div class="hist-label">120–150</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:83%">5</div>
+              <div class="hist-label">150–180</div>
+            </div>
+            <div class="hist-bar-wrap">
+              <div class="hist-bar" style="height:67%">4</div>
+              <div class="hist-label">180–210</div>
+            </div>
+          </div>
+          <div class="histogram-axes">
+            <span>← Screen Time (minutes)</span>
+            <span>Number of Students ↑</span>
+          </div>
+          <div class="histogram-note">The distribution rises from the low end and stays high through the middle — with a slight peak in 60–150 range. Very few students have extremely low or extremely high screen time.</div>
         </div>
 
         <div class="stage-marker elaborate"></div>
-        <p>Let's now interpret a double bar graph together. <span class="vcue">[Show a double bar graph: Maths scores of two students — Arjun and Meera — over 5 tests]</span> Arjun's scores: 60, 65, 70, 68, 75. Meera's scores: 72, 70, 68, 75, 80. <span class="pcue">(Read from the graph)</span> What can we say? Both students show a general upward trend. Meera consistently scores higher than Arjun except in Test 3 where they were close. The gap between them is largest in Test 5. Arjun improved by 15 points overall (60 to 75), while Meera improved by 8 points (72 to 80). The double bar graph makes all of this comparison easy to see.</p>
+        <p><strong>Step 4 — Interpret the histogram.</strong> What does this tell the school counsellor? <span class="vcue">[Guide through interpretation on screen]</span></p>
+
+        <p>The histogram shows that very few students (only 3) have a daily screen time below 60 minutes. The bulk of the students — 6 + 6 + 6 = 18 students — fall in the 60 to 150 minute range. That's 60% of the class. About 9 students (30%) have screen time above 150 minutes — that's 2.5 hours or more. The distribution starts low, rises steadily, and then gradually falls — it is slightly right-skewed, with a longer tail on the high end.</p>
+
+        <p>The counsellor could use this information to say: most students have moderate screen time (1 to 2.5 hours), but nearly a third are in the high-use category. This might be worth a follow-up conversation.</p>
 
         <div class="stage-marker evaluate"></div>
         <div class="callout question">
-          <span class="callout-label">Check Your Understanding</span>
-          A bar graph shows a school library's book-borrowing data for six months: Jan-50, Feb-45, Mar-70, Apr-80, May-30, Jun-25. (a) In which month was borrowing the highest? (b) Describe the trend from April to June — use the word "sharp" if appropriate. (c) Why do you think May and June show the lowest numbers? (Hint: think about the school calendar.)
+          <span class="callout-label">Final Project Questions</span>
+          Using the screen time data and histogram above: (a) How many students have screen time of 120 minutes or more per day? What percentage is this? (b) What is the modal class? What does this tell you? (c) A second class is surveyed and their histogram is perfectly flat — 5 students in each of the 6 intervals. What does this tell you about screen time habits in the second class compared to the first? (d) Would you use a bar graph or histogram for this data? Justify your answer in two sentences.
         </div>
       </div>
 
-</div>
-
-<hr class="section-divider">`,
+      <div class="practice-box">
+        <h3>Final Practice — Complete Analysis</h3>
+        <div class="practice-q">The following data shows the number of minutes 25 students spent studying on a weekend: 40, 95, 60, 120, 75, 150, 55, 110, 80, 135, 45, 100, 70, 140, 65, 90, 130, 50, 115, 85, 125, 105, 145, 60, 95. (a) Find the range. Choose an appropriate bin size and write out your intervals. (b) Build the grouped frequency table. Verify your total. (c) Describe the shape of the histogram — is it skewed? (d) What percentage of students studied for more than 100 minutes? What conclusion can you draw? (e) Would you use a bar graph or histogram for this data?</div>
+        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
+        <div class="practice-ans">(a) Range = 150 − 40 = 110. For 25 data points, aiming for 5–6 intervals: 110 ÷ 5 = 22 → use bin size of 20 (convenient). Start at 40: intervals are 40–60, 60–80, 80–100, 100–120, 120–140, 140–160. That's 6 intervals — good. (b) 40–60: 40, 55, 45, 50 = 4. 60–80: 60, 75, 60, 65, 70 = 5. 80–100: 95, 80, 85, 90, 95 = 5. 100–120: 120, 110, 100, 115, 105 = 5. 120–140: 135, 130, 125 = 3. 140–160: 150, 140, 145 = 3. Total: 4+5+5+5+3+3 = 25 ✓. (c) The histogram rises from 4 (40–60) to 5 (60–80), stays at 5 through 80–100 and 100–120, then drops to 3 in each of the last two intervals. The distribution is roughly symmetric with a flat peak in the middle — slightly left of center. It is not strongly skewed but may lean slightly right (longer tail from 120 onwards). (d) Students who studied more than 100 minutes: 5 + 3 + 3 = 11 students. 11 ÷ 25 = 44%. Conclusion: Nearly half the students studied for over 100 minutes, suggesting moderate to high study engagement on the weekend. (e) Histogram — because study time is measured in minutes (a continuous variable), and the data is grouped into adjacent intervals on a number line. A bar graph would be incorrect here since there are no separate category labels.</div>
+      </div>
+    </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
@@ -489,46 +730,19 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_6',
-      title: 'Class Activity: Be a Data Detective',
-      textContent: `<!-- ── TOPIC 6 ── -->
-    <div class="section-block" id="s6">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 6 of 6</p>
-      <h2 class="section-title">Class Activity: Be a Data Detective</h2>
-
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Alright, class — we've learned every tool in our data toolkit. Now it's time to use them all together. Today you are a data detective. <span class="vcue">[Show a detective badge and a folder labelled "Case File: Class 8B"]</span> A data detective takes raw, messy, real-world data and turns it into clear, useful insights that help people make decisions. Doctors do this. School principals do this. Sports coaches do this. News reporters do this. And now — you'll do it too.</p>
-
-        <div class="stage-marker explore"></div>
-        <p>Here is your case file. <span class="vcue">[Show a jumbled list of 30 student marks from a class test, out of 50]</span> These are the marks of 30 students from Class 8B in their recent Science test: 42, 28, 35, 47, 22, 38, 42, 50, 35, 28, 42, 33, 47, 22, 35, 28, 38, 42, 33, 50, 35, 22, 42, 47, 28, 38, 33, 35, 47, 42. <span class="pcue">(Look at this list. What can you see? Anything? Almost nothing, right?)</span> Your job is to find out: how is the class performing? Are most students doing well, average, or poorly? Are there a few students who are struggling that the teacher should pay attention to?</p>
-
-        <div class="stage-marker explain"></div>
-        <p>Here's the detective process — the exact steps you'll follow. First, organise the data into groups. We'll create three groups: Below 30 (needs support), 30 to 39 (average), and 40 and above (doing well). Second, use tally marks to count how many students fall in each group. Third, create a frequency table. Fourth, represent it as a bar graph. Fifth — and this is the detective part — interpret what you see and write a recommendation for the teacher.</p>
-
-        <div class="stage-marker elaborate"></div>
-        <p>Let's work through it together. <span class="vcue">[Show the data being sorted into groups one by one]</span> Going through the 30 marks: scores below 30 — 28, 22, 28, 22, 28, 22, 28 — that's 7 students. Scores from 30 to 39 — 35, 38, 35, 33, 35, 38, 33, 35, 33, 35, 38 — that's 11 students. Scores 40 and above — 42, 47, 42, 50, 42, 47, 42, 50, 42, 47, 47, 42 — that's 12 students. Total: 7 + 11 + 12 = 30. Matches our class size — the detective's verification check passes. <span class="vcue">[Show the completed frequency table and bar graph side by side]</span></p>
-
-        <table class="data-table">
-          <thead><tr><th>Score Range</th><th>Tally</th><th>Frequency</th><th>Interpretation</th></tr></thead>
-          <tbody>
-            <tr><td>Below 30</td><td class="tally">|||| ||</td><td class="num">7</td><td style="color:#dc2626;font-size:13px">Needs Support</td></tr>
-            <tr><td>30 – 39</td><td class="tally">|||| |||| |</td><td class="num">11</td><td style="color:#ca6f1e;font-size:13px">Average</td></tr>
-            <tr><td>40 and above</td><td class="tally">|||| |||| ||</td><td class="num">12</td><td style="color:#059669;font-size:13px">Doing Well</td></tr>
-          </tbody>
-        </table>
-
-        <p>Now the detective's conclusion: most of the class — 23 out of 30 students — scored 30 or above, which means the majority understood the material. However, 7 students scored below 30, and these students need the teacher's attention. The teacher might consider a revision session focused on the weaker concepts. The data doesn't tell us WHY these 7 students struggled — that's where the teacher needs to step in. But the data very clearly tells us WHO and HOW MANY. That's the value of data — it points to where attention is needed.</p>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout question">
-          <span class="callout-label">Your Detective Assignment</span>
-          Here is new raw data: The number of books borrowed from a school library by students in 6 different classes — Class 6: 45, Class 7: 38, Class 8: 62, Class 9: 29, Class 10: 18, Class 11: 52. (a) Make a frequency table. (b) Draw (or describe) a bar graph. (c) Which class borrows the most? Which borrows the least? (d) Write ONE recommendation for the school librarian based on this data.
-        </div>
+      title: 'Module 2.2 — Wrap Up',
+      textContent: `<div class="section-block">
+      <div class="callout tip">
+        <span class="callout-label">Module 2.2 — Wrap Up</span>
+        We started with raw, unorganised data — a list of 30 marks that was very hard to read any pattern from. We learned how to group that data using class intervals and organise it into a frequency table. The key rule: the lower boundary is included, the upper boundary is excluded. Then we moved from the table to a histogram — where bars touch because the data is continuous, and the shape reveals the distribution at a glance. We explored how bin size affects what a histogram reveals, compared histograms carefully with bar graphs, and applied all of this in a real data analysis project. In the next module, we'll explore measures of central tendency — how to describe the distribution using a single number.
       </div>
-
     </div>
 
-</div>`,
+  </div><!-- end panel-a -->
+
+  <!-- ══════════════════════════════════════════════
+       PATH B
+  ══════════════════════════════════════════════ -->`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
