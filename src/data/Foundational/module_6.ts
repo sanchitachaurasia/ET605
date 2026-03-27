@@ -106,55 +106,63 @@ function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
 }
 
 const moduleData: Module = {
-  id: '2.1',
-  title: 'Data Organisation & Types of Graphs',
+  id: '2.6',
+  title: 'Master Revision - Data Handling',
   concepts: [
     {
       id: 'c2_1_1',
-      title: 'Why Do We Need to Organise Data?',
-      textContent: `<div class="duration-badge" style="background:var(--a-light);color:var(--a-hue);">⏱ Estimated reading time: 15–18 minutes &nbsp;·&nbsp; Path A — Full Foundational</div>
+      title: '⚡ 1. Warm-Up Recall',
+      textContent: `<div class="duration-badge" style="background:var(--a-light);color:var(--a-hue);">⏱ Curated from module_2.6_revision_final.html · Path A — Foundational</div>
 
-<!-- ── TOPIC 1 ── -->
-<div class="section-block" id="s1">
-  <p class="section-eyebrow" style="color:var(--a-mid)">Topic 1 of 6</p>
-  <h2 class="section-title">Why Do We Need to Organise Data?</h2>
-
-  <div class="narration">
-    <div class="stage-marker engage"></div>
-    <p>Alright everyone, let's start with something really simple — something that probably happened in your school this week. Imagine your teacher says, "I want to find out what sport everyone in this class loves the most." So she calls out every student's name, and as each of you answers, she quickly writes it down on the board. <span class="vcue">[Show a random list appearing on screen, one sport at a time]</span> Rahul says cricket. Priya says badminton. Ankit says football. Aarti says cricket. Sneha says kho-kho. And so on, for all 30 students in the class. <span class="pcue">(Pause 2 seconds)</span></p>
-
-    <p>Now here's my question for you. Your teacher has written down all 30 answers. Can she immediately tell which sport is the most popular? Can she look at that list and say, "Eight students said cricket"? <span class="pcue">(Think about it for a moment)</span> Honestly — no. She'd have to go through the whole list again, counting each sport one by one. She might lose count. She might misread her own writing. She might count one sport twice and another sport not at all. That messy list on the board — that's what we call raw data. And raw data, on its own, is very hard to make sense of.</p>
-
-    <div class="callout definition">
-      <span class="callout-label">Definition — Data</span>
-      Data simply means information — any collection of facts, numbers, or observations. When we collect answers from students, count things around us, or write down measurements, we are collecting data. But data in its raw collected form is often disordered and hard to understand.
+<div class="section-block">
+    <h2 class="section-title">⚡ 1. Warm-Up Recall</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Quick retrieval. Answer mentally, then reveal. Speed is key here.</p>
+    
+    <div class="card">
+      <span class="question-label">Recall 1</span>
+      <p>How do you represent the number <strong>9</strong> using tally marks?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 22px; letter-spacing: 6px;"><s>IIII</s> IIII</p>
+      </div>
     </div>
 
-    <div class="stage-marker explore"></div>
-    <p>Let me show you exactly what raw data looks like, and why it's so frustrating to work with. <span class="vcue">[Show the following raw list on screen]</span> Here are the favourite sports that 20 students named: Cricket, Football, Cricket, Badminton, Cricket, Kho-Kho, Football, Cricket, Badminton, Football, Cricket, Cricket, Badminton, Kho-Kho, Football, Cricket, Badminton, Cricket, Football, Cricket. <span class="pcue">(Pause 3 seconds — let students look at it)</span></p>
-
-    <p>Try to answer this — just by looking at that list, without counting carefully — how many students said cricket? Take a guess. Now go back and actually count. Did you get it right? Most people don't, because there's no pattern in this list, no grouping, no order. This is the frustration of raw data. It contains all the information, but it's hiding it from you. Now — what if we could arrange this list so that the answers just jumped out at you? That's exactly what organising data means, and that's what this entire chapter is about.</p>
-
-    <div class="stage-marker explain"></div>
-    <p>So what does it mean to organise data? Let's build this idea slowly. <span class="vcue">[Show the word "organise" being highlighted]</span> When we organise data, we arrange it in a way that makes it easy to read, easy to count, and easy to compare. Think of your school bag. If you throw all your books, pencils, lunch box, and notebooks in randomly, it's chaos — you can't find anything quickly. But if you put each subject's books together, your stationery in one pocket, and your lunch in another — you can find anything in seconds. Data works the same way. When data is organised, the patterns and answers appear almost instantly.</p>
-
-    <p>There are many ways to organise data — and in this module, we are going to learn four powerful tools: tally marks and frequency tables, pictographs, bar graphs, and double bar graphs. Each one is useful in different situations. But they all share the same purpose: to take raw, messy data and turn it into something you can read and understand at a glance.</p>
-
-    <div class="stage-marker elaborate"></div>
-    <p>Let's go back to our favourite sports data. <span class="vcue">[Show the raw list again on the left side of screen]</span> Here are the 20 responses. Now watch what happens when we organise it. We go through the list, and every time we see "Cricket," we put it in one group. Every "Football" goes in another group. "Badminton" in a third. "Kho-Kho" in a fourth. <span class="vcue">[Show the data being sorted into four columns]</span></p>
-
-    <p>Cricket appears: 9 times. Football appears: 5 times. Badminton appears: 4 times. Kho-Kho appears: 2 times. <span class="vcue">[Show the organised table with these counts]</span> Now look at this. Which sport is most popular? Cricket — immediately obvious. Which sport is least popular? Kho-Kho — you can see it in one second. Did anyone have to count through a messy list? No. Organised data speaks for itself. This is the power of organisation. From here, we're going to learn the specific tools that help us do this efficiently and beautifully.</p>
-
-    <div class="stage-marker evaluate"></div>
-    <div class="callout question">
-      <span class="callout-label">Check Your Understanding</span>
-      Your class teacher collects information about how students come to school — by bus, auto, bicycle, or on foot. She writes down all 35 students' answers in a random order. Try to answer: (a) What is this collection of 35 answers called? (b) Why is it difficult to answer "which mode is most common" from the raw list? (c) What would you do to make the data easier to understand?
+    <div class="card">
+      <span class="question-label">Recall 2</span>
+      <p>What is the total sum of all central angles in any Pie Chart?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>360 degrees</strong></p>
+      </div>
     </div>
-  </div>
 
-</div>
+    <div class="card">
+      <span class="question-label">Recall 3</span>
+      <p>What is the probability of a <strong>Certain Event</strong> (an event that will definitely happen)?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>1</strong></p>
+      </div>
+    </div>
 
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Recall 4</span>
+      <p>What name is given to an experiment where the result cannot be predicted exactly in advance?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Random Experiment</strong></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="question-label">Recall 5</span>
+      <p>In the class interval <strong>20–30</strong>, what is the <strong>class size</strong>?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>10</strong> (Upper Limit - Lower Limit = 30 - 20)</p>
+      </div>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
@@ -183,65 +191,91 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_2',
-      title: 'Tally Marks & Frequency Tables',
-      textContent: `<!-- ── TOPIC 2 ── -->
-<div class="section-block" id="s2">
-  <p class="section-eyebrow" style="color:var(--a-mid)">Topic 2 of 6</p>
-  <h2 class="section-title">Tally Marks &amp; Frequency Tables</h2>
+      title: '🔁 2. Active Recall',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🔁 2. Active Recall</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Recall the concept, identify the insight, and track your confidence.</p>
 
-  <div class="narration">
-    <div class="stage-marker engage"></div>
-    <p>Now that we know WHY we need to organise data, let's learn the first and most fundamental tool: tally marks. <span class="vcue">[Show an image of someone keeping score during a cricket match on paper]</span> Have you ever seen a scorekeeper at a local cricket match? They don't write "1, 2, 3, 4, 5" for every run — they use a quick system of marks. Four vertical lines, and then a diagonal line crossing through them for the fifth. This system lets them count fast, without losing track, and read the total at a glance. That system has a name — it's called tally marks — and you're going to use it the same way to count data.</p>
-
-    <div class="callout definition">
-      <span class="callout-label">Definition — Tally Mark</span>
-      A tally mark is a way of recording a count using lines. One mark (|) represents the number 1. When you reach 5, instead of drawing a fifth line, you draw a diagonal line (/) crossing through the previous four, making a bundle of five: ||||̶. This makes it very easy to count totals by reading groups of five.
+    <div class="card">
+      <span class="question-label">Logic: Bar Graph vs Histogram</span>
+      <p>Why do the bars in a Histogram <strong>touch</strong> each other, while Bar Graph bars have gaps?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> Connectivity of data.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> Histograms represent <strong>continuous class intervals</strong> (like 10–20, 20–30) where the end of one is the start of the next. Bar graphs show separate categories.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
     </div>
 
-    <div class="stage-marker explore"></div>
-    <p>Let's try counting something together — and see why tally marks make it easier. <span class="vcue">[Show this list of subjects students chose as favourite: Art, Maths, Science, Maths, English, Art, Maths, Science, Art, English, Maths, Science, Maths, Art, English, Science, Maths, Art, Maths, English]</span> I want you to count how many students chose Maths as their favourite. Try counting it directly from this list — go ahead. <span class="pcue">(Pause 5 seconds)</span> Did you lose track at any point? Did you have to restart? Now let's use tally marks instead. As I go through the list one item at a time, I put one tally mark under the correct subject. Ready?</p>
-
-    <div class="stage-marker explain"></div>
-    <p>Here's how to build a frequency table using tally marks — step by step. <span class="vcue">[Show an empty table with columns: Subject | Tally | Frequency]</span></p>
-
-    <p>Step one: list all the unique items in the first column. In our case: Art, Maths, Science, English. Step two: go through the raw data, one item at a time. Every time you see an item, draw one tally mark in its row. Step three: when you've gone through all the data, count the tally marks in each row. That count is called the frequency. Frequency simply means how often something appears in the data — it's the number of times it occurs.</p>
-
-    <div class="callout definition">
-      <span class="callout-label">Definition — Frequency</span>
-      Frequency is the number of times a particular value or item appears in a set of data. For example, if "Maths" appears 7 times in our list, its frequency is 7.
+    <div class="card">
+      <span class="question-label">Rule: The Boundary Rule</span>
+      <p>In a grouped frequency table (e.g., 0–10, 10–20), which interval does the value <strong>10</strong> belong to?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> The 10–20 interval.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> For any interval, the <strong>lower limit is included</strong> and the upper limit is excluded. This prevents a number from being counted twice.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
     </div>
 
-    <p>Now let's fill in our table. <span class="vcue">[Animate the table being filled row by row]</span> Going through the list: Art appears 5 times, Maths appears 7 times, Science appears 4 times, English appears 4 times. Here is the complete frequency table:</p>
-
-    <table class="data-table">
-      <thead><tr><th>Subject</th><th>Tally Marks</th><th>Frequency</th></tr></thead>
-      <tbody>
-        <tr><td>Art</td><td class="tally">|||| |</td><td class="num">5</td></tr>
-        <tr><td>Maths</td><td class="tally">|||| ||</td><td class="num">7</td></tr>
-        <tr><td>Science</td><td class="tally">||||</td><td class="num">4</td></tr>
-        <tr><td>English</td><td class="tally">||||</td><td class="num">4</td></tr>
-        <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>20</strong></td></tr>
-      </tbody>
-    </table>
-
-    <div class="callout tip">
-      <span class="callout-label">Important Tip — Verification</span>
-      Always add up all the frequencies at the end. The total must equal the total number of data points you started with. Here, 5 + 7 + 4 + 4 = 20, and we had 20 students. They match — so our table is correct. If they don't match, you made an error somewhere.
+    <div class="card">
+      <span class="question-label">Calculation: Percentage to Angle</span>
+      <p>If a component represents <strong>40%</strong> of the total data, how do you find its angle for a Pie Chart?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> (40 / 100) × 360 = 144 degrees</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> A pie chart is a "part-to-whole" relation. To convert any fraction or percentage to an angle, multiply it by the "whole" (360 degrees).
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
     </div>
 
-    <div class="stage-marker elaborate"></div>
-    <p>Now look at this completed frequency table and notice how much easier it is to read. <span class="vcue">[Highlight the Maths row]</span> Which subject is most popular? Maths — with a frequency of 7. Which subjects are equally popular? Science and English — both with frequency 4. How many students were surveyed in total? 20. All of these answers are available immediately, without searching through a messy list. That's the power of a frequency table.</p>
-
-    <div class="stage-marker evaluate"></div>
-    <div class="callout question">
-      <span class="callout-label">Check Your Understanding</span>
-      Here is a list of colours of 18 cars parked in a school parking lot: Red, White, Black, Silver, Red, White, Silver, Black, Red, White, Red, Silver, White, Black, Red, Silver, White, Red. Make a tally marks table and answer: (a) What is the frequency of Red cars? (b) Which colour appears least often? (c) What is the total of all frequencies — does it match 18?
+    <div class="card">
+      <span class="question-label">Theory: Large Numbers</span>
+      <p>What happens to <strong>Experimental Probability</strong> as you increase the number of trials (like tossing a coin 10,000 times instead of 10)?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> It gets closer to the Theoretical Probability.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> This is the <strong>Law of Large Numbers</strong>. While small trials are random, massive trials settle into the mathematical pattern.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
     </div>
-  </div>
 
-</div>
-
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Concept: Equally Likely</span>
+      <p>When are outcomes of an experiment called <strong>Equally Likely</strong>?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> When each outcome has the same chance of occurring.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> For example, a fair die is equally likely (1/6 for each side). A "rigged" die where 6 appears half the time is NOT equally likely.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
@@ -270,50 +304,53 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_3',
-      title: 'Pictographs',
-      textContent: `<!-- ── TOPIC 3 ── -->
-    <div class="section-block" id="s3">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 3 of 6</p>
-      <h2 class="section-title">Pictographs</h2>
-
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Alright — we can now organise data into a table. But tables show numbers. And sometimes, numbers alone don't make the strongest impact. Have you ever noticed those colourful charts in newspapers or on TV news, where instead of just writing "50 cars," they show 5 little car icons? <span class="vcue">[Show a newspaper infographic with small icons representing counts]</span> Those are called pictographs, and they're one of the oldest forms of data representation — even ancient civilisations drew pictures to communicate counts. Today we learn how they work and, importantly, how to read them correctly without being misled.</p>
-
-        <div class="stage-marker explore"></div>
-        <p>Let's say a car company wants to show how many cars they sold in four cities. Here is the data: Mumbai — 500 cars, Delhi — 300 cars, Chennai — 400 cars, Kolkata — 200 cars. <span class="vcue">[Show this frequency table on screen]</span> Now, drawing 500 actual tiny cars for Mumbai is obviously impossible. So we use a KEY — one symbol represents a fixed number, say 100 cars. Let's see what this looks like as a pictograph. <span class="vcue">[Show the pictograph being built]</span></p>
-
-        <div class="pictograph">
-          <div class="bar-chart-title">Cars Sold by City (🚗 = 100 cars)</div>
-          <div class="picto-row"><span class="picto-label">Mumbai</span><span class="picto-symbol">🚗🚗🚗🚗🚗</span></div>
-          <div class="picto-row"><span class="picto-label">Delhi</span><span class="picto-symbol">🚗🚗🚗</span></div>
-          <div class="picto-row"><span class="picto-label">Chennai</span><span class="picto-symbol">🚗🚗🚗🚗</span></div>
-          <div class="picto-row"><span class="picto-label">Kolkata</span><span class="picto-symbol">🚗🚗</span></div>
-          <div class="picto-key">KEY: 🚗 = 100 cars &nbsp;|&nbsp; Half symbol (🚗½) = 50 cars</div>
-        </div>
-
-        <div class="stage-marker explain"></div>
-        <p>Let's understand the structure of a pictograph carefully. Every pictograph has three parts. First, the categories — listed in a column on the left, one per row. Second, the symbols — drawn in each row, with the number of symbols representing the data value. Third, and most important, the KEY. <span class="vcue">[Highlight the KEY box in the pictograph]</span></p>
-
-        <p>The key tells you what ONE symbol represents. This is called the scale of the pictograph. In our example, one car symbol equals 100 cars. So to find the actual value for any row, you count the symbols in that row and multiply by the scale. Mumbai has 5 symbols — 5 times 100 equals 500. Delhi has 3 symbols — 3 times 100 equals 300. Simple multiplication.</p>
-
-        <div class="callout definition">
-          <span class="callout-label">What About Half Symbols?</span>
-          Sometimes the data value is not a perfect multiple of the scale. If Mumbai had sold 550 cars, we would draw 5 full car symbols and one half symbol. A half symbol represents half of the scale value. Half of 100 is 50. So 5 full + 1 half = 500 + 50 = 550. Always check: does the data make half symbols necessary? If the scale is 100 and the data value is 650, that's 6.5 symbols — 6 full and 1 half.
-        </div>
-
-        <div class="stage-marker elaborate"></div>
-        <p>Now let me show you how to READ a pictograph — because reading it wrong is a very common mistake. <span class="vcue">[Show a new pictograph: Books read by students in a month, symbol = 📚, key says each book = 4 books read]</span> Suppose Aditya has 3 book symbols, Meera has 2.5 book symbols, and Rohan has 4 book symbols. The scale is: 1 symbol = 4 books. <span class="pcue">(Now calculate)</span></p>
-        <p>Aditya: 3 × 4 = 12 books. Meera: 2.5 × 4 = 10 books. Rohan: 4 × 4 = 16 books. <span class="vcue">[Show calculations beside each row]</span> Who read the most? Rohan. Who read exactly 10 books? Meera — because of the half symbol. Now here's the key lesson: if you forget to check the key, you might think Rohan read 4 books, not 16. The key is everything in a pictograph.</p>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout question">
-          <span class="callout-label">Check Your Understanding</span>
-          A pictograph shows ice cream sales over 5 days. The key says: 🍦 = 20 ice creams. Monday has 3 symbols, Tuesday has 4 symbols, Wednesday has 2.5 symbols, Thursday has 5 symbols, Friday has 3.5 symbols. (a) How many ice creams were sold on Wednesday? (b) On which day were the most ice creams sold? (c) What is the total ice cream sales for the week?
-        </div>
+      title: '📌 3. Smart Notes Builder',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">📌 3. Smart Notes Builder</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Compress complex topics into single lines. Fill in the blanks to build your framework.</p>
+    
+    <div class="card">
+      <span class="question-label">Guided Compression</span>
+      <p>Explain <strong>"Data Handling"</strong> in exactly one line for a 5-year-old:</p>
+      <textarea placeholder="Type your simple version here..."></textarea>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Suggested Answer:</strong> Collecting and organizing information to help us tell a clear story or make a smart choice.</p>
       </div>
+    </div>
 
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Framework Fill-in</span>
+      <div style="font-size: 15px; line-height: 2;">
+        1. <strong>Histogram:</strong> Best for <input type="text" class="framework-input" placeholder="data type?"> data.<br>
+        2. <strong>Pie Chart:</strong> Shows the relation between a <input type="text" class="framework-input" placeholder="part and a whole">.<br>
+        3. <strong>Probability Formula:</strong> Favourable Outcomes divided by <input type="text" class="framework-input" placeholder="total outcomes">.<br>
+        4. <strong>Range:</strong> Probability values always lie between <input type="text" class="framework-input" placeholder="0 and 1">.<br>
+        5. <strong>Circle Graph:</strong> Total angle at the centre is always <input type="text" class="framework-input" placeholder="360 degrees">.
+      </div>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answers:</strong><br>
+          1. <strong>Grouped/Continuous</strong><br>
+          2. <strong>Part and a Whole</strong><br>
+          3. <strong>Total number of possible outcomes</strong><br>
+          4. <strong>0 and 1</strong><br>
+          5. <strong>360 degrees</strong>
+        </p>
+      </div>
+    </div>
+
+    <div class="cheat-sheet">
+      <span class="question-label" style="color: #657b83;">Master Cheat Sheet Block</span>
+      <ul style="list-style: disc; margin-left: 20px;">
+        <li><strong>Frequency:</strong> The number of times a particular entry occurs.</li>
+        <li><strong>Class Interval:</strong> Grouping data into ranges (e.g., 10–20).</li>
+        <li><strong>Theoretical Probability:</strong> What we expect mathematically.</li>
+        <li><strong>Experimental Probability:</strong> Based on actual observed outcomes.</li>
+        <li><strong>Sector Angle:</strong> (Value / Total) × 360.</li>
+      </ul>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
@@ -342,61 +379,67 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_4',
-      title: 'Bar Graphs & Double Bar Graphs',
-      textContent: `<!-- ── TOPIC 4 ── -->
-    <div class="section-block" id="s4">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 4 of 6</p>
-      <h2 class="section-title">Bar Graphs &amp; Double Bar Graphs</h2>
-
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Pictographs are great for simple counts, but they have a problem: drawing lots of tiny symbols is tedious, and comparing values isn't always easy. What if I told you there's a way to represent data visually where the HEIGHT of a shape tells you the value — no symbols needed, no counting icons, just one look at how tall a bar is and you immediately know if a value is high or low? <span class="vcue">[Show a bar graph animation appearing on screen]</span> That's a bar graph. And it's arguably the most widely used graph in the world. Let's master it completely today.</p>
-
-        <div class="stage-marker explore"></div>
-        <p>Here's a real scenario. A school tracked how many students were enrolled each year from 2019 to 2023. The data is: 2019 — 420 students, 2020 — 380 students, 2021 — 450 students, 2022 — 510 students, 2023 — 490 students. <span class="vcue">[Show this table]</span> From just reading these five numbers, can you immediately tell: was there a drop at any point? By how much did enrolment grow from 2019 to 2022? Which year had the biggest jump from the previous year? It's hard to see all of this from a table. A bar graph will make every one of these answers visual and instant.</p>
-
-        <div class="stage-marker explain"></div>
-        <p>Let's learn the parts of a bar graph. <span class="vcue">[Show a labelled diagram of a bar graph]</span> Every bar graph has the following components. The X-axis is the horizontal line at the bottom — this is where you put your categories, like years, subjects, or names. The Y-axis is the vertical line on the left — this shows the numerical values. You must label both axes clearly.</p>
-        <p>The scale on the Y-axis is a series of evenly spaced numbers, starting from zero and going up to a value slightly above your highest data point. In our school data, the highest value is 510, so the scale might go from 0 to 550 in steps of 50. Each bar starts at zero and rises to the height that matches its data value. All bars must be the same width, and there must be equal gaps between them.</p>
-
-        <div class="bar-chart">
-          <div class="bar-chart-title">School Enrolment 2019–2023</div>
-          <div class="bar-row"><span class="bar-label">2019</span><div class="bar-track"><div class="bar-fill" style="width:76%">420</div></div></div>
-          <div class="bar-row"><span class="bar-label">2020</span><div class="bar-track"><div class="bar-fill" style="width:69%">380</div></div></div>
-          <div class="bar-row"><span class="bar-label">2021</span><div class="bar-track"><div class="bar-fill" style="width:82%">450</div></div></div>
-          <div class="bar-row"><span class="bar-label">2022</span><div class="bar-track"><div class="bar-fill" style="width:93%">510</div></div></div>
-          <div class="bar-row"><span class="bar-label">2023</span><div class="bar-track"><div class="bar-fill" style="width:89%">490</div></div></div>
-          <p style="font-size:11px;color:var(--muted);margin-top:8px;font-family:'JetBrains Mono',monospace">Y-axis: Number of Students · X-axis: Year</p>
-        </div>
-
-        <p>Now look at the bar graph. <span class="vcue">[Highlight the 2020 bar]</span> The dip in 2020 is immediately visible — the bar is shorter than 2019. <span class="vcue">[Highlight the 2022 bar]</span> The peak is clearly 2022. You can see these patterns in seconds. No calculation needed.</p>
-
-        <div class="stage-marker explain"></div>
-        <p>Now let's go one step further. What if we want to compare two groups side by side? For example — what if we want to see the number of boys and girls enrolled each year? A double bar graph places two bars next to each other for every category, each bar in a different colour, with a legend explaining which colour represents which group. <span class="vcue">[Show a double bar graph with boys in blue and girls in orange]</span></p>
-
-        <table class="data-table">
-          <thead><tr><th>Year</th><th>Boys</th><th>Girls</th></tr></thead>
-          <tbody>
-            <tr><td>2019</td><td class="num">230</td><td class="num">190</td></tr>
-            <tr><td>2020</td><td class="num">200</td><td class="num">180</td></tr>
-            <tr><td>2021</td><td class="num">240</td><td class="num">210</td></tr>
-            <tr><td>2022</td><td class="num">270</td><td class="num">240</td></tr>
-            <tr><td>2023</td><td class="num">250</td><td class="num">240</td></tr>
-          </tbody>
-        </table>
-
-        <p><span class="vcue">[Show the double bar graph]</span> In a double bar graph, for each year, we draw two bars side by side — one for boys (blue), one for girls (orange). The legend in the corner tells us which is which. Now you can compare boys vs girls in the same year AND track the trend of both groups across years — all from one graph.</p>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout question">
-          <span class="callout-label">Check Your Understanding</span>
-          Using the double bar graph data above: (a) In which year was the gap between boys and girls enrolment the largest? (b) In 2023, how many more boys than girls were enrolled? (c) Is the difference between boys and girls getting larger or smaller over the years?
+      title: '🧠 4. Application Challenge',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🧠 4. Application Challenge</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Apply your knowledge to new situations. Step-by-step reasoning required.</p>
+    
+    <div class="card">
+      <span class="question-label">Challenge 1: The Multi-Module Hybrid</span>
+      <p>In a box of 50 slips numbered 1 to 50, what is the <strong>probability</strong> that a randomly picked slip is a number belonging to the class interval <strong>20–30</strong>?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> 1/5 or 0.2</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> <br>
+          1. Range of interval 20–30 contains numbers: 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 (30 is excluded).<br>
+          2. Favourable Outcomes = 10. <br>
+          3. Total Outcomes = 50. <br>
+          4. Probability = 10 / 50 = 1/5.
         </div>
       </div>
+    </div>
+
+    <div class="card">
+      <span class="question-label">Challenge 2: Pie Chart Interpretation</span>
+      <p>A family spends 25% of their income on food. If their total monthly income is 40,000, what is the central angle for food in their budget pie chart AND the actual amount spent?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> 90 degrees and 10,000</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> <br>
+          Angle = (25 / 100) × 360 = 90 degrees. <br>
+          Amount = 25% of 40,000 = (1/4) × 40,000 = 10,000.
+        </div>
       </div>
+    </div>
 
+    <div class="card">
+      <span class="question-label">Challenge 3: Discrete vs Continuous</span>
+      <p>Which graph would you choose to show the heights of 50 students in a class? Why not use a standard bar graph?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> Histogram.</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> Height is continuous data. If we used a bar graph for every unique height (e.g., 140.1cm, 140.2cm), we would have too many bars. Grouping them into intervals (140–150cm) and using a histogram makes the data readable.
+        </div>
+      </div>
+    </div>
 
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Challenge 4: Bag Logic</span>
+      <p>A bag has 4 red and 2 yellow balls. If you draw one ball without looking, what is the probability of getting a red ball? If you then <strong>do not replace</strong> it, what is the probability of getting a red ball on the second draw?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> 2/3 (first) and 3/5 (second)</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> <br>
+          Draw 1: Red = 4, Total = 6. P = 4/6 = 2/3. <br>
+          Draw 2 (No replacement): Red remaining = 3, Total remaining = 5. P = 3/5.
+        </div>
+      </div>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
@@ -425,41 +468,29 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_5',
-      title: 'Reading & Interpreting Graphs',
-      textContent: `<!-- ── TOPIC 5 ── -->
-    <div class="section-block" id="s5">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 5 of 6</p>
-      <h2 class="section-title">Reading &amp; Interpreting Graphs</h2>
+      title: '🔍 5. Reflection Layer',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🔍 5. Reflection Layer</h2>
+    <p style="font-size: 14px; margin-bottom: 20px;">Meta-cognition: Understanding your own learning process.</p>
+    
+    <div class="checklist">
+      <p style="font-size: 12px; font-weight: 700; color: var(--active-mid); margin-bottom: 10px;">MARK CONCEPTS YOU STILL FIND TRICKY:</p>
+      <label><input type="checkbox"> Tally Marks & Frequency Tables</label>
+      <label><input type="checkbox"> Histogram Boundary Rules (Lower/Upper limits)</label>
+      <label><input type="checkbox"> Calculating Central Angles for Pie Charts</label>
+      <label><input type="checkbox"> Comparing Experimental vs Theoretical Probability</label>
+      <label><input type="checkbox"> Solving Multi-Step Real World Problems</label>
+    </div>
 
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>We've learned how to make graphs — now we need to learn how to READ them. And I don't just mean reading the numbers off the Y-axis. I mean really interpreting what a graph is telling you. <span class="vcue">[Show a student's test score bar graph across 5 tests]</span> Imagine you're a student and your teacher shows you this graph of your last 5 test scores. Can you tell whether you're improving? Can you spot if there was one particular test where you really struggled? Can you predict how you might do on the next test? All of this comes from careful interpretation — not just reading numbers, but finding the story behind them.</p>
+    <div class="card" style="margin-top: 24px; background: white; border: 1.5px solid var(--active-mid);">
+      <p style="font-size: 14px; font-weight: 600;">"Why do you think the concept(s) you checked above felt difficult?"</p>
+      <textarea rows="3" placeholder="Example: I often forget to exclude the upper limit in class intervals..."></textarea>
+    </div>
 
-        <div class="stage-marker explore"></div>
-        <p>Here are a student's scores in 5 consecutive Maths tests: Test 1 — 55, Test 2 — 62, Test 3 — 58, Test 4 — 70, Test 5 — 75. <span class="vcue">[Show bar graph of these scores]</span> Look at this graph for a moment. <span class="pcue">(Pause 3 seconds)</span> What is the first thing you notice? The general trend? The dip in Test 3? The rise toward the end? All of these are observations — and interpretation means turning observations into understanding and conclusions.</p>
-
-        <div class="stage-marker explain"></div>
-        <p>When interpreting any graph, follow three steps. Step one: read the basics — what is the title? What do the X and Y axes represent? What is the scale? This gives you context. Step two: make observations — what is the highest value? The lowest? Are there any sudden rises or drops? Is there a general trend going up or down? Step three: draw conclusions — what do these observations tell us about the real-world situation? Why might the data look this way?</p>
-        <p>For our student's test scores: the observations are that scores dropped from Test 2 to Test 3, then rose steadily. The conclusion might be that the student had a difficult week before Test 3, but then studied harder and improved. Interpretation goes beyond the numbers — it connects data to real life.</p>
-
-        <div class="callout tip">
-          <span class="callout-label">Key Vocabulary for Interpretation</span>
-          When interpreting graphs, use these words: Trend (general direction of data over time), Peak (the highest point), Trough (the lowest point), Increase / Decrease, Steady (no significant change), Sharp rise / Sharp fall (sudden big change). Using precise vocabulary makes your interpretation more powerful.
-        </div>
-
-        <div class="stage-marker elaborate"></div>
-        <p>Let's now interpret a double bar graph together. <span class="vcue">[Show a double bar graph: Maths scores of two students — Arjun and Meera — over 5 tests]</span> Arjun's scores: 60, 65, 70, 68, 75. Meera's scores: 72, 70, 68, 75, 80. <span class="pcue">(Read from the graph)</span> What can we say? Both students show a general upward trend. Meera consistently scores higher than Arjun except in Test 3 where they were close. The gap between them is largest in Test 5. Arjun improved by 15 points overall (60 to 75), while Meera improved by 8 points (72 to 80). The double bar graph makes all of this comparison easy to see.</p>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout question">
-          <span class="callout-label">Check Your Understanding</span>
-          A bar graph shows a school library's book-borrowing data for six months: Jan-50, Feb-45, Mar-70, Apr-80, May-30, Jun-25. (a) In which month was borrowing the highest? (b) Describe the trend from April to June — use the word "sharp" if appropriate. (c) Why do you think May and June show the lowest numbers? (Hint: think about the school calendar.)
-        </div>
-      </div>
-
-</div>
-
-<hr class="section-divider">`,
+    <div style="text-align: center; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);">REVISION COMPLETE • READINESS LEVEL: VERIFIED</p>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
@@ -489,46 +520,29 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_6',
-      title: 'Class Activity: Be a Data Detective',
-      textContent: `<!-- ── TOPIC 6 ── -->
-    <div class="section-block" id="s6">
-      <p class="section-eyebrow" style="color:var(--a-mid)">Topic 6 of 6</p>
-      <h2 class="section-title">Class Activity: Be a Data Detective</h2>
-
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Alright, class — we've learned every tool in our data toolkit. Now it's time to use them all together. Today you are a data detective. <span class="vcue">[Show a detective badge and a folder labelled "Case File: Class 8B"]</span> A data detective takes raw, messy, real-world data and turns it into clear, useful insights that help people make decisions. Doctors do this. School principals do this. Sports coaches do this. News reporters do this. And now — you'll do it too.</p>
-
-        <div class="stage-marker explore"></div>
-        <p>Here is your case file. <span class="vcue">[Show a jumbled list of 30 student marks from a class test, out of 50]</span> These are the marks of 30 students from Class 8B in their recent Science test: 42, 28, 35, 47, 22, 38, 42, 50, 35, 28, 42, 33, 47, 22, 35, 28, 38, 42, 33, 50, 35, 22, 42, 47, 28, 38, 33, 35, 47, 42. <span class="pcue">(Look at this list. What can you see? Anything? Almost nothing, right?)</span> Your job is to find out: how is the class performing? Are most students doing well, average, or poorly? Are there a few students who are struggling that the teacher should pay attention to?</p>
-
-        <div class="stage-marker explain"></div>
-        <p>Here's the detective process — the exact steps you'll follow. First, organise the data into groups. We'll create three groups: Below 30 (needs support), 30 to 39 (average), and 40 and above (doing well). Second, use tally marks to count how many students fall in each group. Third, create a frequency table. Fourth, represent it as a bar graph. Fifth — and this is the detective part — interpret what you see and write a recommendation for the teacher.</p>
-
-        <div class="stage-marker elaborate"></div>
-        <p>Let's work through it together. <span class="vcue">[Show the data being sorted into groups one by one]</span> Going through the 30 marks: scores below 30 — 28, 22, 28, 22, 28, 22, 28 — that's 7 students. Scores from 30 to 39 — 35, 38, 35, 33, 35, 38, 33, 35, 33, 35, 38 — that's 11 students. Scores 40 and above — 42, 47, 42, 50, 42, 47, 42, 50, 42, 47, 47, 42 — that's 12 students. Total: 7 + 11 + 12 = 30. Matches our class size — the detective's verification check passes. <span class="vcue">[Show the completed frequency table and bar graph side by side]</span></p>
-
-        <table class="data-table">
-          <thead><tr><th>Score Range</th><th>Tally</th><th>Frequency</th><th>Interpretation</th></tr></thead>
-          <tbody>
-            <tr><td>Below 30</td><td class="tally">|||| ||</td><td class="num">7</td><td style="color:#dc2626;font-size:13px">Needs Support</td></tr>
-            <tr><td>30 – 39</td><td class="tally">|||| |||| |</td><td class="num">11</td><td style="color:#ca6f1e;font-size:13px">Average</td></tr>
-            <tr><td>40 and above</td><td class="tally">|||| |||| ||</td><td class="num">12</td><td style="color:#059669;font-size:13px">Doing Well</td></tr>
-          </tbody>
-        </table>
-
-        <p>Now the detective's conclusion: most of the class — 23 out of 30 students — scored 30 or above, which means the majority understood the material. However, 7 students scored below 30, and these students need the teacher's attention. The teacher might consider a revision session focused on the weaker concepts. The data doesn't tell us WHY these 7 students struggled — that's where the teacher needs to step in. But the data very clearly tells us WHO and HOW MANY. That's the value of data — it points to where attention is needed.</p>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout question">
-          <span class="callout-label">Your Detective Assignment</span>
-          Here is new raw data: The number of books borrowed from a school library by students in 6 different classes — Class 6: 45, Class 7: 38, Class 8: 62, Class 9: 29, Class 10: 18, Class 11: 52. (a) Make a frequency table. (b) Draw (or describe) a bar graph. (c) Which class borrows the most? Which borrows the least? (d) Write ONE recommendation for the school librarian based on this data.
-        </div>
-      </div>
-
+      title: 'Module 2.6 - Wrap Up',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🔍 5. Reflection Layer</h2>
+    <p style="font-size: 14px; margin-bottom: 20px;">Meta-cognition: Understanding your own learning process.</p>
+    
+    <div class="checklist">
+      <p style="font-size: 12px; font-weight: 700; color: var(--active-mid); margin-bottom: 10px;">MARK CONCEPTS YOU STILL FIND TRICKY:</p>
+      <label><input type="checkbox"> Tally Marks & Frequency Tables</label>
+      <label><input type="checkbox"> Histogram Boundary Rules (Lower/Upper limits)</label>
+      <label><input type="checkbox"> Calculating Central Angles for Pie Charts</label>
+      <label><input type="checkbox"> Comparing Experimental vs Theoretical Probability</label>
+      <label><input type="checkbox"> Solving Multi-Step Real World Problems</label>
     </div>
 
-</div>`,
+    <div class="card" style="margin-top: 24px; background: white; border: 1.5px solid var(--active-mid);">
+      <p style="font-size: 14px; font-weight: 600;">"Why do you think the concept(s) you checked above felt difficult?"</p>
+      <textarea rows="3" placeholder="Example: I often forget to exclude the upper limit in class intervals..."></textarea>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);">REVISION COMPLETE • READINESS LEVEL: VERIFIED</p>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,

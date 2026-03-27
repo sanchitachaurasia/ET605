@@ -336,7 +336,10 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       if (!button || !container.contains(button)) return;
 
       const practiceBox = button.closest('.practice-box');
-      const answer = practiceBox?.querySelector('.practice-ans') as HTMLElement | null;
+      const answerInPractice = practiceBox?.querySelector('.practice-ans') as HTMLElement | null;
+      const nextSibling = button.nextElementSibling as HTMLElement | null;
+      const adjacentAnswer = nextSibling?.classList.contains('practice-ans') ? nextSibling : null;
+      const answer = answerInPractice ?? adjacentAnswer;
       if (!answer) return;
 
       event.preventDefault();

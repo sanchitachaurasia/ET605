@@ -106,56 +106,63 @@ function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
 }
 
 const moduleData: Module = {
-  id: '2.1',
-  title: 'Data Organisation & Types of Graphs',
+  id: '2.6',
+  title: 'Master Revision - Data Handling',
   concepts: [
     {
       id: 'c2_1_1',
-      title: 'Why Do We Need to Organise Data?',
-      textContent: `<div class="duration-badge" style="background:var(--c-light);color:var(--c-hue);">⏱ Estimated reading time: 6–8 minutes &nbsp;·&nbsp; Path C — Advanced · Direct Application</div>
+      title: '⚡ 1. Warm-Up Recall',
+      textContent: `<div class="duration-badge" style="background:var(--c-light);color:var(--c-hue);">⏱ Curated from module_2.6_revision_final.html · Path C — Advanced</div>
 
-<div class="section-block" id="s1c">
-      <p class="section-eyebrow" style="color:var(--c-mid)">Topics 1–2 of 6</p>
-      <h2 class="section-title">Data Organisation &amp; Frequency Tables</h2>
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Raw data is noise. Organised data is signal. The tools that convert one to the other — tally marks, frequency tables — are not ends in themselves but the starting conditions for analysis. <span class="vcue">[Show the sports survey data: 20 raw responses]</span> Your task is not just to build the frequency table, but to use it to answer a question that the raw data cannot answer at all: not "which sport is popular?" (anyone can see that with some effort) but "how concentrated is the preference?" Is one sport dominant, or are choices spread evenly?</p>
-
-        <div class="stage-marker explore"></div>
-        <p>Sports data: Cricket 9, Football 5, Badminton 4, Kho-Kho 2. Total = 20. Cricket accounts for 45% of all responses. Compare this to a case where: Cricket 6, Football 6, Badminton 5, Kho-Kho 3 — here, no sport exceeds 30%. In the first case, data is concentrated; in the second, it is dispersed. A frequency table makes this analysis possible; raw data does not.</p>
-
-        <div class="stage-marker explain"></div>
-        <p>The frequency table for the subject preference data (Art: 5, Maths: 7, Science: 4, English: 4, total: 20) reveals something beyond mere counts. Maths leads at 35% of responses. Science and English are tied at 20% each. Art falls between at 25%. The tie between Science and English is an interesting finding — it suggests these subjects may share a common appeal or a common barrier. This is the kind of observation that emerges from organised data and drives meaningful educational decisions.</p>
-
-        <table class="data-table">
-          <thead><tr><th>Subject</th><th>Frequency</th><th>% of Total</th><th>Rank</th></tr></thead>
-          <tbody>
-            <tr><td>Maths</td><td class="num">7</td><td class="num">35%</td><td class="num">1st</td></tr>
-            <tr><td>Art</td><td class="num">5</td><td class="num">25%</td><td class="num">2nd</td></tr>
-            <tr><td>Science</td><td class="num">4</td><td class="num">20%</td><td class="num">3rd =</td></tr>
-            <tr><td>English</td><td class="num">4</td><td class="num">20%</td><td class="num">3rd =</td></tr>
-          </tbody>
-        </table>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout challenge">
-          <span class="callout-label">Challenge</span>
-          A school surveys 40 students and finds: Sport A chosen by 25, B by 8, C by 5, D by 2. Another school of the same size finds: Sport A: 12, B: 11, C: 10, D: 7. Compare the two distributions. Which school has a more "democratic" preference pattern? If you were planning a sports day for each school, how would the two frequency distributions change your planning?
-        </div>
-      </div>
-      <div class="practice-box">
-        <h3>Application — Topics 1 & 2</h3>
-        <div class="practice-q">In a class of 30, test scores out of 20 are: 12, 15, 18, 12, 16, 20, 14, 12, 18, 15, 16, 12, 20, 14, 15, 18, 12, 16, 14, 20, 15, 18, 12, 14, 16, 15, 20, 18, 14, 16. Build a frequency table. Find the score with highest frequency. Calculate what percentage of students scored 18 or above. If the pass mark is 12, how many students passed?</div>
-        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
-        <div class="practice-ans">Frequency table: Score 12: 6 times, Score 14: 6 times, Score 15: 5 times, Score 16: 5 times, Score 18: 5 times, Score 20: 4 times (wait — 6+6+5+5+5+4 = 31, recount). Corrected recount: 12 appears 6 times, 14 appears 5 times, 15 appears 5 times, 16 appears 5 times, 18 appears 5 times, 20 appears 4 times. Total = 30 ✓. Highest frequency: 12 (6 students). Students scoring 18 or above: 5 + 4 = 9 students = 30%. Pass mark 12 — ALL 30 students scored at least 12 (the minimum in the data is 12), so all 30 students passed. This is a significant finding — the teacher maintained 100% pass rate.</div>
+<div class="section-block">
+    <h2 class="section-title">⚡ 1. Warm-Up Recall</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Quick retrieval. Answer mentally, then reveal. Speed is key here.</p>
+    
+    <div class="card">
+      <span class="question-label">Recall 1</span>
+      <p>How do you represent the number <strong>9</strong> using tally marks?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p style="font-family: 'JetBrains Mono', monospace; font-size: 22px; letter-spacing: 6px;"><s>IIII</s> IIII</p>
       </div>
     </div>
 
-    <hr class="section-divider">
+    <div class="card">
+      <span class="question-label">Recall 2</span>
+      <p>What is the total sum of all central angles in any Pie Chart?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>360 degrees</strong></p>
+      </div>
+    </div>
 
-    <!-- T3 -->
+    <div class="card">
+      <span class="question-label">Recall 3</span>
+      <p>What is the probability of a <strong>Certain Event</strong> (an event that will definitely happen)?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>1</strong></p>
+      </div>
+    </div>
 
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Recall 4</span>
+      <p>What name is given to an experiment where the result cannot be predicted exactly in advance?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Random Experiment</strong></p>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="question-label">Recall 5</span>
+      <p>In the class interval <strong>20–30</strong>, what is the <strong>class size</strong>?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>10</strong> (Upper Limit - Lower Limit = 30 - 20)</p>
+      </div>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
@@ -184,49 +191,91 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_2',
-      title: 'Tally Marks & Frequency Tables',
-      textContent: `<div class="section-block" id="s1c">
-      <p class="section-eyebrow" style="color:var(--c-mid)">Topics 1–2 of 6</p>
-      <h2 class="section-title">Data Organisation &amp; Frequency Tables</h2>
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Raw data is noise. Organised data is signal. The tools that convert one to the other — tally marks, frequency tables — are not ends in themselves but the starting conditions for analysis. <span class="vcue">[Show the sports survey data: 20 raw responses]</span> Your task is not just to build the frequency table, but to use it to answer a question that the raw data cannot answer at all: not "which sport is popular?" (anyone can see that with some effort) but "how concentrated is the preference?" Is one sport dominant, or are choices spread evenly?</p>
+      title: '🔁 2. Active Recall',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🔁 2. Active Recall</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Recall the concept, identify the insight, and track your confidence.</p>
 
-        <div class="stage-marker explore"></div>
-        <p>Sports data: Cricket 9, Football 5, Badminton 4, Kho-Kho 2. Total = 20. Cricket accounts for 45% of all responses. Compare this to a case where: Cricket 6, Football 6, Badminton 5, Kho-Kho 3 — here, no sport exceeds 30%. In the first case, data is concentrated; in the second, it is dispersed. A frequency table makes this analysis possible; raw data does not.</p>
-
-        <div class="stage-marker explain"></div>
-        <p>The frequency table for the subject preference data (Art: 5, Maths: 7, Science: 4, English: 4, total: 20) reveals something beyond mere counts. Maths leads at 35% of responses. Science and English are tied at 20% each. Art falls between at 25%. The tie between Science and English is an interesting finding — it suggests these subjects may share a common appeal or a common barrier. This is the kind of observation that emerges from organised data and drives meaningful educational decisions.</p>
-
-        <table class="data-table">
-          <thead><tr><th>Subject</th><th>Frequency</th><th>% of Total</th><th>Rank</th></tr></thead>
-          <tbody>
-            <tr><td>Maths</td><td class="num">7</td><td class="num">35%</td><td class="num">1st</td></tr>
-            <tr><td>Art</td><td class="num">5</td><td class="num">25%</td><td class="num">2nd</td></tr>
-            <tr><td>Science</td><td class="num">4</td><td class="num">20%</td><td class="num">3rd =</td></tr>
-            <tr><td>English</td><td class="num">4</td><td class="num">20%</td><td class="num">3rd =</td></tr>
-          </tbody>
-        </table>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout challenge">
-          <span class="callout-label">Challenge</span>
-          A school surveys 40 students and finds: Sport A chosen by 25, B by 8, C by 5, D by 2. Another school of the same size finds: Sport A: 12, B: 11, C: 10, D: 7. Compare the two distributions. Which school has a more "democratic" preference pattern? If you were planning a sports day for each school, how would the two frequency distributions change your planning?
+    <div class="card">
+      <span class="question-label">Logic: Bar Graph vs Histogram</span>
+      <p>Why do the bars in a Histogram <strong>touch</strong> each other, while Bar Graph bars have gaps?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> Connectivity of data.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> Histograms represent <strong>continuous class intervals</strong> (like 10–20, 20–30) where the end of one is the start of the next. Bar graphs show separate categories.
         </div>
-      </div>
-      <div class="practice-box">
-        <h3>Application — Topics 1 & 2</h3>
-        <div class="practice-q">In a class of 30, test scores out of 20 are: 12, 15, 18, 12, 16, 20, 14, 12, 18, 15, 16, 12, 20, 14, 15, 18, 12, 16, 14, 20, 15, 18, 12, 14, 16, 15, 20, 18, 14, 16. Build a frequency table. Find the score with highest frequency. Calculate what percentage of students scored 18 or above. If the pass mark is 12, how many students passed?</div>
-        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
-        <div class="practice-ans">Frequency table: Score 12: 6 times, Score 14: 6 times, Score 15: 5 times, Score 16: 5 times, Score 18: 5 times, Score 20: 4 times (wait — 6+6+5+5+5+4 = 31, recount). Corrected recount: 12 appears 6 times, 14 appears 5 times, 15 appears 5 times, 16 appears 5 times, 18 appears 5 times, 20 appears 4 times. Total = 30 ✓. Highest frequency: 12 (6 students). Students scoring 18 or above: 5 + 4 = 9 students = 30%. Pass mark 12 — ALL 30 students scored at least 12 (the minimum in the data is 12), so all 30 students passed. This is a significant finding — the teacher maintained 100% pass rate.</div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
       </div>
     </div>
 
-    <hr class="section-divider">
+    <div class="card">
+      <span class="question-label">Rule: The Boundary Rule</span>
+      <p>In a grouped frequency table (e.g., 0–10, 10–20), which interval does the value <strong>10</strong> belong to?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> The 10–20 interval.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> For any interval, the <strong>lower limit is included</strong> and the upper limit is excluded. This prevents a number from being counted twice.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
+    </div>
 
-    <!-- T3 -->
+    <div class="card">
+      <span class="question-label">Calculation: Percentage to Angle</span>
+      <p>If a component represents <strong>40%</strong> of the total data, how do you find its angle for a Pie Chart?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> (40 / 100) × 360 = 144 degrees</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> A pie chart is a "part-to-whole" relation. To convert any fraction or percentage to an angle, multiply it by the "whole" (360 degrees).
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
+    </div>
 
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Theory: Large Numbers</span>
+      <p>What happens to <strong>Experimental Probability</strong> as you increase the number of trials (like tossing a coin 10,000 times instead of 10)?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> It gets closer to the Theoretical Probability.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> This is the <strong>Law of Large Numbers</strong>. While small trials are random, massive trials settle into the mathematical pattern.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="question-label">Concept: Equally Likely</span>
+      <p>When are outcomes of an experiment called <strong>Equally Likely</strong>?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> When each outcome has the same chance of occurring.</p>
+        <div class="insight-box">
+          <strong>Insight:</strong> For example, a fair die is equally likely (1/6 for each side). A "rigged" die where 6 appears half the time is NOT equally likely.
+        </div>
+        <div class="confidence-check">
+          <span>Confidence:</span>
+          <button class="conf-btn">Low</button><button class="conf-btn">Med</button><button class="conf-btn">High</button>
+        </div>
+      </div>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
@@ -255,36 +304,53 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_3',
-      title: 'Pictographs',
-      textContent: `<div class="section-block" id="s3c">
-      <p class="section-eyebrow" style="color:var(--c-mid)">Topic 3 of 6</p>
-      <h2 class="section-title">Pictographs — Scale, Precision &amp; Limitations</h2>
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>A pictograph's value lies entirely in its scale choice. A poorly chosen scale either forces too many symbols (unreadable) or loses precision through excessive fractional symbols. The real analytical skill with pictographs is not drawing them — it's critically evaluating them. Given data, can you identify whether a pictograph is well-constructed or misleading? <span class="vcue">[Show car sales pictograph: Mumbai 500, Delhi 300, Chennai 400, Kolkata 200. Key: 🚗 = 100]</span></p>
-
-        <div class="stage-marker elaborate"></div>
-        <p>Consider this data for car sales with a changed scale. If the key were 🚗 = 150 instead of 100: Mumbai = 500/150 = 3.33 symbols (requires a third-symbol — unusual). Delhi = 300/150 = 2 exactly. Chennai = 400/150 = 2.67 symbols (imprecise). This scale is poor. The original scale of 100 is better because it divides evenly into all values. The principle: choose a scale that is a common factor of all (or most) data values. When no such scale exists, round to the nearest practical value and note that some precision is lost.</p>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout challenge">
-          <span class="callout-label">Critical Analysis Challenge</span>
-          Data: City A sold 720 cars, City B sold 540 cars, City C sold 630 cars, City D sold 450 cars. (a) Find the HCF of these values — this gives the most precise pictograph scale. (b) Why might you choose a larger scale despite losing precision? (c) If someone used a scale of 200 cars per symbol, what would the fractional symbols be for each city? Are all fractional values "neat" halves or are some imprecise?
-        </div>
-      </div>
-      <div class="practice-box">
-        <h3>Application — Topic 3</h3>
-        <div class="practice-q">A pictograph shows monthly website visitors: Jan-4500, Feb-3000, Mar-6000, Apr-4500, May-7500, Jun-6000. A student uses a key of 1 symbol = 1000 visitors. (a) How many symbols per month? (b) Evaluate this scale — is it appropriate? (c) Suggest an alternative scale and justify it. (d) Which month shows the sharpest increase from the previous month?</div>
-        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
-        <div class="practice-ans">(a) Jan: 4.5, Feb: 3, Mar: 6, Apr: 4.5, May: 7.5, Jun: 6. (b) The scale is manageable (max 7.5 symbols), but Jan and Apr require half symbols, and May also needs a half symbol. It is acceptable but not the most elegant choice. (c) A better scale: 1 symbol = 1500 visitors. Then: Jan: 3, Feb: 2, Mar: 4, Apr: 3, May: 5, Jun: 4. All whole numbers — no fractional symbols needed. This scale works because 1500 is a factor of all six values. (d) Sharpest increase: May (from 4500 to 7500, an increase of 3000 — the largest single-month jump).</div>
+      title: '📌 3. Smart Notes Builder',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">📌 3. Smart Notes Builder</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Compress complex topics into single lines. Fill in the blanks to build your framework.</p>
+    
+    <div class="card">
+      <span class="question-label">Guided Compression</span>
+      <p>Explain <strong>"Data Handling"</strong> in exactly one line for a 5-year-old:</p>
+      <textarea placeholder="Type your simple version here..."></textarea>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Suggested Answer:</strong> Collecting and organizing information to help us tell a clear story or make a smart choice.</p>
       </div>
     </div>
 
-    <hr class="section-divider">
+    <div class="card">
+      <span class="question-label">Framework Fill-in</span>
+      <div style="font-size: 15px; line-height: 2;">
+        1. <strong>Histogram:</strong> Best for <input type="text" class="framework-input" placeholder="data type?"> data.<br>
+        2. <strong>Pie Chart:</strong> Shows the relation between a <input type="text" class="framework-input" placeholder="part and a whole">.<br>
+        3. <strong>Probability Formula:</strong> Favourable Outcomes divided by <input type="text" class="framework-input" placeholder="total outcomes">.<br>
+        4. <strong>Range:</strong> Probability values always lie between <input type="text" class="framework-input" placeholder="0 and 1">.<br>
+        5. <strong>Circle Graph:</strong> Total angle at the centre is always <input type="text" class="framework-input" placeholder="360 degrees">.
+      </div>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answers:</strong><br>
+          1. <strong>Grouped/Continuous</strong><br>
+          2. <strong>Part and a Whole</strong><br>
+          3. <strong>Total number of possible outcomes</strong><br>
+          4. <strong>0 and 1</strong><br>
+          5. <strong>360 degrees</strong>
+        </p>
+      </div>
+    </div>
 
-    <!-- T4 -->
-
-<hr class="section-divider">`,
+    <div class="cheat-sheet">
+      <span class="question-label" style="color: #657b83;">Master Cheat Sheet Block</span>
+      <ul style="list-style: disc; margin-left: 20px;">
+        <li><strong>Frequency:</strong> The number of times a particular entry occurs.</li>
+        <li><strong>Class Interval:</strong> Grouping data into ranges (e.g., 10–20).</li>
+        <li><strong>Theoretical Probability:</strong> What we expect mathematically.</li>
+        <li><strong>Experimental Probability:</strong> Based on actual observed outcomes.</li>
+        <li><strong>Sector Angle:</strong> (Value / Total) × 360.</li>
+      </ul>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
@@ -313,47 +379,67 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_4',
-      title: 'Bar Graphs & Double Bar Graphs',
-      textContent: `<div class="section-block" id="s4c">
-      <p class="section-eyebrow" style="color:var(--c-mid)">Topic 4 of 6</p>
-      <h2 class="section-title">Bar Graphs — Construction, Comparison &amp; Insight</h2>
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>Bar graphs are the workhorse of data representation — precise, scalable, and capable of revealing patterns that tables hide. A double bar graph adds a comparative dimension: not just "how much?" but "compared to what?" The analytical power lies in reading both the absolute heights and the relative differences between paired bars across all categories simultaneously. <span class="vcue">[Show school enrolment double bar graph: Boys and Girls 2019–2023]</span></p>
-
-        <div class="stage-marker elaborate"></div>
-        <p>From the enrolment data (Boys: 230, 200, 240, 270, 250; Girls: 190, 180, 210, 240, 240): three simultaneous analyses are possible. First, absolute comparison within each year — boys consistently outnumber girls, with the gap ranging from 10 (2023) to 40 (2019). Second, trend analysis per group — both groups dipped in 2020 (possibly external factor, e.g., pandemic), then recovered and grew through 2022. Third, gap analysis across time — the gender gap is narrowing. In 2019, boys led by 40 students; by 2023, the gap was only 10. If this trend continues, enrolment may equalise.</p>
-
-        <table class="data-table">
-          <thead><tr><th>Year</th><th>Boys</th><th>Girls</th><th>Gap (B−G)</th><th>Trend</th></tr></thead>
-          <tbody>
-            <tr><td>2019</td><td class="num">230</td><td class="num">190</td><td class="num">40</td><td>Baseline</td></tr>
-            <tr><td>2020</td><td class="num">200</td><td class="num">180</td><td class="num">20</td><td>Both fell; gap narrowed</td></tr>
-            <tr><td>2021</td><td class="num">240</td><td class="num">210</td><td class="num">30</td><td>Recovery; gap widened slightly</td></tr>
-            <tr><td>2022</td><td class="num">270</td><td class="num">240</td><td class="num">30</td><td>Peak for both</td></tr>
-            <tr><td>2023</td><td class="num">250</td><td class="num">240</td><td class="num">10</td><td>Converging</td></tr>
-          </tbody>
-        </table>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout challenge">
-          <span class="callout-label">Multi-Step Challenge</span>
-          A double bar graph compares two students' test scores across 6 subjects. Student A: 80, 72, 65, 88, 55, 90. Student B: 70, 85, 78, 75, 82, 68. (a) In how many subjects does each student lead? (b) Calculate each student's total and average. (c) Who is the more "consistent" performer? (Define consistency numerically — hint: think about how far each score is from their own average.) (d) If you could only enter ONE student in an all-round academic competition, which would you choose and why?
+      title: '🧠 4. Application Challenge',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🧠 4. Application Challenge</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Apply your knowledge to new situations. Step-by-step reasoning required.</p>
+    
+    <div class="card">
+      <span class="question-label">Challenge 1: The Multi-Module Hybrid</span>
+      <p>In a box of 50 slips numbered 1 to 50, what is the <strong>probability</strong> that a randomly picked slip is a number belonging to the class interval <strong>20–30</strong>?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> 1/5 or 0.2</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> <br>
+          1. Range of interval 20–30 contains numbers: 20, 21, 22, 23, 24, 25, 26, 27, 28, 29 (30 is excluded).<br>
+          2. Favourable Outcomes = 10. <br>
+          3. Total Outcomes = 50. <br>
+          4. Probability = 10 / 50 = 1/5.
         </div>
-      </div>
-      <div class="practice-box">
-        <h3>Application — Topic 4</h3>
-        <div class="practice-q">Monthly rainfall (mm) in two cities over 6 months — City X: Jan 20, Feb 15, Mar 40, Apr 80, May 120, Jun 200. City Y: Jan 5, Feb 10, Mar 25, Apr 60, May 100, Jun 180. (a) Describe what the double bar graph would look like. (b) Calculate the difference between the cities each month. Is the gap growing, shrinking, or constant? (c) In which month did City X receive 2.5 times more rain than City Y? (d) What does this data suggest about these two cities' climates?</div>
-        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
-        <div class="practice-ans">(a) Both sets of bars rise sharply through the months, with City X bars consistently taller. The bars accelerate steeply from April onward, with June being by far the tallest pair. (b) Monthly gaps (X−Y): Jan: 15, Feb: 5, Mar: 15, Apr: 20, May: 20, Jun: 20. After February's unusual narrowing, the gap stabilises at 20mm from April to June — it neither grows nor shrinks in the monsoon months, suggesting a constant difference in rainfall intensity. (c) City X = 2.5 × City Y: Check each month — Jan: 20/5=4, Feb: 15/10=1.5, Mar: 40/25=1.6, Apr: 80/60=1.33, May: 120/100=1.2, Jun: 200/180=1.11. None is exactly 2.5. The closest is January (ratio 4:1). So no month has exactly 2.5 times more — this is an important lesson: not all questions have tidy answers in real data. (d) Both cities show a strong monsoon pattern (dramatic increase June), suggesting a tropical/semi-tropical climate. City X consistently receives more rainfall — it may be coastal or at a lower elevation facing monsoon winds directly.</div>
       </div>
     </div>
 
-    <hr class="section-divider">
+    <div class="card">
+      <span class="question-label">Challenge 2: Pie Chart Interpretation</span>
+      <p>A family spends 25% of their income on food. If their total monthly income is 40,000, what is the central angle for food in their budget pie chart AND the actual amount spent?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> 90 degrees and 10,000</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> <br>
+          Angle = (25 / 100) × 360 = 90 degrees. <br>
+          Amount = 25% of 40,000 = (1/4) × 40,000 = 10,000.
+        </div>
+      </div>
+    </div>
 
-    <!-- T5+T6 combined for C -->
+    <div class="card">
+      <span class="question-label">Challenge 3: Discrete vs Continuous</span>
+      <p>Which graph would you choose to show the heights of 50 students in a class? Why not use a standard bar graph?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> Histogram.</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> Height is continuous data. If we used a bar graph for every unique height (e.g., 140.1cm, 140.2cm), we would have too many bars. Grouping them into intervals (140–150cm) and using a histogram makes the data readable.
+        </div>
+      </div>
+    </div>
 
-<hr class="section-divider">`,
+    <div class="card">
+      <span class="question-label">Challenge 4: Bag Logic</span>
+      <p>A bag has 4 red and 2 yellow balls. If you draw one ball without looking, what is the probability of getting a red ball? If you then <strong>do not replace</strong> it, what is the probability of getting a red ball on the second draw?</p>
+      <button class="show-ans-btn" onclick="toggle(this)">Show Answer</button>
+      <div class="practice-ans">
+        <p><strong>Answer:</strong> 2/3 (first) and 3/5 (second)</p>
+        <div class="insight-box">
+          <strong>Explanation:</strong> <br>
+          Draw 1: Red = 4, Total = 6. P = 4/6 = 2/3. <br>
+          Draw 2 (No replacement): Red remaining = 3, Total remaining = 5. P = 3/5.
+        </div>
+      </div>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
@@ -382,39 +468,29 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_5',
-      title: 'Reading & Interpreting Graphs',
-      textContent: `<div class="section-block" id="s5c">
-      <p class="section-eyebrow" style="color:var(--c-mid)">Topics 5–6 of 6</p>
-      <h2 class="section-title">Critical Interpretation &amp; The Data Detective</h2>
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>The most sophisticated data skill is not construction — it's critical interpretation. This means asking not just "what does the graph show?" but "what does it not show? What assumptions does it make? Could the same data support a different conclusion? How might this graph be used to mislead?" Combining this with the detective's pipeline — organise, represent, interpret, recommend — completes the full data literacy cycle. <span class="vcue">[Show student test trend graph and a misleadingly scaled alternative of the same data]</span></p>
-
-        <div class="stage-marker elaborate"></div>
-        <p>A student's 5-test scores: 55, 62, 58, 70, 75. Three levels of interpretation. Descriptive: scores range from 55 to 75, with a dip at Test 3 and consistent growth thereafter. Analytical: the overall trend is positive (net gain of +20 over 5 tests). Test 3 represents an anomaly — a dip that breaks the otherwise upward pattern. The average improvement per test (excluding the Test 2→3 dip) is approximately 5.5 points. Inferential: the student is improving, likely with increasing engagement or better study habits. The Test 3 dip might indicate an external factor (illness, difficult week). If the trend continues, Test 6 could be predicted around 78–82. However, one should note that this prediction assumes the trend is linear and sustained — both are assumptions that require caution.</p>
-
-        <div class="callout challenge">
-          <span class="callout-label">Misleading Graphs — Advanced Analysis</span>
-          Two companies present bar graphs of their sales growth. Company A's graph uses a Y-axis from 0 to 1000, showing sales growth from 800 to 850. Company B uses a Y-axis from 800 to 860, showing the same type of growth from 820 to 855. On Company B's graph, the bar appears to triple in height. On Company A's graph, both bars look almost the same. Actual percentage growth: Company A = 6.25%, Company B = 4.27%. Which company is growing faster? Which graph is more misleading? What is the ethical responsibility of someone presenting data?
-        </div>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout challenge">
-          <span class="callout-label">The Complete Detective Challenge</span>
-          Raw data: 35 students' Science test scores (out of 100): 82, 55, 91, 68, 45, 72, 88, 55, 63, 91, 78, 45, 55, 82, 68, 91, 63, 78, 55, 82, 45, 91, 68, 82, 78, 63, 55, 91, 45, 82, 68, 78, 55, 63, 91. Complete the full detective pipeline: (1) Build a frequency table with score groupings of your choice — justify your groupings. (2) Describe the bar graph that would result. (3) Identify the modal group (most common score range). (4) What percentage of students scored 80 and above? (5) Write a three-sentence interpretation that a teacher could use to plan the next lesson. (6) Challenge: if this teacher's goal is to move 80% of students above 70 — what does the current data tell us about how far from that goal they are?
-        </div>
-      </div>
-      <div class="practice-box">
-        <h3>Final Challenge — Path C</h3>
-        <div class="practice-q">A school tracks library borrowing, canteen sales (₹ hundreds), and sports participation over 6 months in a double bar graph comparing the first half of year with second half. H1 (Jan–Jun): Library 45, Canteen 82, Sports 30. H2 (Jul–Dec): Library 52, Canteen 71, Sports 48. (a) Which activity showed the greatest percentage increase in H2? (b) Which showed the greatest percentage decrease? (c) If you were the school principal, what two initiatives would this data suggest you prioritise? (d) What additional data would you want to collect to confirm your interpretation is correct before acting?</div>
-        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
-        <div class="practice-ans">(a) Sports: increase from 30 to 48 = +60%. Library: increase from 45 to 52 = +15.6%. These are the two that increased. (b) Canteen: decrease from 82 to 71 = −13.4%. (c) Two priorities: First — sustain and build on the sports participation surge in H2 (60% increase is remarkable — identify what drove it and replicate it). Second — investigate the canteen revenue drop (−13.4%) as it may signal quality concerns, pricing issues, or competition from outside vendors. Library's modest increase suggests steady but unspectacular growth — possibly maintain current strategy. (d) Additional data needed: student attendance data (to normalise borrowing/participation counts), exit surveys from canteen users (why did sales fall?), sport-specific breakdown (did all sports grow or just one?), and month-by-month data rather than just semester totals (to identify which specific months drove the H2 sports surge).</div>
-      </div>
+      title: '🔍 5. Reflection Layer',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🔍 5. Reflection Layer</h2>
+    <p style="font-size: 14px; margin-bottom: 20px;">Meta-cognition: Understanding your own learning process.</p>
+    
+    <div class="checklist">
+      <p style="font-size: 12px; font-weight: 700; color: var(--active-mid); margin-bottom: 10px;">MARK CONCEPTS YOU STILL FIND TRICKY:</p>
+      <label><input type="checkbox"> Tally Marks & Frequency Tables</label>
+      <label><input type="checkbox"> Histogram Boundary Rules (Lower/Upper limits)</label>
+      <label><input type="checkbox"> Calculating Central Angles for Pie Charts</label>
+      <label><input type="checkbox"> Comparing Experimental vs Theoretical Probability</label>
+      <label><input type="checkbox"> Solving Multi-Step Real World Problems</label>
     </div>
 
-  </div><!-- end panel-c -->
+    <div class="card" style="margin-top: 24px; background: white; border: 1.5px solid var(--active-mid);">
+      <p style="font-size: 14px; font-weight: 600;">"Why do you think the concept(s) you checked above felt difficult?"</p>
+      <textarea rows="3" placeholder="Example: I often forget to exclude the upper limit in class intervals..."></textarea>
+    </div>
 
-<hr class="section-divider">`,
+    <div style="text-align: center; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);">REVISION COMPLETE • READINESS LEVEL: VERIFIED</p>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
@@ -444,37 +520,29 @@ const moduleData: Module = {
     },
     {
       id: 'c2_1_6',
-      title: 'Class Activity: Be a Data Detective',
-      textContent: `<div class="section-block" id="s5c">
-      <p class="section-eyebrow" style="color:var(--c-mid)">Topics 5–6 of 6</p>
-      <h2 class="section-title">Critical Interpretation &amp; The Data Detective</h2>
-      <div class="narration">
-        <div class="stage-marker engage"></div>
-        <p>The most sophisticated data skill is not construction — it's critical interpretation. This means asking not just "what does the graph show?" but "what does it not show? What assumptions does it make? Could the same data support a different conclusion? How might this graph be used to mislead?" Combining this with the detective's pipeline — organise, represent, interpret, recommend — completes the full data literacy cycle. <span class="vcue">[Show student test trend graph and a misleadingly scaled alternative of the same data]</span></p>
-
-        <div class="stage-marker elaborate"></div>
-        <p>A student's 5-test scores: 55, 62, 58, 70, 75. Three levels of interpretation. Descriptive: scores range from 55 to 75, with a dip at Test 3 and consistent growth thereafter. Analytical: the overall trend is positive (net gain of +20 over 5 tests). Test 3 represents an anomaly — a dip that breaks the otherwise upward pattern. The average improvement per test (excluding the Test 2→3 dip) is approximately 5.5 points. Inferential: the student is improving, likely with increasing engagement or better study habits. The Test 3 dip might indicate an external factor (illness, difficult week). If the trend continues, Test 6 could be predicted around 78–82. However, one should note that this prediction assumes the trend is linear and sustained — both are assumptions that require caution.</p>
-
-        <div class="callout challenge">
-          <span class="callout-label">Misleading Graphs — Advanced Analysis</span>
-          Two companies present bar graphs of their sales growth. Company A's graph uses a Y-axis from 0 to 1000, showing sales growth from 800 to 850. Company B uses a Y-axis from 800 to 860, showing the same type of growth from 820 to 855. On Company B's graph, the bar appears to triple in height. On Company A's graph, both bars look almost the same. Actual percentage growth: Company A = 6.25%, Company B = 4.27%. Which company is growing faster? Which graph is more misleading? What is the ethical responsibility of someone presenting data?
-        </div>
-
-        <div class="stage-marker evaluate"></div>
-        <div class="callout challenge">
-          <span class="callout-label">The Complete Detective Challenge</span>
-          Raw data: 35 students' Science test scores (out of 100): 82, 55, 91, 68, 45, 72, 88, 55, 63, 91, 78, 45, 55, 82, 68, 91, 63, 78, 55, 82, 45, 91, 68, 82, 78, 63, 55, 91, 45, 82, 68, 78, 55, 63, 91. Complete the full detective pipeline: (1) Build a frequency table with score groupings of your choice — justify your groupings. (2) Describe the bar graph that would result. (3) Identify the modal group (most common score range). (4) What percentage of students scored 80 and above? (5) Write a three-sentence interpretation that a teacher could use to plan the next lesson. (6) Challenge: if this teacher's goal is to move 80% of students above 70 — what does the current data tell us about how far from that goal they are?
-        </div>
-      </div>
-      <div class="practice-box">
-        <h3>Final Challenge — Path C</h3>
-        <div class="practice-q">A school tracks library borrowing, canteen sales (₹ hundreds), and sports participation over 6 months in a double bar graph comparing the first half of year with second half. H1 (Jan–Jun): Library 45, Canteen 82, Sports 30. H2 (Jul–Dec): Library 52, Canteen 71, Sports 48. (a) Which activity showed the greatest percentage increase in H2? (b) Which showed the greatest percentage decrease? (c) If you were the school principal, what two initiatives would this data suggest you prioritise? (d) What additional data would you want to collect to confirm your interpretation is correct before acting?</div>
-        <button class="show-ans-btn" onclick="toggleAns(this)">Show Answer</button>
-        <div class="practice-ans">(a) Sports: increase from 30 to 48 = +60%. Library: increase from 45 to 52 = +15.6%. These are the two that increased. (b) Canteen: decrease from 82 to 71 = −13.4%. (c) Two priorities: First — sustain and build on the sports participation surge in H2 (60% increase is remarkable — identify what drove it and replicate it). Second — investigate the canteen revenue drop (−13.4%) as it may signal quality concerns, pricing issues, or competition from outside vendors. Library's modest increase suggests steady but unspectacular growth — possibly maintain current strategy. (d) Additional data needed: student attendance data (to normalise borrowing/participation counts), exit surveys from canteen users (why did sales fall?), sport-specific breakdown (did all sports grow or just one?), and month-by-month data rather than just semester totals (to identify which specific months drove the H2 sports surge).</div>
-      </div>
+      title: 'Module 2.6 - Wrap Up',
+      textContent: `<div class="section-block">
+    <h2 class="section-title">🔍 5. Reflection Layer</h2>
+    <p style="font-size: 14px; margin-bottom: 20px;">Meta-cognition: Understanding your own learning process.</p>
+    
+    <div class="checklist">
+      <p style="font-size: 12px; font-weight: 700; color: var(--active-mid); margin-bottom: 10px;">MARK CONCEPTS YOU STILL FIND TRICKY:</p>
+      <label><input type="checkbox"> Tally Marks & Frequency Tables</label>
+      <label><input type="checkbox"> Histogram Boundary Rules (Lower/Upper limits)</label>
+      <label><input type="checkbox"> Calculating Central Angles for Pie Charts</label>
+      <label><input type="checkbox"> Comparing Experimental vs Theoretical Probability</label>
+      <label><input type="checkbox"> Solving Multi-Step Real World Problems</label>
     </div>
 
-  </div><!-- end panel-c -->`,
+    <div class="card" style="margin-top: 24px; background: white; border: 1.5px solid var(--active-mid);">
+      <p style="font-size: 14px; font-weight: 600;">"Why do you think the concept(s) you checked above felt difficult?"</p>
+      <textarea rows="3" placeholder="Example: I often forget to exclude the upper limit in class intervals..."></textarea>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 20px;">
+      <p style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);">REVISION COMPLETE • READINESS LEVEL: VERIFIED</p>
+    </div>
+  </div>`,
       videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
