@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify, Gamepad2, SlidersHorizontal, ShieldCheck, Monitor, ClipboardCheck, UserCog } from 'lucide-react';
+import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify, Gamepad2, SlidersHorizontal, ShieldCheck, Monitor, ClipboardCheck, UserCog, Download } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
 import { AccessibilityMode, GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { trackTelemetryEvent } from '../analytics/telemetry';
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  activityExportUrl?: string;
 }
 
 type SettingsCategory =
@@ -20,7 +21,7 @@ type SettingsCategory =
   | 'assessment'
   | 'account';
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, activityExportUrl }) => {
   const { session, updateSettings, updateSession, clearSession, resetProgress } = useSessionStore();
   const navigate = useNavigate();
 
@@ -130,7 +131,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   };
 
   const handleRetakePreTest = () => {
-    updateSession({ preTestDone: false });
+    updateSession({
+      preTestRetakeInProgress: true,
+      preTestProgress: null,
+    });
     onClose();
     navigate('/pre-test');
   };
@@ -315,15 +319,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     panel.scrollTo({ top: 0 });
   };
 
-  const colors = [
-    { name: 'Blue', value: '#3b82f6' },
-    { name: 'Indigo', value: '#6366f1' },
-    { name: 'Purple', value: '#a855f7' },
-    { name: 'Pink', value: '#ec4899' },
-    { name: 'Rose', value: '#f43f5e' },
-    { name: 'Orange', value: '#f97316' },
-    { name: 'Green', value: '#22c55e' },
-  ];
+  const themePalettes = [
+    { name: 'Blue', value: '#3b82f6', tone: 'vivid' },
+    { name: 'Indigo', value: '#6366f1', tone: 'vivid' },
+    { name: 'Purple', value: '#a855f7', tone: 'vivid' },
+    { name: 'Rose', value: '#f43f5e', tone: 'vivid' },
+    { name: 'Orange', value: '#f97316', tone: 'vivid' },
+    { name: 'Green', value: '#22c55e', tone: 'vivid' },
+    { name: 'Mist Blue', value: '#89a7c7', tone: 'soft' },
+    { name: 'Sage', value: '#8bb7a8', tone: 'soft' },
+    { name: 'Blush', value: '#d7a0a7', tone: 'soft' },
+    { name: 'Lavender', value: '#b3addf', tone: 'soft' },
+    { name: 'Sand', value: '#c9b28f', tone: 'soft' },
+    { name: 'Peach', value: '#d9ad92', tone: 'soft' },
+  ] as const;
+
+  const vividPalettes = themePalettes.filter((color) => color.tone === 'vivid');
+  const softPalettes = themePalettes.filter((color) => color.tone === 'soft');
 
   const mechanicMeta: Record<GameFormat, { label: string; description: string }> = {
     [GameFormat.RAINDROP]: {
@@ -456,33 +468,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-md p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/45 backdrop-blur-md p-4"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
-            className="flex h-[86vh] max-h-[860px] w-full max-w-5xl flex-col overflow-hidden rounded-[2.5rem] bg-white/90 shadow-2xl backdrop-blur-xl"
+            className="flex h-[86vh] max-h-[860px] w-full max-w-5xl flex-col overflow-hidden rounded-[2.2rem] border border-[#ddd7ca] bg-white/95 shadow-2xl backdrop-blur-xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-200/50 px-8 py-6">
+            <div className="flex items-center justify-between border-b border-[#e2dccf] px-8 py-6">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-white shadow-lg">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-white shadow-lg">
                   <Zap size={20} fill="currentColor" />
                 </div>
-                <h2 className="text-2xl font-black text-slate-900">Mission Settings</h2>
+                <h2 className="app-display text-2xl font-extrabold text-slate-900">Mission Settings</h2>
               </div>
               <button
                 onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f3f1eb] text-slate-700 hover:bg-[#ebe7dc]"
               >
                 <X size={20} />
               </button>
             </div>
 
             <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px_1fr] sm:gap-8">
-              <aside className="rounded-2xl border border-slate-200 bg-slate-50 p-2 sm:h-full sm:overflow-y-auto">
+              <aside className="rounded-2xl border border-[#ddd7ca] bg-[#f7f5ef] p-2 sm:h-full sm:overflow-y-auto">
                 {[
                   { id: 'mechanics', label: 'Game Mechanics' },
                   { id: 'preferences', label: 'Preferences' },
@@ -495,7 +507,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     key={item.id}
                     onClick={() => setActiveCategory(item.id as SettingsCategory)}
                     aria-current={activeCategory === item.id ? 'page' : undefined}
-                    className={`mb-2 flex h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-bold transition-all ${activeCategory === item.id ? 'bg-brand text-white shadow-sm' : 'border border-transparent text-slate-600 hover:border-slate-200 hover:bg-white'}`}
+                    className={`mb-2 flex h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-bold transition-all ${activeCategory === item.id ? 'bg-slate-900 text-white shadow-sm' : 'border border-transparent text-slate-600 hover:border-[#ddd7ca] hover:bg-white'}`}
                   >
                     <span>{categoryConfig[item.id as SettingsCategory].icon}</span>
                     <span>{item.label}</span>
@@ -621,8 +633,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <section className="space-y-6">
                     <div>
                       <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.display.headingClass}`}>Theme Color</h3>
-                      <div className="flex flex-wrap gap-3">
-                        {colors.map((c, idx) => (
+                      <p className="mb-3 text-xs font-semibold text-slate-500">Choose a vibrant accent or switch to a softer palette for calmer visuals.</p>
+
+                      <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-slate-500">Vivid</p>
+                      <div className="mb-4 flex flex-wrap gap-3">
+                        {vividPalettes.map((c, idx) => (
                           <button
                             key={c.value}
                             ref={(el) => {
@@ -634,6 +649,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                             className={`h-10 w-10 rounded-full border-4 transition-all hover:scale-110 ${settings.themeColor === c.value ? 'border-white ring-2 ring-slate-900' : 'border-transparent'}`}
                             style={{ backgroundColor: c.value }}
                             title={c.name}
+                          />
+                        ))}
+                      </div>
+
+                      <p className="mb-2 text-[11px] font-black uppercase tracking-widest text-slate-500">Soft</p>
+                      <div className="flex flex-wrap gap-3">
+                        {softPalettes.map((c) => (
+                          <button
+                            key={c.value}
+                            onClick={() => updateSettings({ themeColor: c.value })}
+                            className={`h-10 w-10 rounded-full border-4 transition-all hover:scale-110 ${settings.themeColor === c.value ? 'border-white ring-2 ring-slate-900' : 'border-transparent'}`}
+                            style={{ backgroundColor: c.value }}
+                            title={`${c.name} (Soft)`}
                           />
                         ))}
                       </div>
@@ -832,6 +860,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                       </button>
                       <p className="mt-2 text-xs text-slate-500">We will send a secure reset link to your registered email.</p>
                     </div>
+
+                    {activityExportUrl && (
+                      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                        <p className="mb-3 text-xs font-black uppercase tracking-widest text-slate-400">Activity</p>
+                        <a
+                          href={activityExportUrl}
+                          className="inline-flex items-center gap-2 rounded-xl border-2 border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 transition-all hover:border-brand"
+                        >
+                          <Download size={16} />
+                          Download Activity Report
+                        </a>
+                        <p className="mt-2 text-xs text-slate-500">Export your latest activity and progress data.</p>
+                      </div>
+                    )}
 
                     {accountMessage && (
                       <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">

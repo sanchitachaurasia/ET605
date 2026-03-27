@@ -372,19 +372,19 @@ export default function ModulePage() {
   }, [showRemediation, moduleId, currentFinalQuestion?.id, session?.chapterMetrics?.remedialClicks, updateMetrics]);
 
   return (
-    <div className={cn('min-h-screen pb-20 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : 'bg-slate-50 text-slate-900')}>
+    <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
       <header
         className={cn(
-          'sticky top-0 z-10 px-6 py-4 shadow-sm backdrop-blur-md transition-colors',
-          settings.darkMode ? 'border-b border-slate-800 bg-slate-900/80' : 'bg-white/80'
+          'sticky top-3 z-20 mx-auto mb-6 w-[calc(100%-2rem)] max-w-6xl rounded-full border px-4 py-3 shadow-sm backdrop-blur-md transition-colors sm:px-6',
+          settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-[#d8d2c5] bg-white/85'
         )}
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-8">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-5">
           <button
             onClick={handleExitClick}
             className={cn(
               'flex h-10 w-10 items-center justify-center rounded-full transition-colors',
-              settings.darkMode ? 'bg-slate-800 text-slate-400 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              settings.darkMode ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-[#f3f1eb] text-slate-700 hover:bg-[#ece8de]'
             )}
           >
             <ChevronLeft size={24} />
@@ -392,7 +392,7 @@ export default function ModulePage() {
 
           <div className="flex-1">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-bold text-slate-500">{showFinalAssessment ? 'Module Assessment' : `Module ${module.id}: ${module.title}`}</span>
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">{showFinalAssessment ? 'Module Assessment' : `Module ${module.id}: ${module.title}`}</span>
               <span className="text-sm font-bold text-brand">{showFinalAssessment ? `${finalAssessmentIdx + 1} / ${allQuestions.length}` : `${currentConceptIdx + 1} / ${filteredConcepts.length}`}</span>
             </div>
             <RocketProgress progress={progress} />
@@ -402,7 +402,7 @@ export default function ModulePage() {
             onClick={() => setIsSettingsOpen(true)}
             className={cn(
               'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95',
-              settings.darkMode ? 'bg-slate-800 text-slate-400' : 'bg-slate-100 text-slate-500'
+              settings.darkMode ? 'bg-slate-800 text-slate-300' : 'bg-[#f3f1eb] text-slate-700'
             )}
           >
             <Settings size={20} />
@@ -410,7 +410,7 @@ export default function ModulePage() {
         </div>
       </header>
 
-      <main className="mx-auto mt-8 max-w-6xl px-4 sm:px-6">
+      <main className="mx-auto mt-5 max-w-6xl px-4 sm:px-6">
 
         <AnimatePresence mode="wait">
           {!showFinalAssessment ? (
@@ -428,9 +428,9 @@ export default function ModulePage() {
             </motion.div>
           ) : (
             <motion.div key="final-assessment" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-              <div className="rounded-3xl bg-white p-8 shadow-xl">
-                <h2 className="mb-4 text-3xl font-black text-slate-900">Module Assessment</h2>
-                <p className="text-slate-600">Great job reading through the concepts! Now, let&apos;s test your knowledge with a final assessment.</p>
+              <div className={cn('app-float-card rounded-[2rem] p-8', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-[#ddd7ca] bg-white/85')}>
+                <h2 className="app-display mb-2 text-3xl font-extrabold text-[var(--text-strong)]">Module Assessment</h2>
+                <p className="text-slate-600">Great job reading through the concepts. Test your understanding with this final challenge.</p>
               </div>
 
               <GameQuestion
@@ -452,7 +452,7 @@ export default function ModulePage() {
               />
 
               {showHint && !showRemediation && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-amber-200 bg-amber-50/90 p-6">
                   <p className="flex items-center gap-2 font-bold text-amber-800">
                     <span className="text-xl">💡</span> Hint
                   </p>
@@ -516,7 +516,7 @@ export default function ModulePage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   onClick={handleFinalQuestionComplete}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-slate-900 py-3.5 text-base font-black text-white shadow-lg transition-all hover:opacity-90"
                 >
                   Next Question
                   <span className="text-xl">→</span>
@@ -536,9 +536,9 @@ export default function ModulePage() {
               initial={{ opacity: 0, scale: 0.95, y: 12 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97, y: 8 }}
-              className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+              className="w-full max-w-md rounded-[2rem] border border-[#ddd7ca] bg-white p-6 shadow-2xl"
             >
-              <h3 className="text-2xl font-black text-slate-900">Exit Module?</h3>
+              <h3 className="app-display text-2xl font-extrabold text-slate-900">Exit Module?</h3>
               <p className="mt-2 text-sm font-semibold text-slate-600">Are you sure you want to exit? Your session progress will be recorded.</p>
 
               <div className="mt-6 flex items-center justify-end gap-3">
@@ -563,7 +563,7 @@ export default function ModulePage() {
 
         {showCompletionCelebration && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-6 backdrop-blur-sm">
-            <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="w-full max-w-md rounded-3xl bg-white p-7 text-center shadow-2xl">
+            <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} className="w-full max-w-md rounded-[2rem] border border-[#ddd7ca] bg-white p-7 text-center shadow-2xl">
               <motion.div
                 initial={{ scale: 0.7, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -573,7 +573,7 @@ export default function ModulePage() {
                 <CheckCircle size={34} className="text-emerald-600" />
               </motion.div>
 
-              <h3 className="text-2xl font-black text-slate-900">Module Completed!</h3>
+              <h3 className="app-display text-2xl font-extrabold text-slate-900">Module Completed!</h3>
               <p className="mt-2 text-sm font-semibold text-slate-600">Awesome work. Your progress has been saved.</p>
 
               <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 3, ease: 'linear' }} className="mt-5 h-2 rounded-full bg-emerald-500" />

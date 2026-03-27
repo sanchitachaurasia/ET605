@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
+import { CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { useSessionStore, DEFAULT_SETTINGS } from '../store/sessionStore';
 import { signUp, login, sendResetPasswordEmail, checkUserIdAvailability } from '../lib/firebaseAuth';
 import { StudentSession } from '../types';
@@ -212,43 +213,82 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <motion.div 
+    <div className="relative min-h-screen overflow-hidden px-4 py-8 sm:px-6">
+      <div className="pointer-events-none absolute left-[-5rem] top-[-6rem] h-52 w-52 rounded-full bg-[var(--theme-color-soft)] blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-6rem] right-[-4rem] h-56 w-56 rounded-full bg-[#efe6d0] blur-3xl" />
+
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`w-full rounded-3xl bg-white p-8 shadow-xl ${isLogin ? 'max-w-md' : 'max-w-2xl'}`}
+        className="app-shell grid items-stretch gap-5 lg:grid-cols-[1.02fr_1fr]"
       >
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-brand text-white shadow-lg">
-            <span className="text-4xl font-black">DQ</span>
+        <section className="app-ambient-panel app-grid-bg relative hidden overflow-hidden p-8 lg:flex lg:flex-col lg:justify-between">
+          <div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d8d3c6] bg-white/70 px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700">
+              <Sparkles size={14} className="text-brand" />
+              Adaptive Learning Workspace
+            </div>
+
+            <h1 className="app-display text-5xl font-extrabold tracking-tight text-[var(--text-strong)]">DataQuest Learners. Real Wins.</h1>
+            <p className="mt-3 max-w-xl text-base font-medium text-slate-600">Your math journey adapts to how you learn best, from pre-test to post-test, with clear progress and smart remediation.</p>
+
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              {[
+                'Personalized learning paths',
+                'Live performance insights',
+                'Accessible reading modes',
+                'Game mechanics by preference',
+              ].map((item) => (
+                <div key={item} className="chip-pill inline-flex w-fit items-center gap-2">
+                  <CheckCircle2 size={14} className="text-brand" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">DataQuest</h1>
-          <p className="text-slate-500">{isLogin ? 'Welcome Back!' : 'Your Math Adventure Begins Here!'}</p>
-        </div>
 
-        <div className="mb-8 flex rounded-2xl bg-slate-100 p-1">
-          <button
-            onClick={() => { setIsLogin(true); reset(); setError(null); setInfo(''); }}
-            className={`flex-1 rounded-xl py-2 text-sm font-bold transition-all ${isLogin ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => {
-              setIsLogin(false);
-              reset();
-              setError(null);
-              setInfo('');
-              setUserIdAvailable(null);
-              setUserIdHint('Choose a unique User ID. You will use it to log in.');
-            }}
-            className={`flex-1 rounded-xl py-2 text-sm font-bold transition-all ${!isLogin ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
-          >
-            Sign Up
-          </button>
-        </div>
+          <div className="mt-8 rounded-3xl border border-[#d9d4c7] bg-white/80 p-5 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">"The mission flow keeps students engaged without overwhelming them. We finally see consistency in practice quality."</p>
+            <p className="mt-3 text-xs font-black uppercase tracking-wide text-slate-500">Learning Coordinator, DataQuest Pilot School</p>
+          </div>
+        </section>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <section className="app-float-card rounded-[2rem] p-6 sm:p-8">
+          <div className="mb-7 flex items-start justify-between gap-4">
+            <div>
+              <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-xl font-black text-white shadow-lg shadow-brand/30">DQ</div>
+              <h2 className="app-display text-3xl font-extrabold tracking-tight text-[var(--text-strong)]">{isLogin ? 'Welcome back' : 'Create your account'}</h2>
+              <p className="mt-1 text-sm font-medium text-slate-500">{isLogin ? 'Continue your mission where you left off.' : 'Set up your learner profile in under a minute.'}</p>
+            </div>
+            <div className="chip-pill hidden items-center gap-2 sm:inline-flex">
+              <ShieldCheck size={14} className="text-brand" />
+              Secure Access
+            </div>
+          </div>
+
+          <div className="mb-6 flex rounded-full border border-[#ddd7ca] bg-[#f7f5ef] p-1">
+            <button
+              onClick={() => { setIsLogin(true); reset(); setError(null); setInfo(''); }}
+              className={`flex-1 rounded-full py-2 text-sm font-extrabold transition-all ${isLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => {
+                setIsLogin(false);
+                reset();
+                setError(null);
+                setInfo('');
+                setUserIdAvailable(null);
+                setUserIdHint('Choose a unique User ID. You will use it to log in.');
+              }}
+              className={`flex-1 rounded-full py-2 text-sm font-extrabold transition-all ${!isLogin ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+            >
+              Sign Up
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-red-700">
               <p className="text-sm font-black uppercase tracking-wide text-red-800">{error.title}</p>
@@ -293,13 +333,13 @@ export default function LoginPage() {
               className={isLogin ? 'space-y-4' : 'grid grid-cols-1 gap-4 sm:grid-cols-2'}
             >
               <div>
-                <label className="block text-sm font-bold text-slate-700">{isLogin ? 'Email or User ID' : 'Email'}</label>
+                <label className="block text-xs font-black uppercase tracking-wide text-slate-600">{isLogin ? 'Email or User ID' : 'Email'}</label>
                 {isLogin ? (
                   <>
                     <input
                       type="text"
                       {...register('identifier', { required: true })}
-                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
                       placeholder="your@email.com or your_userid"
                     />
                     {errors.identifier && <span className="text-xs text-red-600">Email or User ID is required</span>}
@@ -309,7 +349,7 @@ export default function LoginPage() {
                     <input
                       type="email"
                       {...register('email', { required: true })}
-                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
                       placeholder="your@email.com"
                     />
                     {errors.email && <span className="text-xs text-red-600">Email is required</span>}
@@ -319,7 +359,7 @@ export default function LoginPage() {
 
               {!isLogin && (
                 <div>
-                  <label className="block text-sm font-bold text-slate-700">Unique User ID</label>
+                  <label className="block text-xs font-black uppercase tracking-wide text-slate-600">Unique User ID</label>
                   <input
                     {...register('userId', {
                       required: !isLogin,
@@ -328,7 +368,7 @@ export default function LoginPage() {
                       pattern: /^[a-zA-Z0-9_.-]+$/,
                     })}
                     onBlur={validateUserIdAvailability}
-                    className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
                     placeholder="e.g. riya_8a"
                   />
                   {errors.userId && <span className="text-xs text-red-600">Valid User ID is required (4-24 chars, letters/numbers/._-)</span>}
@@ -343,43 +383,41 @@ export default function LoginPage() {
               {!isLogin && (
                 <>
                   <div>
-                    <label className="block text-sm font-bold text-slate-700">Student Name</label>
+                    <label className="block text-xs font-black uppercase tracking-wide text-slate-600">Student Name</label>
                     <input
                       {...register('name', { required: !isLogin })}
-                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
                       placeholder="Enter your name"
                     />
                     {errors.name && <span className="text-xs text-red-600">Student name is required</span>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700">School Name</label>
+                    <label className="block text-xs font-black uppercase tracking-wide text-slate-600">School Name (Optional)</label>
                     <input
-                      {...register('school', { required: !isLogin })}
-                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
-                      placeholder="Enter your school"
+                      {...register('school')}
+                      className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
+                      placeholder="Enter your school (optional)"
                     />
-                    {errors.school && <span className="text-xs text-red-600">School name is required</span>}
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-slate-700">Class & Section</label>
+                    <label className="block text-xs font-black uppercase tracking-wide text-slate-600">Class & Section (Optional)</label>
                     <input
-                      {...register('class', { required: !isLogin })}
-                      className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
-                      placeholder="e.g. 8-A"
+                      {...register('class')}
+                      className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
+                      placeholder="e.g. 8-A (optional)"
                     />
-                    {errors.class && <span className="text-xs text-red-600">Class & section is required</span>}
                   </div>
                 </>
               )}
 
               <div className={isLogin ? '' : 'sm:col-span-2'}>
-                <label className="block text-sm font-bold text-slate-700">Password</label>
+                <label className="block text-xs font-black uppercase tracking-wide text-slate-600">Password</label>
                 <input
                   type="password"
                   {...register('password', { required: true, minLength: 6 })}
-                  className="mt-1 w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-4 py-3 focus:border-brand focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-[#dcd7cb] bg-[#fbfaf7] px-4 py-3 font-semibold text-slate-800 outline-none transition-all focus:border-brand focus:bg-white"
                   placeholder="Enter password (min 6 characters)"
                 />
                 {errors.password && <span className="text-xs text-red-600">Password must be at least 6 characters</span>}
@@ -390,7 +428,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="text-sm font-bold text-brand hover:underline"
+                    className="text-sm font-bold text-slate-700 transition-colors hover:text-brand"
                   >
                     Forgot password?
                   </button>
@@ -402,20 +440,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading || (!isLogin && (checkingUserId || userIdAvailable === false))}
-            className="mt-6 w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            className="mt-4 w-full rounded-2xl bg-slate-900 py-3.5 text-base font-black text-white shadow-lg shadow-slate-900/20 transition-transform hover:scale-[1.01] active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? 'Processing...' : (isLogin ? 'Login to Mission' : 'Start Your Mission')}
           </button>
         </form>
 
-        <div className="mt-6 text-center">
+        <div className="mt-5 text-center">
           <button
             onClick={() => { setIsLogin(!isLogin); reset(); setError(null); setInfo(''); }}
-            className="text-sm font-bold text-brand hover:underline"
+            className="text-sm font-bold text-slate-700 hover:text-brand"
           >
             {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login"}
           </button>
         </div>
+        </section>
       </motion.div>
     </div>
   );

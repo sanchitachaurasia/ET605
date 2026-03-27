@@ -210,6 +210,7 @@ export interface StudentSession {
   class: string;
   preTestScore: number;
   preTestDone: boolean;
+  preTestRetakeInProgress?: boolean;
   preTestFeedback?: number;
   recommendedStyle?: string;
   learningPath: LearningPath;
