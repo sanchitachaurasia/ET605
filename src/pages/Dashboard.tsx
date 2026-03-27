@@ -19,7 +19,6 @@ export default function Dashboard() {
   if (!session) return null;
 
   const settings = session.settings || { darkMode: false };
-  const learnerProfile = session.learnerProfile;
   const modules = getChapterDataForPath(session.learningPath || 'B');
 
   const isModuleLocked = (index: number) => {
@@ -38,7 +37,6 @@ export default function Dashboard() {
   };
 
   const completedCount = session.moduleProgress.filter((p) => p.completed).length;
-  const learnerLabel = learnerProfile?.preferredStyle || 'mixed';
   const pathLabel = session.learningPath === 'A' ? 'Foundational' : session.learningPath === 'C' ? 'Advanced' : 'Standard';
 
   const handleLogout = () => {
@@ -94,7 +92,7 @@ export default function Dashboard() {
                 <div className={cn('rounded-2xl border p-3', settings.darkMode ? 'border-slate-700 bg-slate-900/70' : 'border-[#dbd6ca] bg-white/75')}>
                   <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>Learner Profile</p>
                   <p className={cn('mt-2 text-lg font-extrabold', settings.darkMode ? 'text-slate-100' : 'text-[var(--text-strong)]')}>Path: {pathLabel}</p>
-                  <p className={cn('text-sm font-semibold capitalize', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>{learnerLabel} learner</p>
+                  <p className={cn('text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>Adaptive difficulty enabled</p>
                 </div>
 
                 <div className={cn('rounded-2xl border p-3', settings.darkMode ? 'border-slate-700 bg-slate-900/70' : 'border-[#dbd6ca] bg-white/75')}>

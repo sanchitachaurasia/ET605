@@ -387,7 +387,6 @@ router.post('/profile', verifyToken, async (req: Request, res: Response) => {
       'learningPath',
       'preTestFeedback',
       'recommendedStyle',
-      'learnerProfile',
       'moduleProgress',
       'moduleTracking',
       'badgesEarned',

@@ -114,7 +114,6 @@ export default function App() {
         learningPath: session.learningPath,
         preTestFeedback: session.preTestFeedback,
         recommendedStyle: session.recommendedStyle,
-        learnerProfile: session.learnerProfile,
         moduleProgress: session.moduleProgress,
         moduleTracking: session.moduleTracking,
         badgesEarned: session.badgesEarned,

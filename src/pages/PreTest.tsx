@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { LogOut, ChevronRight } from 'lucide-react';
 import { GameQuestion } from '../components/GameQuestion';
-import { LearningStyleQuiz } from '../components/LearningStyleQuiz';
 import { preTestQuestions } from '../data/Pre-Test/questions';
 import { useSessionStore } from '../store/sessionStore';
 import { trackEvent } from '../analytics/tracker';
 import { logout } from '../lib/firebaseAuth';
-import { GameFormat, LearningStyle, PreTestProgress } from '../types';
+import { GameFormat, PreTestProgress } from '../types';
 import { cn } from '../lib/utils';
 import { useResponsive } from '../components/ResponsiveLayout';
 
@@ -20,8 +19,6 @@ export default function PreTest() {
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
   const [preferredQuestionIds, setPreferredQuestionIds] = useState<string[]>([]);
-  const [showLearningStyleQuiz, setShowLearningStyleQuiz] = useState(false);
-  const [learningStyle, setLearningStyle] = useState<LearningStyle>('mixed');
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [recommendation, setRecommendation] = useState('');
   const [prefContentMode, setPrefContentMode] = useState<'text' | 'video'>('video');
@@ -68,11 +65,9 @@ export default function PreTest() {
     setScore(saved.score ?? 0);
     setCorrectAnswers(saved.correctAnswers ?? {});
     setPreferredQuestionIds(saved.preferredQuestionIds ?? []);
-    setLearningStyle(saved.learningStyle ?? 'mixed');
     setRecommendation(saved.recommendation ?? '');
     setPrefContentMode(saved.prefContentMode ?? 'video');
     setPrefAssessmentTime(saved.prefAssessmentTime ?? 'inModule');
-    setShowLearningStyleQuiz(saved.stage === 'learningStyle');
     setShowRecommendation(saved.stage === 'personalization');
 
     if (saved.pendingResults) {
@@ -92,9 +87,7 @@ export default function PreTest() {
 
     const stage: PreTestProgress['stage'] = showRecommendation
       ? 'personalization'
-      : showLearningStyleQuiz
-        ? 'learningStyle'
-        : 'questions';
+      : 'questions';
 
     const payload: PreTestProgress = {
       stage,
@@ -102,7 +95,6 @@ export default function PreTest() {
       score,
       correctAnswers,
       preferredQuestionIds,
-      learningStyle,
       recommendation,
       prefContentMode,
       prefAssessmentTime,
@@ -122,11 +114,9 @@ export default function PreTest() {
     score,
     correctAnswers,
     preferredQuestionIds,
-    learningStyle,
     recommendation,
     prefContentMode,
     prefAssessmentTime,
-    showLearningStyleQuiz,
     showRecommendation,
     updateSession,
   ]);
@@ -267,11 +257,8 @@ export default function PreTest() {
     return <div className="text-xl">🧩</div>;
   };
 
-  const handleLearningStyleComplete = (style: LearningStyle, profile: any) => {
-    setLearningStyle(style);
-    setShowLearningStyleQuiz(false);
-    
-    // Calculate Final Results after learning style is determined
+  const prepareResults = () => {
+    // Calculate final results
     const finalScore = Math.round((score / preTestQuestions.length) * 100);
     const avgFeedback = 3;
     
@@ -301,17 +288,7 @@ export default function PreTest() {
     let assessmentStyle: 'gamified' | 'traditional' | 'balanced' = 'balanced';
     let contentMode: 'text' | 'video' = 'video';
     let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
-    let rec = `${assessmentStyle.charAt(0).toUpperCase() + assessmentStyle.slice(1)} Learner (${finalScore}% Mastery)`;
-
-    if (style === 'kinesthetic') {
-      assessmentStyle = 'gamified';
-      contentMode = 'video';
-      rec = '✨ Gamified & Interactive (Hands-on Learner)';
-    } else if (style === 'readWrite') {
-      assessmentStyle = 'traditional';
-      contentMode = 'text';
-      rec = '📖 Traditional & Focused (Reading-first Learner)';
-    }
+    let rec = `Personalized Setup (${finalScore}% Mastery)`;
 
     if (finalScore >= 80) {
       assessmentTime = 'endOfModule';
@@ -330,14 +307,6 @@ export default function PreTest() {
       learningPath: overallPath,
       preTestFeedback: avgFeedback,
       recommendedStyle: rec,
-      learnerProfile: {
-        preferredStyle: style,
-        secondaryStyle: profile.secondaryStyle,
-        contentPreference: 'mixed',
-        feedbackStyle: 'immediate',
-        pacePref: 'medium',
-        distractionLevel: 'moderate'
-      },
       moduleProgress: [
         { moduleId: '2.1', completed: false, score: 0, stars: 0, learningPath: path21, masteryMap: {}, attemptsCount: {} },
         { moduleId: '2.2', completed: false, score: 0, stars: 0, learningPath: path22, masteryMap: {}, attemptsCount: {} },
@@ -391,7 +360,6 @@ export default function PreTest() {
       preTestProgress: null,
       preTestFeedback: results.preTestFeedback,
       recommendedStyle: results.recommendedStyle,
-      learnerProfile: results.learnerProfile,
       moduleProgress: [...mergedModuleProgress, ...missingExistingModules],
       settings: {
         ...(session?.settings || {}),
@@ -422,31 +390,10 @@ export default function PreTest() {
       if (currentIdx < preTestQuestions.length - 1) {
         setCurrentIdx(i => i + 1);
       } else {
-        setShowLearningStyleQuiz(true);
+        prepareResults();
       }
     }, 900);
   };
-
-  if (showLearningStyleQuiz) {
-    return (
-      <div className={cn(
-        "min-h-screen flex items-center justify-center transition-colors",
-        "p-4 sm:p-6 lg:p-8",
-        "bg-gradient-to-br from-slate-50 to-blue-50"
-      )}>
-        <div className={cn(
-          "w-full max-w-2xl"
-        )}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <LearningStyleQuiz onComplete={handleLearningStyleComplete} />
-          </motion.div>
-        </div>
-      </div>
-    );
-  }
 
   if (showRecommendation) {
     return (

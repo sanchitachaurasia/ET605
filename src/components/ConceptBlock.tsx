@@ -7,7 +7,6 @@ import { useConstraintEngine } from '../hooks/useConstraintEngine';
 import { useSessionStore } from '../store/sessionStore';
 import { remedialContentBank, getReferenceTagsForQuestion } from '../data/Standard/remedialContentBank';
 import { trackTelemetryEvent } from '../analytics/telemetry';
-import { AdaptiveContent } from './LearnerTypeComponents';
 
 function buildSegmentedVideoUrl(concept: Concept): string {
   const url = concept.videoUrl;
@@ -51,7 +50,6 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     contentMode: rawSettings.contentMode || 'video',
     assessmentTime: rawSettings.assessmentTime || 'inModule',
   };
-  const learnerStyle = session?.learnerProfile?.preferredStyle || 'mixed';
   const [currentQuestionIdx, setCurrentQuestionIdx] = React.useState(0);
   const [isRemediationExpanded, setIsRemediationExpanded] = React.useState(false);
   
@@ -367,22 +365,12 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       className="lesson-content-shell"
     >
       {(() => {
-        const lessonNode = (
+        return (
           <div
             ref={lessonContentRef}
             className="lesson-rich-content"
             dangerouslySetInnerHTML={{ __html: renderedLessonHtml }}
           />
-        );
-
-        return (
-      <AdaptiveContent
-        learnerStyle={learnerStyle}
-        visual={lessonNode}
-        auditory={learnerStyle === 'auditory' ? lessonNode : undefined}
-        readWrite={learnerStyle === 'readWrite' ? lessonNode : undefined}
-        kinesthetic={learnerStyle === 'kinesthetic' ? lessonNode : undefined}
-      />
         );
       })()}
     </motion.div>
