@@ -108,6 +108,8 @@ export default function App() {
         class: session.class,
         preTestScore: session.preTestScore,
         preTestDone: session.preTestDone,
+        preTestConfidenceByQuestion: session.preTestConfidenceByQuestion,
+        preTestSkillMastery: session.preTestSkillMastery,
         preTestRetakeInProgress: session.preTestRetakeInProgress,
         preTestProgress: session.preTestProgress,
         postTestProgress: session.postTestProgress,

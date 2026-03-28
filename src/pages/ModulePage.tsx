@@ -495,6 +495,9 @@ export default function ModulePage() {
     const nextModuleId = currentModuleIndex >= 0 ? moduleCatalog[currentModuleIndex + 1]?.id : undefined;
 
     let nextPath = path;
+    let nextAdaptiveMode: 'support' | 'standard' | 'challenge' = existingModule?.adaptiveMode || 'standard';
+    let nextConceptStage: 'content' | 'questions' = nextAdaptiveMode === 'challenge' ? 'questions' : 'content';
+    let strugglingSignal = session.isStruggling || false;
     let updatedMasteryMap = existingModule?.masteryMap || {};
     let updatedAttemptsCount = existingModule?.attemptsCount || {};
 
@@ -541,7 +544,64 @@ export default function ModulePage() {
         ? rollingWindow.reduce((sum, value) => sum + value, 0) / rollingWindow.length
         : performance.mastery;
 
-      nextPath = getPathForMastery(rollingMastery);
+      const baselinePath = getPathForMastery(rollingMastery);
+
+      const conceptQuestionCount = Math.max(
+        1,
+        filteredConcepts[currentConceptIdx]?.questions.filter((q) => !q.path || q.path === path).length || 1
+      );
+      const expectedConceptTime =
+        filteredConcepts[currentConceptIdx]?.estimatedTimeSeconds || Math.max(60, conceptQuestionCount * 45);
+
+      const isTelemetryStruggling =
+        performance.mastery < 0.4 ||
+        performance.accuracy < 0.45 ||
+        performance.remediationUsed > 0 ||
+        performance.hintsUsed >= Math.max(1, Math.ceil(conceptQuestionCount / 2)) ||
+        performance.attempts >= Math.max(3, conceptQuestionCount * 2) ||
+        performance.timeSpentSec > Math.round(expectedConceptTime * 1.45);
+
+      const isTelemetryFast =
+        performance.mastery >= 0.82 &&
+        performance.accuracy >= 0.85 &&
+        performance.hintsUsed === 0 &&
+        performance.remediationUsed === 0 &&
+        performance.attempts <= Math.max(1, conceptQuestionCount) &&
+        performance.timeSpentSec <= Math.max(35, Math.round(expectedConceptTime * 0.6));
+
+      if (isTelemetryStruggling) {
+        nextPath = 'A';
+        nextAdaptiveMode = 'support';
+        nextConceptStage = 'content';
+        strugglingSignal = true;
+      } else if (isTelemetryFast) {
+        nextPath = 'C';
+        nextAdaptiveMode = 'challenge';
+        nextConceptStage = 'questions';
+        strugglingSignal = false;
+      } else {
+        nextPath = baselinePath;
+        nextAdaptiveMode = rollingMastery <= 0.45 ? 'support' : rollingMastery >= 0.82 ? 'challenge' : 'standard';
+        nextConceptStage = nextAdaptiveMode === 'challenge' ? 'questions' : 'content';
+        if (nextAdaptiveMode === 'support') strugglingSignal = true;
+        if (nextAdaptiveMode === 'challenge') strugglingSignal = false;
+      }
+
+      trackTelemetryEvent('profile_updated', {
+        module_id: moduleId,
+        event_data: {
+          adaptive_mode: nextAdaptiveMode,
+          adaptive_path: nextPath,
+          concept_id: performance.conceptId,
+          mastery: Number(performance.mastery.toFixed(3)),
+          accuracy: Number(performance.accuracy.toFixed(3)),
+          attempts: performance.attempts,
+          hints_used: performance.hintsUsed,
+          remediation_used: performance.remediationUsed,
+          time_spent_sec: performance.timeSpentSec,
+          source: 'concept_telemetry',
+        }
+      });
     }
 
     const applyPathToCurrentModule = (includeStage?: { currentConceptIdx: number; currentConceptStage: 'content' | 'examples' | 'questions' }) => {
@@ -551,6 +611,7 @@ export default function ModulePage() {
           learningPath: isReviewingCompletedModule
             ? existingProgress[existingModIdx].learningPath
             : nextPath,
+          adaptiveMode: nextAdaptiveMode,
           masteryMap: updatedMasteryMap,
           attemptsCount: updatedAttemptsCount,
           ...(includeStage || {}),
@@ -562,6 +623,7 @@ export default function ModulePage() {
           score: 0,
           stars: 0,
           learningPath: nextPath,
+          adaptiveMode: nextAdaptiveMode,
           masteryMap: updatedMasteryMap,
           attemptsCount: updatedAttemptsCount,
           ...(includeStage || {}),
@@ -578,6 +640,7 @@ export default function ModulePage() {
         existingProgress[nextIdx] = {
           ...existingProgress[nextIdx],
           learningPath: nextPath,
+          adaptiveMode: nextAdaptiveMode,
         };
       }
     };
@@ -585,24 +648,24 @@ export default function ModulePage() {
     if (currentConceptIdx < filteredConcepts.length - 1) {
       const nextIdx = currentConceptIdx + 1;
       setCurrentConceptIdx(nextIdx);
-      setConceptStage('content');
-      setConceptEntryStage('content');
+      setConceptStage(nextConceptStage);
+      setConceptEntryStage(nextConceptStage);
       setConceptEntryQuestionMode('first');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      applyPathToCurrentModule({ currentConceptIdx: nextIdx, currentConceptStage: 'content' });
+      applyPathToCurrentModule({ currentConceptIdx: nextIdx, currentConceptStage: nextConceptStage });
       if (shouldUpdateGlobalPath) {
-        updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+        updateSession({ moduleProgress: existingProgress, learningPath: nextPath, isStruggling: strugglingSignal });
       } else {
-        updateSession({ moduleProgress: existingProgress });
+        updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
     } else if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
       applyPathToCurrentModule();
       applyPathToNextModule();
       if (shouldUpdateGlobalPath) {
-        updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+        updateSession({ moduleProgress: existingProgress, learningPath: nextPath, isStruggling: strugglingSignal });
       } else {
-        updateSession({ moduleProgress: existingProgress });
+        updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
       setShowFinalAssessment(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -610,9 +673,9 @@ export default function ModulePage() {
       applyPathToCurrentModule();
       applyPathToNextModule();
       if (shouldUpdateGlobalPath) {
-        updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+        updateSession({ moduleProgress: existingProgress, learningPath: nextPath, isStruggling: strugglingSignal });
       } else {
-        updateSession({ moduleProgress: existingProgress });
+        updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
       handleModuleComplete(existingProgress, nextPath);
     }

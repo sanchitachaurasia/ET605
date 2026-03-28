@@ -7,9 +7,124 @@ import { preTestQuestions } from '../data/Pre-Test/questions';
 import { useSessionStore } from '../store/sessionStore';
 import { trackEvent } from '../analytics/tracker';
 import { logout } from '../lib/firebaseAuth';
-import { GameFormat, PreTestProgress } from '../types';
+import { GameFormat, PreTestConfidence, PreTestProgress } from '../types';
 import { cn } from '../lib/utils';
 import { useResponsive } from '../components/ResponsiveLayout';
+
+type PreTestAdaptiveMode = 'support' | 'standard' | 'challenge';
+
+type ModuleSkillEval = {
+  mastery: number;
+  path: 'A' | 'B' | 'C';
+  adaptiveMode: PreTestAdaptiveMode;
+};
+
+const MODULE_SKILL_QUESTION_IDS: Record<string, string[]> = {
+  '2.1': ['q_books_raj', 'q_pictograph_300', 'q_improvement_40', 'q_science_fraction', 'q_tally_7'],
+  '2.2': ['q_interval_25'],
+  '2.3': ['q_pie_chocolate'],
+  '2.4': ['q_spinner_blue'],
+};
+
+const SUPPORT_STYLE_FALLBACK: GameFormat[] = [
+  GameFormat.DRAG_SORT,
+  GameFormat.TALLY_TAP,
+  GameFormat.BAR_BUILDER,
+];
+
+const CHALLENGE_STYLE_FALLBACK: GameFormat[] = [
+  GameFormat.SPIN_WHEEL,
+  GameFormat.HOTSPOT,
+  GameFormat.PIE_SLICER,
+];
+
+const STYLE_FORMAT_PRIORITIES: Record<'gamified' | 'traditional' | 'balanced', GameFormat[]> = {
+  gamified: [GameFormat.RAINDROP, GameFormat.SPIN_WHEEL, GameFormat.PIE_SLICER, GameFormat.DRAG_SORT],
+  traditional: [GameFormat.BAR_BUILDER, GameFormat.TALLY_TAP, GameFormat.HOTSPOT, GameFormat.DRAG_SORT],
+  balanced: [GameFormat.DRAG_SORT, GameFormat.BAR_BUILDER, GameFormat.RAINDROP, GameFormat.TALLY_TAP],
+};
+
+function getConfidenceWeight(isCorrect: boolean, confidence: PreTestConfidence): number {
+  if (isCorrect && confidence === 'sure') return 1;
+  if (isCorrect && confidence === 'maybe') return 0.75;
+  if (isCorrect && confidence === 'guess') return 0.35;
+  if (!isCorrect && confidence === 'sure') return 0.05;
+  if (!isCorrect && confidence === 'maybe') return 0.12;
+  return 0.2;
+}
+
+function getPathFromMastery(mastery: number): 'A' | 'B' | 'C' {
+  if (mastery < 0.45) return 'A';
+  if (mastery < 0.75) return 'B';
+  return 'C';
+}
+
+function getAdaptiveModeFromMastery(mastery: number): PreTestAdaptiveMode {
+  if (mastery <= 0.45) return 'support';
+  if (mastery >= 0.82) return 'challenge';
+  return 'standard';
+}
+
+function evaluateModuleSkill(
+  questionIds: string[],
+  correctAnswers: Record<string, boolean>,
+  confidenceByQuestion: Record<string, PreTestConfidence>
+): ModuleSkillEval {
+  if (questionIds.length === 0) {
+    return { mastery: 0.5, path: 'B', adaptiveMode: 'standard' };
+  }
+
+  const weightedScore = questionIds.reduce((sum, questionId) => {
+    const isCorrect = Boolean(correctAnswers[questionId]);
+    const confidence = confidenceByQuestion[questionId] || 'guess';
+    return sum + getConfidenceWeight(isCorrect, confidence);
+  }, 0);
+
+  const mastery = Math.max(0, Math.min(1, weightedScore / questionIds.length));
+  return {
+    mastery,
+    path: getPathFromMastery(mastery),
+    adaptiveMode: getAdaptiveModeFromMastery(mastery),
+  };
+}
+
+function buildRecommendedGameStyles(
+  correctAnswers: Record<string, boolean>,
+  confidenceByQuestion: Record<string, PreTestConfidence>,
+  overallMastery: number
+): string[] {
+  const scoreByFormat = new Map<GameFormat, { weighted: number; total: number }>();
+
+  for (const question of preTestQuestions) {
+    const format = question.format;
+    const confidence = confidenceByQuestion[question.id] || 'guess';
+    const isCorrect = Boolean(correctAnswers[question.id]);
+    const weighted = getConfidenceWeight(isCorrect, confidence);
+    const current = scoreByFormat.get(format) || { weighted: 0, total: 0 };
+    scoreByFormat.set(format, {
+      weighted: current.weighted + weighted,
+      total: current.total + 1,
+    });
+  }
+
+  const rankedFormats = Array.from(scoreByFormat.entries())
+    .map(([format, stats]) => ({
+      format,
+      score: stats.total > 0 ? stats.weighted / stats.total : 0,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map((entry) => entry.format);
+
+  const baseRecommendation =
+    overallMastery <= 0.45
+      ? SUPPORT_STYLE_FALLBACK
+      : overallMastery >= 0.82
+        ? CHALLENGE_STYLE_FALLBACK
+        : rankedFormats;
+
+  const merged = [...new Set([...baseRecommendation, ...rankedFormats])];
+  return merged.slice(0, 3).map((format) => format);
+}
 
 export default function PreTest() {
   const isRestoringRef = useRef(false);
@@ -18,6 +133,7 @@ export default function PreTest() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
+  const [confidenceByQuestion, setConfidenceByQuestion] = useState<Record<string, PreTestConfidence>>({});
   const [preferredQuestionIds, setPreferredQuestionIds] = useState<string[]>([]);
   const [prefAssessmentStyle, setPrefAssessmentStyle] = useState<'gamified' | 'traditional' | 'balanced'>('balanced');
   const [showRecommendation, setShowRecommendation] = useState(false);
@@ -27,6 +143,8 @@ export default function PreTest() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showSkipConfirm, setShowSkipConfirm] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showConfidenceCapture, setShowConfidenceCapture] = useState(false);
+  const [pendingAnswer, setPendingAnswer] = useState<{ questionId: string; isCorrect: boolean } | null>(null);
   const { isMobile } = useResponsive();
   
   const { session, updateSession, clearSession } = useSessionStore();
@@ -65,7 +183,12 @@ export default function PreTest() {
     setCurrentIdx(saved.currentIdx ?? 0);
     setScore(saved.score ?? 0);
     setCorrectAnswers(saved.correctAnswers ?? {});
-    setPreferredQuestionIds(saved.preferredQuestionIds ?? []);
+    setConfidenceByQuestion(saved.confidenceByQuestion ?? {});
+    const restoredPreferred = Array.isArray(saved.preferredQuestionIds) ? saved.preferredQuestionIds : [];
+    const recommendedFromPending = Array.isArray(saved.pendingResults?.recommendedFormatIds)
+      ? saved.pendingResults.recommendedFormatIds
+      : [];
+    setPreferredQuestionIds(restoredPreferred.length > 0 ? restoredPreferred : recommendedFromPending);
     setPrefAssessmentStyle(saved.assessmentStyle ?? 'balanced');
     setRecommendation(saved.recommendation ?? '');
     setPrefContentMode(saved.prefContentMode ?? 'video');
@@ -96,6 +219,7 @@ export default function PreTest() {
       currentIdx,
       score,
       correctAnswers,
+      confidenceByQuestion,
       preferredQuestionIds,
       assessmentStyle: prefAssessmentStyle,
       recommendation,
@@ -116,6 +240,7 @@ export default function PreTest() {
     currentIdx,
     score,
     correctAnswers,
+    confidenceByQuestion,
     preferredQuestionIds,
     prefAssessmentStyle,
     recommendation,
@@ -181,6 +306,49 @@ export default function PreTest() {
         : [...prev, questionId]
     );
   };
+
+  const getRecommendedFormatIds = (): string[] => {
+    const pendingRecommended = (window as any)?._tempPreTestResults?.recommendedFormatIds;
+    if (Array.isArray(pendingRecommended) && pendingRecommended.length > 0) {
+      return pendingRecommended;
+    }
+    return effectivePreferredQuestionIds;
+  };
+
+  const getAutoSelectionForStyle = (style: 'gamified' | 'traditional' | 'balanced'): string[] => {
+    const recommended = getRecommendedFormatIds();
+    const stylePriority = STYLE_FORMAT_PRIORITIES[style].map((format) => format);
+
+    if (style === 'balanced') {
+      const mergedBalanced = [...new Set([...(recommended || []), ...stylePriority])];
+      return mergedBalanced.slice(0, 3);
+    }
+
+    const recommendedInStyle = recommended.filter((formatId) => stylePriority.includes(formatId as GameFormat));
+    const merged = [...new Set([...recommendedInStyle, ...stylePriority, ...recommended])];
+    return merged.slice(0, 3);
+  };
+
+  const handleAssessmentStyleChange = (style: 'gamified' | 'traditional' | 'balanced') => {
+    setPrefAssessmentStyle(style);
+    const autoSelection = getAutoSelectionForStyle(style);
+    setPreferredQuestionIds(autoSelection);
+  };
+
+  const effectivePreferredQuestionIds =
+    preferredQuestionIds.length > 0
+      ? preferredQuestionIds
+      : (Array.isArray((window as any)?._tempPreTestResults?.recommendedFormatIds)
+          ? (window as any)._tempPreTestResults.recommendedFormatIds
+          : []);
+
+  useEffect(() => {
+    if (!showRecommendation || preferredQuestionIds.length > 0) return;
+    const recommendedIds = (window as any)?._tempPreTestResults?.recommendedFormatIds;
+    if (Array.isArray(recommendedIds) && recommendedIds.length > 0) {
+      setPreferredQuestionIds(recommendedIds);
+    }
+  }, [showRecommendation, preferredQuestionIds.length]);
 
   const getFormatLabel = (format: GameFormat) => {
     switch (format) {
@@ -262,63 +430,158 @@ export default function PreTest() {
   };
 
   const prepareResults = () => {
-    // Calculate final results
     const finalScore = Math.round((score / preTestQuestions.length) * 100);
     const avgFeedback = 3;
-    
-    // Per-Module Path Logic
-    const getPath = (correctCount: number, total: number): 'A' | 'B' | 'C' => {
-      const ratio = correctCount / total;
-      if (ratio < 0.4) return 'A';
-      if (ratio < 0.7) return 'B';
-      return 'C';
-    };
 
-    const overallPath = getPath(score, preTestQuestions.length);
+    const overallMastery = preTestQuestions.reduce((sum, question) => {
+      const confidence = confidenceByQuestion[question.id] || 'guess';
+      const isCorrect = Boolean(correctAnswers[question.id]);
+      return sum + getConfidenceWeight(isCorrect, confidence);
+    }, 0) / Math.max(preTestQuestions.length, 1);
 
-    const m21Correct = [0, 1, 3, 4].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-    const m22Correct = [0, 6].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-    const m23Correct = [5].filter(i => correctAnswers[preTestQuestions[i].id]).length;
-    const m24Correct = [2].filter(i => correctAnswers[preTestQuestions[i].id]).length;
+    const confidenceAdjustedScore = Math.round(overallMastery * 100);
+    const overallPath = getPathFromMastery(overallMastery);
+    const recommendedFormatIds = buildRecommendedGameStyles(correctAnswers, confidenceByQuestion, overallMastery);
 
-    const path21 = getPath(m21Correct, 4);
-    const path22 = getPath(m22Correct, 2);
-    const path23 = m23Correct === 1 ? 'C' : 'A';
-    const path24 = m24Correct === 1 ? 'C' : 'A';
-    const path25 = 'B'; // Real-world applications - intermediate
-    const path26 = 'B'; // Data ethics - intermediate
+    const moduleEvaluationEntries = Object.entries(MODULE_SKILL_QUESTION_IDS).map(([moduleKey, questionIds]) => {
+      const evaluation = evaluateModuleSkill(questionIds, correctAnswers, confidenceByQuestion);
+      return [moduleKey, evaluation] as const;
+    });
 
-    // Initial Personalization Logic (can be overridden by preferences)
-    let contentMode: 'text' | 'video' = 'video';
-    let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
-    let rec = `Personalized Setup (${finalScore}% Mastery)`;
+    const moduleSkillMastery = moduleEvaluationEntries.reduce((acc, [moduleKey, evaluation]) => {
+      acc[moduleKey] = Number(evaluation.mastery.toFixed(3));
+      return acc;
+    }, {} as Record<string, number>);
 
-    if (finalScore >= 80) {
-      assessmentTime = 'endOfModule';
-    } else {
-      assessmentTime = 'inModule';
+    const m21 = moduleEvaluationEntries.find(([moduleKey]) => moduleKey === '2.1')?.[1] || { mastery: 0.5, path: 'B', adaptiveMode: 'standard' as PreTestAdaptiveMode };
+    const m22 = moduleEvaluationEntries.find(([moduleKey]) => moduleKey === '2.2')?.[1] || { mastery: 0.5, path: 'B', adaptiveMode: 'standard' as PreTestAdaptiveMode };
+    const m23 = moduleEvaluationEntries.find(([moduleKey]) => moduleKey === '2.3')?.[1] || { mastery: 0.5, path: 'B', adaptiveMode: 'standard' as PreTestAdaptiveMode };
+    const m24 = moduleEvaluationEntries.find(([moduleKey]) => moduleKey === '2.4')?.[1] || { mastery: 0.5, path: 'B', adaptiveMode: 'standard' as PreTestAdaptiveMode };
+
+    const path25 = getPathFromMastery(overallMastery);
+    const path26 = getPathFromMastery(overallMastery);
+    const mode25 = getAdaptiveModeFromMastery(overallMastery);
+    const mode26 = getAdaptiveModeFromMastery(overallMastery);
+
+    const supportModules = [
+      ...(m21.adaptiveMode === 'support' ? ['2.1'] : []),
+      ...(m22.adaptiveMode === 'support' ? ['2.2'] : []),
+      ...(m23.adaptiveMode === 'support' ? ['2.3'] : []),
+      ...(m24.adaptiveMode === 'support' ? ['2.4'] : []),
+      ...(mode25 === 'support' ? ['2.5'] : []),
+      ...(mode26 === 'support' ? ['2.6'] : []),
+    ];
+    const challengeModules = [
+      ...(m21.adaptiveMode === 'challenge' ? ['2.1'] : []),
+      ...(m22.adaptiveMode === 'challenge' ? ['2.2'] : []),
+      ...(m23.adaptiveMode === 'challenge' ? ['2.3'] : []),
+      ...(m24.adaptiveMode === 'challenge' ? ['2.4'] : []),
+      ...(mode25 === 'challenge' ? ['2.5'] : []),
+      ...(mode26 === 'challenge' ? ['2.6'] : []),
+    ];
+
+    const contentMode: 'text' | 'video' = overallMastery >= 0.6 ? 'text' : 'video';
+    const assessmentTime: 'inModule' | 'endOfModule' = overallMastery >= 0.78 ? 'endOfModule' : 'inModule';
+
+    const recParts = [`Adaptive setup (${finalScore}% accuracy, ${confidenceAdjustedScore}% confidence-adjusted mastery)`];
+    if (supportModules.length > 0) {
+      recParts.push(`Support focus: ${supportModules.join(', ')}`);
     }
-    
+    if (challengeModules.length > 0) {
+      recParts.push(`Challenge-ready: ${challengeModules.join(', ')}`);
+    }
+    const rec = recParts.join(' • ');
+
+    setPreferredQuestionIds(recommendedFormatIds);
     setRecommendation(rec);
     setPrefContentMode(contentMode);
     setPrefAssessmentTime(assessmentTime);
     setShowRecommendation(true);
-    
-    // Store results for finish handler
+
     const tempResults = {
-      preTestScore: finalScore, 
+      preTestScore: finalScore,
       learningPath: overallPath,
       preTestFeedback: avgFeedback,
       recommendedStyle: rec,
+      recommendedFormatIds,
+      overallMastery,
+      moduleSkillMastery,
+      confidenceByQuestion,
       moduleProgress: [
-        { moduleId: '2.1', completed: false, score: 0, stars: 0, learningPath: path21, masteryMap: {}, attemptsCount: {} },
-        { moduleId: '2.2', completed: false, score: 0, stars: 0, learningPath: path22, masteryMap: {}, attemptsCount: {} },
-        { moduleId: '2.3', completed: false, score: 0, stars: 0, learningPath: path23, masteryMap: {}, attemptsCount: {} },
-        { moduleId: '2.4', completed: false, score: 0, stars: 0, learningPath: path24, masteryMap: {}, attemptsCount: {} },
-        { moduleId: '2.5', completed: false, score: 0, stars: 0, learningPath: path25, masteryMap: {}, attemptsCount: {} },
-        { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
+        {
+          moduleId: '2.1',
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: m21.path,
+          adaptiveMode: m21.adaptiveMode,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: 0,
+          currentConceptStage: m21.adaptiveMode === 'challenge' ? 'questions' : 'content',
+        },
+        {
+          moduleId: '2.2',
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: m22.path,
+          adaptiveMode: m22.adaptiveMode,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: 0,
+          currentConceptStage: m22.adaptiveMode === 'challenge' ? 'questions' : 'content',
+        },
+        {
+          moduleId: '2.3',
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: m23.path,
+          adaptiveMode: m23.adaptiveMode,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: 0,
+          currentConceptStage: m23.adaptiveMode === 'challenge' ? 'questions' : 'content',
+        },
+        {
+          moduleId: '2.4',
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: m24.path,
+          adaptiveMode: m24.adaptiveMode,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: 0,
+          currentConceptStage: m24.adaptiveMode === 'challenge' ? 'questions' : 'content',
+        },
+        {
+          moduleId: '2.5',
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: path25,
+          adaptiveMode: mode25,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: 0,
+          currentConceptStage: mode25 === 'challenge' ? 'questions' : 'content',
+        },
+        {
+          moduleId: '2.6',
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: path26,
+          adaptiveMode: mode26,
+          masteryMap: {},
+          attemptsCount: {},
+          currentConceptIdx: 0,
+          currentConceptStage: mode26 === 'challenge' ? 'questions' : 'content',
+        },
       ],
-      style: prefAssessmentStyle
+      style: prefAssessmentStyle,
     };
     (window as any)._tempPreTestResults = tempResults;
   };
@@ -327,12 +590,12 @@ export default function PreTest() {
     const results = (window as any)._tempPreTestResults;
     if (!results) return;
 
-    if (preferredQuestionIds.length === 0) {
+    if (effectivePreferredQuestionIds.length === 0) {
       return;
     }
 
     const selectedFormats = preTestPreferenceOptions
-      .filter((option) => preferredQuestionIds.includes(option.id))
+      .filter((option) => effectivePreferredQuestionIds.includes(option.id))
       .map((option) => option.format);
 
     const enabledMechanics = selectedFormats.length > 0
@@ -345,13 +608,26 @@ export default function PreTest() {
       const existingModule = existingProgress.find((m) => m.moduleId === nextModule.moduleId);
       if (!existingModule) return nextModule;
 
+      const hasModuleActivity =
+        Boolean(existingModule.completed) ||
+        Boolean(existingModule.showFinalAssessment) ||
+        (existingModule.currentConceptIdx || 0) > 0 ||
+        Object.keys(existingModule.attemptsCount || {}).length > 0;
+
+      if (hasModuleActivity) {
+        return {
+          ...existingModule,
+          completedPathSnapshot: existingModule.completed
+            ? (existingModule.completedPathSnapshot || existingModule.learningPath)
+            : existingModule.completedPathSnapshot,
+          adaptiveMode: existingModule.adaptiveMode || nextModule.adaptiveMode,
+        };
+      }
+
       return {
         ...existingModule,
-        // Preserve studied path for completed modules so review opens exact learned variant.
-        learningPath: existingModule.completed ? existingModule.learningPath : nextModule.learningPath,
-        completedPathSnapshot: existingModule.completed
-          ? (existingModule.completedPathSnapshot || existingModule.learningPath)
-          : existingModule.completedPathSnapshot,
+        ...nextModule,
+        completedPathSnapshot: existingModule.completedPathSnapshot,
       };
     });
 
@@ -363,10 +639,13 @@ export default function PreTest() {
       preTestScore: results.preTestScore, 
       learningPath: results.learningPath, 
       preTestDone: true,
+      preTestConfidenceByQuestion: confidenceByQuestion,
+      preTestSkillMastery: results.moduleSkillMastery,
       preTestRetakeInProgress: false,
       preTestProgress: null,
       preTestFeedback: results.preTestFeedback,
       recommendedStyle: results.recommendedStyle,
+      isStruggling: results.overallMastery < 0.45,
       moduleProgress: [...mergedModuleProgress, ...missingExistingModules],
       settings: {
         ...(session?.settings || {}),
@@ -379,27 +658,45 @@ export default function PreTest() {
     navigate('/dashboard');
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
-    if (isCorrect) setScore(s => s + 1);
-    setCorrectAnswers(prev => ({ ...prev, [preTestQuestions[currentIdx].id]: isCorrect }));
-    
+  const handleConfidenceSelection = (confidence: PreTestConfidence) => {
+    if (!pendingAnswer) return;
+
+    const { questionId, isCorrect } = pendingAnswer;
+
+    if (isCorrect) setScore((s) => s + 1);
+    setCorrectAnswers((prev) => ({ ...prev, [questionId]: isCorrect }));
+    setConfidenceByQuestion((prev) => ({ ...prev, [questionId]: confidence }));
+
+    const confidenceWeighted = getConfidenceWeight(isCorrect, confidence);
     trackEvent({
       type: 'question_attempt',
       timestamp: new Date().toISOString(),
       data: {
-        questionId: preTestQuestions[currentIdx].id,
+        questionId,
         isCorrect,
-        phase: 'pre-test'
-      }
+        confidence,
+        confidenceWeighted,
+        phase: 'pre-test',
+      },
     });
+
+    setShowConfidenceCapture(false);
+    setPendingAnswer(null);
 
     setTimeout(() => {
       if (currentIdx < preTestQuestions.length - 1) {
-        setCurrentIdx(i => i + 1);
+        setCurrentIdx((i) => i + 1);
       } else {
         prepareResults();
       }
-    }, 900);
+    }, 650);
+  };
+
+  const handleAnswer = (isCorrect: boolean) => {
+    if (pendingAnswer) return;
+
+    setPendingAnswer({ questionId: preTestQuestions[currentIdx].id, isCorrect });
+    setShowConfidenceCapture(true);
   };
 
   if (showRecommendation) {
@@ -452,7 +749,7 @@ export default function PreTest() {
                 ].map((style) => (
                   <button
                     key={style.id}
-                    onClick={() => setPrefAssessmentStyle(style.id as any)}
+                    onClick={() => handleAssessmentStyleChange(style.id as 'gamified' | 'traditional' | 'balanced')}
                     className={cn(
                       "rounded-xl border-2 p-2.5 text-center transition-all",
                       prefAssessmentStyle === style.id ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-500"
@@ -469,9 +766,12 @@ export default function PreTest() {
             <section>
               <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
               <p className="mb-2 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>
+              <p className="mb-2 text-xs font-bold text-emerald-700">
+                Auto-selected recommended styles based on your diagnostic. You can change them.
+              </p>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-7">
                 {preTestPreferenceOptions.map((option) => {
-                  const selected = preferredQuestionIds.includes(option.id);
+                  const selected = effectivePreferredQuestionIds.includes(option.id);
                   return (
                     <button
                       key={option.id}
@@ -494,7 +794,7 @@ export default function PreTest() {
                 })}
               </div>
               <p className="mt-1 text-xs font-semibold text-slate-500">
-                Selected: {preferredQuestionIds.length} (minimum 1 required)
+                Selected: {effectivePreferredQuestionIds.length} (minimum 1 required)
               </p>
             </section>
 
@@ -552,7 +852,7 @@ export default function PreTest() {
 
             <button
               onClick={handleFinish}
-              disabled={preferredQuestionIds.length === 0}
+              disabled={effectivePreferredQuestionIds.length === 0}
               className="w-full rounded-2xl bg-brand py-2.5 sm:py-3 text-sm sm:text-base font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Start My Journey
@@ -660,6 +960,47 @@ export default function PreTest() {
             onAnswer={handleAnswer}
           />
         </div>
+
+        <AnimatePresence>
+          {showConfidenceCapture && pendingAnswer && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.92, y: 16 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.96, y: 8 }}
+                className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl"
+              >
+                <p className="text-xs font-black uppercase tracking-widest text-slate-500">Confidence Check</p>
+                <h3 className="mt-2 text-2xl font-black text-slate-900">How sure are you?</h3>
+                <p className="mt-2 text-sm font-semibold text-slate-600">
+                  Your confidence helps us pick support mode vs challenge mode more accurately.
+                </p>
+
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                  {([
+                    { key: 'sure', label: 'Sure', style: 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' },
+                    { key: 'maybe', label: 'Maybe', style: 'border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-100' },
+                    { key: 'guess', label: 'Guess', style: 'border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100' },
+                  ] as Array<{ key: PreTestConfidence; label: string; style: string }>).map((item) => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => handleConfidenceSelection(item.key)}
+                      className={cn('rounded-xl border px-3 py-3 text-sm font-black transition', item.style)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Skip Confirmation Modal */}
         <AnimatePresence>

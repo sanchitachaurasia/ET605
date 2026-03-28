@@ -10,6 +10,7 @@ export enum GameFormat {
 
 export type LearningPath = 'A' | 'B' | 'C';
 export type ConfidenceRating = 'low' | 'med' | 'high';
+export type PreTestConfidence = 'sure' | 'maybe' | 'guess';
 export type AccessibilityLevel =
   | 'standard'
   | 'highContrast'
@@ -109,6 +110,7 @@ export interface PreTestProgress {
   currentIdx: number;
   score: number;
   correctAnswers: Record<string, boolean>;
+  confidenceByQuestion: Record<string, PreTestConfidence>;
   preferredQuestionIds: string[];
   assessmentStyle: 'gamified' | 'traditional' | 'balanced';
   recommendation: string;
@@ -149,6 +151,7 @@ export interface ModuleProgress {
   score: number;
   stars: number;
   learningPath: LearningPath;
+  adaptiveMode?: 'support' | 'standard' | 'challenge';
   confidenceRating?: ConfidenceRating;
   confidenceUpdatedAt?: number;
   completedPathSnapshot?: LearningPath;
@@ -223,6 +226,8 @@ export interface StudentSession {
   class: string;
   preTestScore: number;
   preTestDone: boolean;
+  preTestConfidenceByQuestion?: Record<string, PreTestConfidence>;
+  preTestSkillMastery?: Record<string, number>;
   preTestRetakeInProgress?: boolean;
   preTestFeedback?: number;
   recommendedStyle?: string;

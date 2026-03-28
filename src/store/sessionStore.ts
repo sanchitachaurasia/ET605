@@ -155,6 +155,8 @@ export const useSessionStore = create<SessionState>()(
             ...state.session,
             preTestScore: 0,
             preTestDone: false,
+            preTestConfidenceByQuestion: {},
+            preTestSkillMastery: {},
             preTestRetakeInProgress: false,
             preTestProgress: null,
             postTestProgress: null,
