@@ -129,6 +129,7 @@ export interface ModuleProgress {
   score: number;
   stars: number;
   learningPath: LearningPath;
+  completedPathSnapshot?: LearningPath;
   masteryMap: Record<string, 'untried' | 'mastered' | 'masteredWithSupport' | 'struggling' | 'attempted'>;
   attemptsCount: Record<string, number>;
   currentConceptIdx?: number;

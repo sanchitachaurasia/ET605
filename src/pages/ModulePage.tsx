@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { getChapterDataForPath } from '../data/Standard/pathData';
 import { ConceptBlock } from '../components/ConceptBlock';
@@ -15,6 +15,8 @@ import confetti from 'canvas-confetti';
 import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
 import { remedialContentBank, getReferenceTagsForQuestion } from '../data/Standard/remedialContentBank';
 import { trackTelemetryEvent, updateTrackingModule, flushTrackingEvents } from '../analytics/telemetry';
+import type { ModuleProgress } from '../types';
+import type { LearningPath } from '../types';
 
 function decodeHtmlEntities(value: string): string {
   return value
@@ -50,23 +52,37 @@ function getPathForMastery(mastery: number): 'A' | 'B' | 'C' {
   return 'C';
 }
 
+function toPathLabel(path: 'A' | 'B' | 'C'): string {
+  if (path === 'A') return 'Foundational';
+  if (path === 'C') return 'Advanced';
+  return 'Standard';
+}
+
 export default function ModulePage() {
   useMergeIntegration();
   const { moduleId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { session, updateSession, updateMetrics } = useSessionStore();
+
+  const isReattemptMode = searchParams.get('mode') === 'reattempt';
   const moduleProgress = session?.moduleProgress?.find((p) => p.moduleId === moduleId);
-  const path = moduleProgress?.learningPath || session?.learningPath || 'B';
+  const reviewedPath = moduleProgress?.completedPathSnapshot || moduleProgress?.learningPath;
+  const isReviewMode = !!moduleProgress?.completed && !isReattemptMode;
+  const path = isReattemptMode
+    ? (session?.learningPath || 'B')
+    : (isReviewMode ? reviewedPath : moduleProgress?.learningPath) || session?.learningPath || 'B';
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentConceptIdx, setCurrentConceptIdx] = useState(() => moduleProgress?.currentConceptIdx || 0);
-  const [showFinalAssessment, setShowFinalAssessment] = useState(() => moduleProgress?.showFinalAssessment || false);
-  const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => moduleProgress?.finalAssessmentIdx || 0);
-  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>(() => moduleProgress?.currentConceptStage || 'content');
-  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => moduleProgress?.currentConceptStage || 'content');
+  const [currentConceptIdx, setCurrentConceptIdx] = useState(() => (isReattemptMode ? 0 : moduleProgress?.currentConceptIdx || 0));
+  const [showFinalAssessment, setShowFinalAssessment] = useState(() => (isReattemptMode ? false : moduleProgress?.showFinalAssessment || false));
+  const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => (isReattemptMode ? 0 : moduleProgress?.finalAssessmentIdx || 0));
+  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? 'content' : moduleProgress?.currentConceptStage || 'content'));
+  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? 'content' : moduleProgress?.currentConceptStage || 'content'));
   const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showReviewSnapshotPopup, setShowReviewSnapshotPopup] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(3);
   const lastPersistedModuleStateRef = useRef('');
@@ -96,6 +112,10 @@ export default function ModulePage() {
       return;
     }
 
+    if (isReattemptMode) {
+      return;
+    }
+
     const prog = session.moduleProgress?.find((p) => p.moduleId === moduleId);
     if (prog) {
       setCurrentConceptIdx(prog.currentConceptIdx || 0);
@@ -105,7 +125,31 @@ export default function ModulePage() {
       setConceptStage(restoredStage);
       setConceptEntryStage(restoredStage);
     }
-  }, [moduleId, session?.studentId, session?.moduleProgress]);
+  }, [moduleId, session?.studentId, session?.moduleProgress, isReattemptMode]);
+
+  useEffect(() => {
+    if (!isReattemptMode) return;
+
+    setCurrentConceptIdx(0);
+    setShowFinalAssessment(false);
+    setFinalAssessmentIdx(0);
+    setConceptStage('content');
+    setConceptEntryStage('content');
+    setConceptEntryQuestionMode('first');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [isReattemptMode, moduleId]);
+
+  useEffect(() => {
+    if (!session || !moduleId || !moduleProgress?.completed || moduleProgress.completedPathSnapshot) {
+      return;
+    }
+
+    updateSession({
+      moduleProgress: session.moduleProgress.map((p) =>
+        p.moduleId === moduleId ? { ...p, completedPathSnapshot: p.learningPath } : p
+      ),
+    });
+  }, [session, moduleId, moduleProgress?.completed, moduleProgress?.completedPathSnapshot, updateSession]);
 
   useEffect(() => {
     if (!session || !moduleId) return;
@@ -244,9 +288,42 @@ export default function ModulePage() {
     : Math.min(((currentConceptIdx + conceptStageWeight) / Math.max(filteredConcepts.length, 1)) * 100, 100);
 
   const allQuestions = filteredConcepts.flatMap((c) => c.questions.filter((q) => !q.path || q.path === path));
+  const reviewConceptSummary = isReviewMode
+    ? filteredConcepts.map((concept) => {
+        const attempts = moduleProgress?.attemptsCount?.[concept.id] || 0;
+        const hintsUsed = moduleProgress?.attemptsCount?.[`hints_${concept.id}`] || 0;
+        const timeSpentSec = moduleProgress?.attemptsCount?.[`time_${concept.id}`] || 0;
+        const questionCount = concept.questions.filter((q) => !q.path || q.path === path).length;
+        const skipped = questionCount > 0 && attempts === 0;
+        const mastery = moduleProgress?.masteryMap?.[concept.id] || 'untried';
+
+        return {
+          conceptId: concept.id,
+          title: concept.title,
+          questionCount,
+          attempts,
+          hintsUsed,
+          timeSpentSec,
+          skipped,
+          mastery,
+        };
+      })
+    : [];
+  const reviewedPathLabel = toPathLabel((reviewedPath || 'B') as 'A' | 'B' | 'C');
+  const currentPathLabel = toPathLabel((session.learningPath || 'B') as 'A' | 'B' | 'C');
 
   const handleExitClick = () => {
     setShowExitConfirm(true);
+  };
+
+  const jumpToConceptQuestions = (conceptIndex: number) => {
+    setShowReviewSnapshotPopup(false);
+    setShowFinalAssessment(false);
+    setCurrentConceptIdx(conceptIndex);
+    setConceptStage('questions');
+    setConceptEntryStage('questions');
+    setConceptEntryQuestionMode('first');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleConfirmExit = async () => {
@@ -269,7 +346,7 @@ export default function ModulePage() {
     }
   };
 
-  const handleModuleComplete = async () => {
+  const handleModuleComplete = async (moduleProgressOverride?: ModuleProgress[], learningPathOverride?: LearningPath) => {
     setShowCompletionCelebration(true);
     setRedirectCountdown(3);
 
@@ -283,27 +360,52 @@ export default function ModulePage() {
       confetti({ particleCount: 140, spread: 120, origin: { y: 0.58 } });
     }, 350);
 
-    const newProgress = [...(session.moduleProgress || [])];
+    const newProgress = [...(moduleProgressOverride || session.moduleProgress || [])];
     const modIdx = newProgress.findIndex((p) => p.moduleId === moduleId);
+    const finalPath =
+      learningPathOverride ||
+      (modIdx >= 0 ? newProgress[modIdx].learningPath : undefined) ||
+      (moduleProgress?.learningPath as LearningPath | undefined) ||
+      (session.learningPath as LearningPath | undefined) ||
+      (path as LearningPath);
+
     if (modIdx >= 0) {
-      newProgress[modIdx].completed = true;
-      newProgress[modIdx].showFinalAssessment = false;
-      newProgress[modIdx].finalAssessmentIdx = 0;
+      const priorAttemptsCount = newProgress[modIdx].attemptsCount || {};
+      const moduleAttemptCount = (priorAttemptsCount._moduleAttempts || 0) + 1;
+      const moduleReattemptCount = (priorAttemptsCount._moduleReattempts || 0) + (isReattemptMode ? 1 : 0);
+
+      newProgress[modIdx] = {
+        ...newProgress[modIdx],
+        completed: true,
+        learningPath: finalPath,
+        completedPathSnapshot: finalPath,
+        attemptsCount: {
+          ...priorAttemptsCount,
+          _moduleAttempts: moduleAttemptCount,
+          _moduleReattempts: moduleReattemptCount,
+        },
+        showFinalAssessment: false,
+        finalAssessmentIdx: 0,
+      };
     } else {
       newProgress.push({
         moduleId: moduleId!,
         completed: true,
         score: 100,
         stars: 3,
-        learningPath: path,
+        learningPath: finalPath,
+        completedPathSnapshot: finalPath,
         masteryMap: {},
-        attemptsCount: {},
+        attemptsCount: {
+          _moduleAttempts: 1,
+          _moduleReattempts: isReattemptMode ? 1 : 0,
+        },
         showFinalAssessment: false,
         finalAssessmentIdx: 0,
       });
     }
 
-    updateSession({ moduleProgress: newProgress, xp: (session.xp || 0) + 500, sessionStatus: 'completed' });
+    updateSession({ moduleProgress: newProgress, learningPath: finalPath, xp: (session.xp || 0) + 500, sessionStatus: 'completed' });
     trackTelemetryEvent('module_complete', {
       module_id: moduleId,
       event_data: {
@@ -329,7 +431,8 @@ export default function ModulePage() {
     const existingProgress = [...(session.moduleProgress || [])];
     const existingModIdx = existingProgress.findIndex((p) => p.moduleId === moduleId);
     const existingModule = existingModIdx >= 0 ? existingProgress[existingModIdx] : null;
-    const isReviewingCompletedModule = !!existingModule?.completed;
+    const isReviewingCompletedModule = !!existingModule?.completed && !isReattemptMode;
+    const shouldUpdateGlobalPath = !isReviewingCompletedModule;
     const currentModuleIndex = moduleCatalog.findIndex((m) => m.id === moduleId);
     const nextModuleId = currentModuleIndex >= 0 ? moduleCatalog[currentModuleIndex + 1]?.id : undefined;
 
@@ -339,12 +442,15 @@ export default function ModulePage() {
 
     if (performance && !isReviewingCompletedModule) {
       const roundedMastery = Math.round(performance.mastery * 100);
+      const priorAttemptsForConcept = updatedAttemptsCount[performance.conceptId] || 0;
+      const priorHintsForConcept = updatedAttemptsCount[`hints_${performance.conceptId}`] || 0;
+      const priorTimeForConcept = updatedAttemptsCount[`time_${performance.conceptId}`] || 0;
       updatedAttemptsCount = {
         ...updatedAttemptsCount,
-        [performance.conceptId]: performance.attempts,
+        [performance.conceptId]: isReattemptMode ? priorAttemptsForConcept + performance.attempts : performance.attempts,
         [`mastery_${performance.conceptId}`]: roundedMastery,
-        [`hints_${performance.conceptId}`]: performance.hintsUsed,
-        [`time_${performance.conceptId}`]: performance.timeSpentSec,
+        [`hints_${performance.conceptId}`]: isReattemptMode ? priorHintsForConcept + performance.hintsUsed : performance.hintsUsed,
+        [`time_${performance.conceptId}`]: isReattemptMode ? priorTimeForConcept + performance.timeSpentSec : performance.timeSpentSec,
       };
 
       const masteryStatus =
@@ -410,6 +516,7 @@ export default function ModulePage() {
       if (!nextModuleId) return;
       const nextIdx = existingProgress.findIndex((p) => p.moduleId === nextModuleId);
       if (nextIdx >= 0) {
+        if (existingProgress[nextIdx].completed) return;
         existingProgress[nextIdx] = {
           ...existingProgress[nextIdx],
           learningPath: nextPath,
@@ -426,30 +533,30 @@ export default function ModulePage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
       applyPathToCurrentModule({ currentConceptIdx: nextIdx, currentConceptStage: 'content' });
-      if (isReviewingCompletedModule) {
-        updateSession({ moduleProgress: existingProgress });
-      } else {
+      if (shouldUpdateGlobalPath) {
         updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+      } else {
+        updateSession({ moduleProgress: existingProgress });
       }
     } else if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
       applyPathToCurrentModule();
       applyPathToNextModule();
-      if (isReviewingCompletedModule) {
-        updateSession({ moduleProgress: existingProgress });
-      } else {
+      if (shouldUpdateGlobalPath) {
         updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+      } else {
+        updateSession({ moduleProgress: existingProgress });
       }
       setShowFinalAssessment(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       applyPathToCurrentModule();
       applyPathToNextModule();
-      if (isReviewingCompletedModule) {
-        updateSession({ moduleProgress: existingProgress });
-      } else {
+      if (shouldUpdateGlobalPath) {
         updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+      } else {
+        updateSession({ moduleProgress: existingProgress });
       }
-      handleModuleComplete();
+      handleModuleComplete(existingProgress, nextPath);
     }
   };
 
@@ -542,19 +649,43 @@ export default function ModulePage() {
             <RocketProgress progress={progress} />
           </div>
 
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95',
-              settings.darkMode ? 'bg-slate-800 text-slate-300' : 'bg-[#f3f1eb] text-slate-700'
+          <div className="flex items-center gap-2">
+            {isReviewMode && (
+              <button
+                onClick={() => setShowReviewSnapshotPopup(true)}
+                className={cn(
+                  'rounded-full px-4 py-2 text-xs font-black uppercase tracking-wide transition',
+                  settings.darkMode ? 'bg-blue-900/70 text-blue-100 hover:bg-blue-900' : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                )}
+              >
+                Review Snapshot
+              </button>
             )}
-          >
-            <Settings size={20} />
-          </button>
+
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className={cn(
+                'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95',
+                settings.darkMode ? 'bg-slate-800 text-slate-300' : 'bg-[#f3f1eb] text-slate-700'
+              )}
+            >
+              <Settings size={20} />
+            </button>
+          </div>
         </div>
       </header>
 
       <main className="mx-auto mt-5 max-w-[84rem] px-4 sm:px-7">
+        {isReattemptMode && (
+          <div className={cn('mb-5 rounded-2xl border p-4', settings.darkMode ? 'border-emerald-700 bg-emerald-900/20' : 'border-emerald-200 bg-emerald-50/70')}>
+            <p className={cn('text-xs font-black uppercase tracking-widest', settings.darkMode ? 'text-emerald-300' : 'text-emerald-700')}>
+              Reattempt Mode
+            </p>
+            <p className={cn('mt-1 text-sm font-semibold', settings.darkMode ? 'text-slate-200' : 'text-slate-700')}>
+              Attempting this module on your current path: {currentPathLabel}.
+            </p>
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {!showFinalAssessment ? (
@@ -674,6 +805,83 @@ export default function ModulePage() {
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <AnimatePresence>
+        {showReviewSnapshotPopup && isReviewMode && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+            onClick={() => setShowReviewSnapshotPopup(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8 }}
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                'w-full max-w-3xl rounded-[2rem] border p-6 shadow-2xl',
+                settings.darkMode ? 'border-slate-700 bg-slate-900 text-slate-100' : 'border-[#ddd7ca] bg-white text-slate-900'
+              )}
+            >
+              <p className={cn('text-xs font-black uppercase tracking-widest', settings.darkMode ? 'text-blue-300' : 'text-blue-700')}>
+                Review Snapshot
+              </p>
+              <p className={cn('mt-1 text-sm font-semibold', settings.darkMode ? 'text-slate-200' : 'text-slate-700')}>
+                Showing your saved attempt on {reviewedPathLabel} path.
+              </p>
+
+              <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
+                {reviewConceptSummary.map((item, index) => (
+                  <div
+                    key={item.conceptId}
+                    className={cn('rounded-xl border px-3 py-2 text-xs font-semibold', settings.darkMode ? 'border-slate-700 bg-slate-900/60 text-slate-300' : 'border-slate-200 bg-slate-50 text-slate-700')}
+                  >
+                    <p className="font-black">{item.title}</p>
+                    <p className="mt-1">
+                      Questions: {item.questionCount} | Attempts: {item.attempts} | Hints: {item.hintsUsed} | Time: {item.timeSpentSec}s | {item.skipped ? 'Skipped' : `Status: ${item.mastery}`}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => jumpToConceptQuestions(index)}
+                      disabled={item.questionCount === 0}
+                      className={cn(
+                        'mt-2 text-xs font-black underline underline-offset-2',
+                        item.questionCount === 0
+                          ? 'cursor-not-allowed opacity-50'
+                          : (settings.darkMode ? 'text-blue-300 hover:text-blue-200' : 'text-blue-700 hover:text-blue-800')
+                      )}
+                    >
+                      Go to Questions
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-2">
+                <button
+                  onClick={() => {
+                    setShowReviewSnapshotPopup(false);
+                    navigate(`/module/${moduleId}?mode=reattempt`);
+                  }}
+                  className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-black text-white"
+                >
+                  Reattempt Module (Current Path: {currentPathLabel})
+                </button>
+
+                <button
+                  onClick={() => setShowReviewSnapshotPopup(false)}
+                  className={cn(
+                    'rounded-xl px-4 py-2 text-sm font-black',
+                    settings.darkMode ? 'border border-slate-600 text-slate-200 hover:bg-slate-800' : 'border border-slate-300 text-slate-700 hover:bg-slate-100'
+                  )}
+                >
+                  Done
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
         {showExitConfirm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
             <motion.div

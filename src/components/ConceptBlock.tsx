@@ -311,6 +311,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       if (!currentQuestion?.id || !showHint) return;
       if (trackedHintQuestionRef.current === currentQuestion.id) return;
       trackedHintQuestionRef.current = currentQuestion.id;
+      hintedQuestionIdsRef.current.add(currentQuestion.id);
 
       trackTelemetryEvent('hint_opened', {
         module_id: moduleId,
@@ -325,6 +326,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       if (!currentQuestion?.id || !showRemediation) return;
       if (trackedRemediationQuestionRef.current === currentQuestion.id) return;
       trackedRemediationQuestionRef.current = currentQuestion.id;
+      remediatedQuestionIdsRef.current.add(currentQuestion.id);
 
       updateMetrics({ remedialClicks: (session?.chapterMetrics?.remedialClicks || 0) + 1 });
       trackTelemetryEvent('remedial_opened', {
@@ -411,10 +413,24 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
       if (!button || !container.contains(button)) return;
 
       const practiceBox = button.closest('.practice-box');
-      const answerInPractice = practiceBox?.querySelector('.practice-ans') as HTMLElement | null;
       const nextSibling = button.nextElementSibling as HTMLElement | null;
       const adjacentAnswer = nextSibling?.classList.contains('practice-ans') ? nextSibling : null;
-      const answer = answerInPractice ?? adjacentAnswer;
+      let answerInPractice: HTMLElement | null = null;
+      if (practiceBox && !adjacentAnswer) {
+        let cursor = button.nextElementSibling as HTMLElement | null;
+        while (cursor) {
+          if (cursor.classList.contains('practice-ans')) {
+            answerInPractice = cursor;
+            break;
+          }
+          if (cursor.classList.contains('show-ans-btn')) {
+            break;
+          }
+          cursor = cursor.nextElementSibling as HTMLElement | null;
+        }
+      }
+
+      const answer = adjacentAnswer ?? answerInPractice;
       if (!answer) return;
 
       event.preventDefault();

@@ -349,6 +349,9 @@ export default function PreTest() {
         ...existingModule,
         // Preserve studied path for completed modules so review opens exact learned variant.
         learningPath: existingModule.completed ? existingModule.learningPath : nextModule.learningPath,
+        completedPathSnapshot: existingModule.completed
+          ? (existingModule.completedPathSnapshot || existingModule.learningPath)
+          : existingModule.completedPathSnapshot,
       };
     });
 

@@ -231,7 +231,7 @@ export default function Dashboard() {
                     key={mod.id}
                     whileHover={!locked ? { y: -5 } : {}}
                     className={cn(
-                      'app-float-card flex h-[200px] flex-col rounded-[1.8rem] p-5 transition-all',
+                      'app-float-card flex min-h-[220px] flex-col rounded-[1.8rem] p-5 transition-all',
                       locked ? 'opacity-70' : 'hover:shadow-xl',
                       settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-[#dbd6ca] bg-white/85',
                       completed && 'ring-1 ring-emerald-400'
@@ -250,13 +250,32 @@ export default function Dashboard() {
                       {locked ? 'Complete the previous module to unlock this one.' : completed ? 'Completed. Review anytime.' : 'Ready to begin this mission now.'}
                     </p>
 
-                    {!locked && (
+                    {!locked && completed && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => navigate(`/module/${mod.id}`)}
+                          className="inline-flex items-center gap-2 rounded-full border border-[#d6d1c5] bg-white px-4 py-2 text-sm font-black text-slate-800 transition hover:gap-3"
+                        >
+                          <BookOpen size={15} />
+                          Review Module
+                        </button>
+                        <button
+                          onClick={() => navigate(`/module/${mod.id}?mode=reattempt`)}
+                          className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-800 transition hover:bg-emerald-100"
+                        >
+                          <Play size={15} fill="currentColor" />
+                          Reattempt
+                        </button>
+                      </div>
+                    )}
+
+                    {!locked && !completed && (
                       <button
                         onClick={() => navigate(`/module/${mod.id}`)}
                         className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#d6d1c5] bg-white px-4 py-2 text-sm font-black text-slate-800 transition hover:gap-3"
                       >
-                        {completed ? <BookOpen size={15} /> : <Play size={15} fill="currentColor" />}
-                        {completed ? 'Review Module' : 'Start Module'}
+                        <Play size={15} fill="currentColor" />
+                        Start Module
                       </button>
                     )}
                   </motion.div>
