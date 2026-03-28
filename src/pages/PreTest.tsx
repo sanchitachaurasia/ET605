@@ -20,10 +20,10 @@ type ModuleSkillEval = {
 };
 
 const MODULE_SKILL_QUESTION_IDS: Record<string, string[]> = {
-  '2.1': ['q_books_raj', 'q_pictograph_300', 'q_improvement_40', 'q_science_fraction', 'q_tally_7'],
-  '2.2': ['q_interval_25'],
-  '2.3': ['q_pie_chocolate'],
-  '2.4': ['q_spinner_blue'],
+  '2.1': ['q_pictograph_300', 'q_tally_7', 'q_bar_house'],
+  '2.2': ['q_interval_25', 'q_histogram_data', 'q_histogram_gap'],
+  '2.3': ['q_pie_chocolate', 'q_pie_fraction'],
+  '2.4': ['q_spinner_blue', 'q_probability_dependence'],
 };
 
 const SUPPORT_STYLE_FALLBACK: GameFormat[] = [

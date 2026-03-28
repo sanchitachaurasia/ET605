@@ -1,95 +1,29 @@
 import { Module, GameFormat } from '../../types';
+import * as questionBank from '../questions/module_1';
 
-const inline_2_1_q1 = {
-  id: 'inline_2_1_q1',
-  text: 'A frequency table: Dog=7, Cat=10, Fish=6, Rabbit=5. Which animal is MOST popular?',
-  hint: 'Most popular = highest frequency. Find the biggest number in the Frequency column.',
-  remedialBrief: 'Cat has frequency 10 — the largest value. Most popular = Cat.',
-  remedialDetail: 'Scan the frequency column. The values are 7, 10, 6, and 5. The largest number is 10, which corresponds to Cat.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'bar',
-        data: [
-          { label: 'Dog', value: 7 },
-          { label: 'Cat', value: 10 },
-          { label: 'Fish', value: 6 },
-          { label: 'Rabbit', value: 5 },
-        ],
-      },
-      options: ['Dog', 'Cat', 'Fish', 'Rabbit'],
-      correctAnswer: 'Cat'
-    }
-  }
-};
-const inline_2_1_q2 = {
-  id: 'inline_2_1_q2',
-  text: 'Pictograph of cars: one symbol = 50 cars. September shows 4 full symbols and 1 half symbol. How many cars?',
-  hint: 'Full symbols × value. Half symbol = half the value. Then add both.',
-  remedialBrief: '4 × 50 = 200. Half symbol = 25. Total = 200 + 25 = 225 cars.',
-  remedialDetail: 'Step 1: Count full symbols and multiply: 4 × 50 = 200. Step 2: Half symbol = scale ÷ 2 = 50 ÷ 2 = 25. Step 3: Add: 200 + 25 = 225.',
-  styles: {
-    [GameFormat.RAINDROP]: {
-      visual: {
-        kind: 'pictograph',
-        rows: [{ label: 'September', symbols: '🚗🚗🚗🚗◐' }],
-        key: 'Key: 1 symbol = 50 cars (half = 25)',
-      },
-      options: ['200', '225', '250', '175'],
-      correctAnswer: '225'
-    }
-  }
-};
-const inline_2_1_q3 = {
-  id: 'inline_2_1_q3',
-  text: 'Double bar graph: Hindi 2005-06=50, 2006-07=45. Maths 2005-06=30, 2006-07=70. Which subject showed a DECREASE in performance?',
-  hint: 'Decrease = later value is LOWER than earlier value. Check each subject.',
-  remedialBrief: 'Hindi: 50 → 45 = decreased (−5). Maths: 30 → 70 = increased (+40). Answer: Hindi.',
-  remedialDetail: 'Decrease means the second (later) value is SMALLER than the first. Hindi went from 50 to 45, so it decreased. Maths went from 30 to 70, so it increased.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'bar',
-        data: [
-          { label: 'Hindi 05-06', value: 50 },
-          { label: 'Hindi 06-07', value: 45 },
-          { label: 'Maths 05-06', value: 30 },
-          { label: 'Maths 06-07', value: 70 },
-        ],
-      },
-      options: ['Maths', 'Hindi', 'Both subjects', 'Neither subject'],
-      correctAnswer: 'Hindi'
-    }
-  }
-};
-const inline_2_1_q4 = {
-  id: 'inline_2_1_q4',
-  text: 'A double bar graph shows boys vs girls marks in 5 subjects. Boys scores: Maths=40, Science=60, English=55, Hindi=70, Art=45. Girls scores: Maths=55, Science=50, English=65, Hindi=65, Art=50. In how many subjects did BOYS outperform GIRLS?',
-  hint: 'Outperform means score HIGHER. Compare boys vs girls in each subject one by one.',
-  remedialBrief: 'Science: 60 > 50 (boys win). Hindi: 70 > 65 (boys win). All others: girls scored higher. Count = 2 subjects.',
-  remedialDetail: 'Go subject by subject: Maths: B40 < G55. Science: B60 > G50 (Win). English: B55 < G65. Hindi: B70 > G65 (Win). Art: B45 < G50. Total wins = 2.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'bar',
-        data: [
-          { label: 'Maths B', value: 40 },
-          { label: 'Maths G', value: 55 },
-          { label: 'Science B', value: 60 },
-          { label: 'Science G', value: 50 },
-          { label: 'English B', value: 55 },
-          { label: 'English G', value: 65 },
-          { label: 'Hindi B', value: 70 },
-          { label: 'Hindi G', value: 65 },
-          { label: 'Art B', value: 45 },
-          { label: 'Art G', value: 50 },
-        ],
-      },
-      options: ['1 subject', '2 subjects', '3 subjects', '4 subjects'],
-      correctAnswer: '2 subjects'
-    }
-  }
-};
+
+function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
+  if (!question.styles) return {};
+  return question.styles[question.format] || (Object.values(question.styles)[0] as Record<string, any>) || {};
+}
+
+const ADAPTIVE_VARIANTS = ['', '_1', '_2', '_3', '_4', '_5', '_6'] as const;
+const ADAPTIVE_DIFFICULTY = ['easy', 'medium', 'medium', 'easy', 'hard', 'medium', 'easy'] as const;
+
+function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
+  return ADAPTIVE_VARIANTS.map((variant, index) => {
+    const questionKey = `inline_2_${moduleNumber}_${topicNumber}_0${variant}` as keyof typeof questionBank;
+    const question = questionBank[questionKey] as any;
+
+    return {
+      ...question,
+      ...getDefaultQuestionStyle(question),
+      hint: question.hintLevel1,
+      format: question.format,
+      difficulty: ADAPTIVE_DIFFICULTY[index],
+    };
+  });
+}
 
 const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
@@ -173,14 +107,7 @@ const moduleData: Module = {
           answer: 'Possible examples: a register of all the marks scored in a test (hard to see average or highest without sorting), a list of all items purchased in a week (hard to know which item was bought most often), a record of temperatures every hour in a day (hard to see patterns without ordering).'
         }
       ],
-      questions: [
-        {
-          ...inline_2_1_q1,
-          ...inline_2_1_q1.styles[GameFormat.DRAG_SORT],
-          format: GameFormat.DRAG_SORT,
-          difficulty: 'easy'
-        }
-      ]
+      questions: buildAdaptiveQuestions(1, 1)
     },
     {
       id: 'c2_1_2',
@@ -244,14 +171,7 @@ const moduleData: Module = {
           answer: 'Total = 35 data points.'
         }
       ],
-      questions: [
-        {
-          ...inline_2_1_q2,
-          ...inline_2_1_q2.styles[GameFormat.RAINDROP],
-          format: GameFormat.RAINDROP,
-          difficulty: 'easy'
-        }
-      ]
+      questions: buildAdaptiveQuestions(1, 2)
     },
     {
       id: 'c2_1_3',
@@ -302,14 +222,7 @@ const moduleData: Module = {
           answer: 'A suitable key is 1 symbol = 25 fruits, giving 10, 7, 12, and 5 symbols respectively.'
         }
       ],
-      questions: [
-        {
-          ...inline_2_1_q3,
-          ...inline_2_1_q3.styles[GameFormat.DRAG_SORT],
-          format: GameFormat.DRAG_SORT,
-          difficulty: 'medium'
-        }
-      ]
+      questions: buildAdaptiveQuestions(1, 3)
     },
     {
       id: 'c2_1_4',
@@ -371,14 +284,7 @@ const moduleData: Module = {
           answer: 'Starting above zero exaggerates differences and can mislead interpretation.'
         }
       ],
-      questions: [
-        {
-          ...inline_2_1_q4,
-          ...inline_2_1_q4.styles[GameFormat.DRAG_SORT],
-          format: GameFormat.DRAG_SORT,
-          difficulty: 'medium'
-        }
-      ]
+      questions: buildAdaptiveQuestions(1, 4)
     },
     {
       id: 'c2_1_5',
@@ -428,19 +334,7 @@ const moduleData: Module = {
           answer: 'Highest = 210, lowest = 95, and the trend is mixed/fluctuating.'
         }
       ],
-      questions: [
-        {
-          id: 'c2_1_5_q1',
-          text: 'Which type of graph would be most appropriate for comparing average rainfall across 12 months?',
-          options: ['Pictograph', 'Bar Graph', 'Histogram', 'Pie Chart'],
-          correctAnswer: 'Bar Graph',
-          format: GameFormat.RAINDROP,
-          difficulty: 'hard',
-          hint: 'Think about discrete categories (months) vs continuous data.',
-          remedialBrief: 'Months are categories (discrete), not a continuous range, so use a bar graph with gaps.',
-          remedialDetail: 'Pictographs work but are less precise. Histograms are for continuous data. Pie charts show parts of a whole. Bar graphs compare values across categories — perfect for months!'
-        }
-      ]
+      questions: buildAdaptiveQuestions(1, 5)
     },
     {
       id: 'c2_1_6',
@@ -488,19 +382,7 @@ const moduleData: Module = {
           answer: 'Tables give exact values, while graphs reveal patterns instantly. Example: enrolment dip is easier to spot in bars than raw numbers; score trends and dips become obvious visually over time.'
         }
       ],
-      questions: [
-        {
-          id: 'c2_1_6_q1',
-          text: 'If you were conducting a survey on favorite foods in your class, what would be the best graph format to present your findings?',
-          options: ['Pictograph with food symbols', 'Bar graph by category', 'Histogram', 'All of the above could work'],
-          correctAnswer: 'Bar graph by category',
-          format: GameFormat.RAINDROP,
-          difficulty: 'medium',
-          hint: 'Think about whether food categories are discrete (separate) or continuous (ranges).',
-          remedialBrief: 'Food types are categories, not continuous data. Bar graphs (with gaps) are best for comparing categories.',
-          remedialDetail: 'Pictographs work but are less standard for this. Histograms are for continuous grouping like height ranges or test scores, not discrete categories like food types.'
-        }
-      ]
+      questions: buildAdaptiveQuestions(1, 6)
     }
   ]
 };

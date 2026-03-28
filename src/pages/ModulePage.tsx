@@ -7,7 +7,6 @@ import { GameQuestion } from '../components/GameQuestion';
 import { RemediationBlock } from '../components/RemediationBlock';
 import { RocketProgress } from '../components/RocketProgress';
 import { useSessionStore } from '../store/sessionStore';
-import { useConstraintEngine } from '../hooks/useConstraintEngine';
 import { ChevronLeft, CheckCircle, Settings } from 'lucide-react';
 import { SettingsModal } from '../components/SettingsModal';
 import { cn } from '../lib/utils';
@@ -303,13 +302,15 @@ export default function ModulePage() {
     ? 100
     : Math.min(((currentConceptIdx + conceptStageWeight) / Math.max(filteredConcepts.length, 1)) * 100, 100);
 
-  const allQuestions = filteredConcepts.flatMap((c) => c.questions.filter((q) => !q.path || q.path === path));
+  const allQuestions = filteredConcepts
+    .flatMap((c) => c.questions.filter((q) => !q.path || q.path === path))
+    .filter((q) => !q.adaptiveVariant);
   const reviewConceptSummary = isReviewMode
     ? filteredConcepts.map((concept) => {
         const attempts = moduleProgress?.attemptsCount?.[concept.id] || 0;
         const hintsUsed = moduleProgress?.attemptsCount?.[`hints_${concept.id}`] || 0;
         const timeSpentSec = moduleProgress?.attemptsCount?.[`time_${concept.id}`] || 0;
-        const questionCount = concept.questions.filter((q) => !q.path || q.path === path).length;
+        const questionCount = concept.questions.filter((q) => (!q.path || q.path === path) && !q.adaptiveVariant).length;
         const skipped = questionCount > 0 && attempts === 0;
         const mastery = moduleProgress?.masteryMap?.[concept.id] || 'untried';
 
@@ -692,17 +693,121 @@ export default function ModulePage() {
 
   const [isFinalCorrect, setIsFinalCorrect] = useState(false);
   const [isRemediationExpanded, setIsRemediationExpanded] = useState(false);
-  const hintTrackedForQuestionRef = useRef<string | null>(null);
-  const remediationTrackedForQuestionRef = useRef<string | null>(null);
+  const [finalAttemptCount, setFinalAttemptCount] = useState(0);
+  const [finalHintLevel, setFinalHintLevel] = useState(0);
+  const [finalIncorrectFeedback, setFinalIncorrectFeedback] = useState<string | null>(null);
+  const [finalIncorrectOption, setFinalIncorrectOption] = useState<string | null>(null);
+  const [showFinalRemediation, setShowFinalRemediation] = useState(false);
+  const [isFinalExpandableRemedialOpen, setIsFinalExpandableRemedialOpen] = useState(false);
+  const finalHintPanelRef = useRef<HTMLDivElement | null>(null);
+  const MAX_FINAL_ATTEMPTS = 2;
 
   const currentFinalQuestion = allQuestions[finalAssessmentIdx];
-  const { showHint, showRemediation, onAnswer: onFinalAnswer } = useConstraintEngine(currentFinalQuestion?.id || 'final', moduleId);
   const finalRemediationEntry = currentFinalQuestion ? remedialContentBank[currentFinalQuestion.id] : undefined;
   const finalReferenceTags = currentFinalQuestion ? getReferenceTagsForQuestion(currentFinalQuestion.id) : [];
+  const finalQuestionTags = currentFinalQuestion?.questionTags || [];
+  const finalTagsToShow = finalReferenceTags.length > 0 ? finalReferenceTags : finalQuestionTags;
+
+  const getFinalHints = (): Array<{ level: 1 | 2; text: string }> => {
+    if (!currentFinalQuestion || finalHintLevel <= 0) return [];
+
+    const level1 = currentFinalQuestion.hintLevel1 || currentFinalQuestion.hint;
+    const level2 = currentFinalQuestion.hintLevel2 || level1;
+    const hints: Array<{ level: 1 | 2; text: string }> = [];
+
+    if (level1) {
+      hints.push({ level: 1, text: level1 });
+    }
+    if (finalHintLevel >= 2 && level2) {
+      hints.push({ level: 2, text: level2 });
+    }
+
+    return hints;
+  };
+
+  const visibleFinalHints = getFinalHints();
+
+  const scrollFinalHintPanelIntoView = () => {
+    window.setTimeout(() => {
+      const panel = finalHintPanelRef.current;
+      if (!panel) return;
+
+      const top = window.scrollY + panel.getBoundingClientRect().top - 100;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, 40);
+  };
+
+  useEffect(() => {
+    if (finalHintLevel <= 0) return;
+    scrollFinalHintPanelIntoView();
+  }, [finalHintLevel, currentFinalQuestion?.id]);
+
+  const handleFinalHintRequest = () => {
+    if (!currentFinalQuestion) return;
+
+    const nextLevel = Math.min(2, finalHintLevel + 1);
+    if (nextLevel === finalHintLevel) {
+      scrollFinalHintPanelIntoView();
+      return;
+    }
+
+    setFinalHintLevel(nextLevel);
+    updateMetrics({ hintsUsed: (session.chapterMetrics?.hintsUsed || 0) + 1 });
+    trackTelemetryEvent('hint_opened', {
+      module_id: moduleId,
+      question_id: currentFinalQuestion.id,
+      event_data: {
+        level: nextLevel,
+      }
+    });
+  };
+
+  const handleFinalAnswer = (isCorrect: boolean, selectedValue?: string | number | string[]) => {
+    if (!currentFinalQuestion || isFinalCorrect) return;
+
+    const nextAttempts = finalAttemptCount + 1;
+    setFinalAttemptCount(nextAttempts);
+
+    if (isCorrect) {
+      setIsFinalCorrect(true);
+      setFinalIncorrectFeedback(null);
+      return;
+    }
+
+    const selectedText = Array.isArray(selectedValue)
+      ? selectedValue.join(', ')
+      : (selectedValue !== undefined && selectedValue !== null ? String(selectedValue) : null);
+    setFinalIncorrectOption(selectedText);
+
+    const feedbackMap = currentFinalQuestion.incorrectOptionFeedback || {};
+    const feedbackText = selectedText && feedbackMap[selectedText]
+      ? feedbackMap[selectedText]
+      : 'Not quite. Try one more time carefully.';
+    setFinalIncorrectFeedback(feedbackText);
+
+    if (nextAttempts >= MAX_FINAL_ATTEMPTS) {
+      setShowFinalRemediation(true);
+      setIsFinalCorrect(true);
+      updateMetrics({ remedialClicks: (session.chapterMetrics?.remedialClicks || 0) + 1 });
+      trackTelemetryEvent('remedial_opened', {
+        module_id: moduleId,
+        question_id: currentFinalQuestion.id,
+        event_data: {
+          attempt: nextAttempts,
+        }
+      });
+    }
+  };
 
   const handleFinalQuestionComplete = () => {
     setIsFinalCorrect(false);
     setIsRemediationExpanded(false);
+    setIsFinalExpandableRemedialOpen(false);
+    setFinalAttemptCount(0);
+    setFinalHintLevel(0);
+    setFinalIncorrectFeedback(null);
+    setFinalIncorrectOption(null);
+    setShowFinalRemediation(false);
     if (finalAssessmentIdx < allQuestions.length - 1) {
       setFinalAssessmentIdx((prev) => prev + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -712,29 +817,15 @@ export default function ModulePage() {
   };
 
   useEffect(() => {
-    if (!moduleId || !currentFinalQuestion?.id) return;
-    if (!showHint) return;
-    if (hintTrackedForQuestionRef.current === currentFinalQuestion.id) return;
-
-    hintTrackedForQuestionRef.current = currentFinalQuestion.id;
-    trackTelemetryEvent('hint_opened', {
-      module_id: moduleId,
-      question_id: currentFinalQuestion.id,
-    });
-  }, [showHint, moduleId, currentFinalQuestion?.id]);
-
-  useEffect(() => {
-    if (!moduleId || !currentFinalQuestion?.id) return;
-    if (!showRemediation) return;
-    if (remediationTrackedForQuestionRef.current === currentFinalQuestion.id) return;
-
-    remediationTrackedForQuestionRef.current = currentFinalQuestion.id;
-    updateMetrics({ remedialClicks: (session.chapterMetrics?.remedialClicks || 0) + 1 });
-    trackTelemetryEvent('remedial_opened', {
-      module_id: moduleId,
-      question_id: currentFinalQuestion.id,
-    });
-  }, [showRemediation, moduleId, currentFinalQuestion?.id, session?.chapterMetrics?.remedialClicks, updateMetrics]);
+    setIsFinalCorrect(false);
+    setIsRemediationExpanded(false);
+    setIsFinalExpandableRemedialOpen(false);
+    setFinalAttemptCount(0);
+    setFinalHintLevel(0);
+    setFinalIncorrectFeedback(null);
+    setFinalIncorrectOption(null);
+    setShowFinalRemediation(false);
+  }, [currentFinalQuestion?.id]);
 
   return (
     <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
@@ -829,6 +920,15 @@ export default function ModulePage() {
                 <p className="text-slate-600">Great job reading through the concepts. Test your understanding with this final challenge.</p>
               </div>
 
+              <div className="flex items-center justify-end">
+                <button
+                  onClick={handleFinalHintRequest}
+                  className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-800 transition hover:bg-amber-100"
+                >
+                  Hint {finalHintLevel > 0 ? `(${finalHintLevel}/2)` : ''}
+                </button>
+              </div>
+
               <GameQuestion
                 key={allQuestions[finalAssessmentIdx].id}
                 questionId={allQuestions[finalAssessmentIdx].id}
@@ -839,33 +939,43 @@ export default function ModulePage() {
                 format={allQuestions[finalAssessmentIdx].format}
                 styles={allQuestions[finalAssessmentIdx].styles}
                 image={allQuestions[finalAssessmentIdx].image}
-                onAnswer={(isCorrect) => {
-                  const result = onFinalAnswer(isCorrect);
-                  if (result) {
-                    setIsFinalCorrect(true);
-                  }
-                }}
+                onAnswer={handleFinalAnswer}
               />
 
-              {showHint && !showRemediation && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-amber-200 bg-amber-50/90 p-6">
-                  <p className="flex items-center gap-2 font-bold text-amber-800">
-                    <span className="text-xl">💡</span> Hint
-                  </p>
-                  <p className="mt-2 text-amber-700">{allQuestions[finalAssessmentIdx].hint}</p>
+              {finalIncorrectFeedback && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="text-sm font-black uppercase tracking-wider text-rose-700">What went wrong</p>
+                  <p className="mt-1 text-sm font-semibold text-rose-900">{finalIncorrectFeedback}</p>
+                  {finalIncorrectOption && <p className="mt-1 text-xs font-semibold text-rose-700">Your choice: {finalIncorrectOption}</p>}
                 </motion.div>
               )}
 
-              {showRemediation && (
+              {visibleFinalHints.length > 0 && (
+                <motion.div ref={finalHintPanelRef} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-2xl border border-amber-200 bg-amber-50/90 p-6">
+                  <p className="flex items-center gap-2 font-bold text-amber-800">
+                    <span className="text-xl">💡</span> Hints ({Math.min(finalHintLevel, 2)}/2)
+                  </p>
+                  <div className="mt-3 space-y-3">
+                    {visibleFinalHints.map((hintItem) => (
+                      <div key={`final-hint-${hintItem.level}`} className="rounded-xl border border-amber-300/70 bg-amber-100/60 p-3">
+                        <p className="text-xs font-black uppercase tracking-wider text-amber-700">Hint {hintItem.level}</p>
+                        <p className="mt-1 text-amber-800">{hintItem.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {showFinalRemediation && (
                 <RemediationBlock
-                  briefText={finalRemediationEntry?.brief || allQuestions[finalAssessmentIdx].remedialBrief}
+                  briefText={allQuestions[finalAssessmentIdx].remedialBrief || finalRemediationEntry?.brief || 'Review the concept and continue.'}
                   detailedContent={
                     <div className="space-y-4">
-                      {finalReferenceTags.length > 0 && (
+                      {finalTagsToShow.length > 0 && (
                         <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
                           <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-700">Refer Content Tags</p>
                           <div className="flex flex-wrap gap-2">
-                            {finalReferenceTags.map((tag) => (
+                            {finalTagsToShow.map((tag) => (
                               <span key={tag} className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-amber-800">
                                 {tag}
                               </span>
@@ -875,7 +985,61 @@ export default function ModulePage() {
                         </div>
                       )}
 
-                      {finalRemediationEntry ? (
+                      {allQuestions[finalAssessmentIdx].remedialContent ? (
+                        <>
+                          {allQuestions[finalAssessmentIdx].remedialContent?.coreConcept && (
+                            <div>
+                              <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">
+                                {allQuestions[finalAssessmentIdx].remedialContent?.coreConcept?.title || 'Core Concept'}
+                              </p>
+                              <ul className="list-disc space-y-1 pl-5">
+                                {(allQuestions[finalAssessmentIdx].remedialContent?.coreConcept?.points || []).map((point) => (
+                                  <li key={point}>{point}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
+                          {allQuestions[finalAssessmentIdx].remedialContent?.stepByStep && (
+                            <div>
+                              <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">
+                                {allQuestions[finalAssessmentIdx].remedialContent?.stepByStep?.title || 'Step-by-Step'}
+                              </p>
+                              <ol className="list-decimal space-y-1 pl-5">
+                                {(allQuestions[finalAssessmentIdx].remedialContent?.stepByStep?.steps || []).map((step) => (
+                                  <li key={step}>{step}</li>
+                                ))}
+                              </ol>
+                            </div>
+                          )}
+
+                          {allQuestions[finalAssessmentIdx].remedialContent?.expandable && (
+                            <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
+                              <button
+                                onClick={() => setIsFinalExpandableRemedialOpen((prev) => !prev)}
+                                className="flex w-full items-center justify-between rounded-lg border border-amber-400 bg-white px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-amber-800 hover:bg-amber-50"
+                              >
+                                <span>{allQuestions[finalAssessmentIdx].remedialContent?.expandable?.buttonLabel || 'Show more examples and background'}</span>
+                                <span aria-hidden>{isFinalExpandableRemedialOpen ? '−' : '+'}</span>
+                              </button>
+                              {isFinalExpandableRemedialOpen && (
+                                <div className="mt-3 space-y-3">
+                                  {(allQuestions[finalAssessmentIdx].remedialContent?.expandable?.sections || []).map((section) => (
+                                    <div key={section.title}>
+                                      <p className="text-xs font-black uppercase tracking-wider text-amber-700">{section.title}</p>
+                                      <ul className="mt-1 list-disc space-y-1 pl-5">
+                                        {section.points.map((point) => (
+                                          <li key={point}>{point}</li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      ) : finalRemediationEntry ? (
                         finalRemediationEntry.details.map((section) => (
                           <div key={section.heading}>
                             <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">{section.heading}</p>
@@ -887,12 +1051,21 @@ export default function ModulePage() {
                           </div>
                         ))
                       ) : (
-                        <p>{allQuestions[finalAssessmentIdx].remedialDetail}</p>
+                        <p>{allQuestions[finalAssessmentIdx].remedialDetail || 'Review and continue.'}</p>
                       )}
-                      <p className="font-bold">Hint: {allQuestions[finalAssessmentIdx].hint}</p>
+                      {visibleFinalHints.length > 0 && (
+                        <div className="space-y-1">
+                          <p className="font-bold">Hints used:</p>
+                          {visibleFinalHints.map((hintItem) => (
+                            <p key={`final-used-hint-${hintItem.level}`} className="text-sm">
+                              Hint {hintItem.level}: {hintItem.text}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   }
-                  autoExpand={false}
+                  autoExpand={true}
                   isExpanded={isRemediationExpanded}
                   onToggle={() => setIsRemediationExpanded(!isRemediationExpanded)}
                   onExpandedChange={(expanded) => {

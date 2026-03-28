@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Concept, LearningPath } from '../types';
 import { GameQuestion } from './GameQuestion';
 import { RemediationBlock } from './RemediationBlock';
-import { useConstraintEngine } from '../hooks/useConstraintEngine';
 import { useSessionStore } from '../store/sessionStore';
 import { remedialContentBank, getReferenceTagsForQuestion } from '../data/Standard/remedialContentBank';
 import { trackTelemetryEvent } from '../analytics/telemetry';
@@ -60,12 +59,48 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   };
   const [currentQuestionIdx, setCurrentQuestionIdx] = React.useState(0);
   const [isRemediationExpanded, setIsRemediationExpanded] = React.useState(false);
-  
+
   const [isCorrectAnswered, setIsCorrectAnswered] = React.useState(false);
-  const trackedHintQuestionRef = React.useRef<string | null>(null);
-  const trackedRemediationQuestionRef = React.useRef<string | null>(null);
-  
+  const [isCurrentQuestionCorrect, setIsCurrentQuestionCorrect] = React.useState(false);
+  const [activeAttemptCount, setActiveAttemptCount] = React.useState(0);
+  const [activeHintLevel, setActiveHintLevel] = React.useState(0);
+  const [activeIncorrectFeedback, setActiveIncorrectFeedback] = React.useState<string | null>(null);
+  const [activeIncorrectOption, setActiveIncorrectOption] = React.useState<string | null>(null);
+  const [showRemediation, setShowRemediation] = React.useState(false);
+  const [isExpandableRemedialOpen, setIsExpandableRemedialOpen] = React.useState(false);
+  const [selectedAdaptiveVariantId, setSelectedAdaptiveVariantId] = React.useState<string | null>(null);
+  const pendingAdaptiveVariantSuffixRef = React.useRef<number | null>(null);
+
   const filteredQuestions = concept.questions.filter(q => !q.path || q.path === path);
+  const adaptiveBaseQuestion = React.useMemo(() => {
+    const baseCandidate = filteredQuestions.find((question) => question.id.endsWith('_0') || question.adaptiveBase);
+    if (!baseCandidate) return null;
+
+    const hasVariant = filteredQuestions.some(
+      (question) => question.id.startsWith(`${baseCandidate.id}_`) || question.adaptiveVariant
+    );
+
+    return hasVariant ? baseCandidate : null;
+  }, [filteredQuestions]);
+  const adaptiveVariantMap = React.useMemo(() => {
+    if (!adaptiveBaseQuestion) return {} as Record<string, typeof filteredQuestions[number]>;
+
+    return filteredQuestions.reduce((acc, question) => {
+      if (question.id.startsWith(`${adaptiveBaseQuestion.id}_`) || question.adaptiveVariant) {
+        acc[question.id] = question;
+      }
+      return acc;
+    }, {} as Record<string, typeof filteredQuestions[number]>);
+  }, [adaptiveBaseQuestion, filteredQuestions]);
+  const questionSequence = React.useMemo(() => {
+    if (!adaptiveBaseQuestion) return filteredQuestions;
+
+    const sequence = [adaptiveBaseQuestion];
+    if (selectedAdaptiveVariantId && adaptiveVariantMap[selectedAdaptiveVariantId]) {
+      sequence.push(adaptiveVariantMap[selectedAdaptiveVariantId]);
+    }
+    return sequence;
+  }, [adaptiveBaseQuestion, adaptiveVariantMap, filteredQuestions, selectedAdaptiveVariantId]);
 
   const showQuestionsInBlock = settings.assessmentTime === 'inModule';
 
@@ -83,9 +118,9 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const checkpointRef = React.useRef<HTMLDivElement | null>(null);
   const rushingPromptRef = React.useRef<HTMLDivElement | null>(null);
   const lessonContentRef = React.useRef<HTMLDivElement | null>(null);
+  const hintPanelRef = React.useRef<HTMLDivElement | null>(null);
   const openLessonAnswersRef = React.useRef<Set<string>>(new Set());
   const attemptCountRef = React.useRef(0);
-  const incorrectAttemptsByQuestionRef = React.useRef<Record<string, number>>({});
   const solvedQuestionIdsRef = React.useRef<Set<string>>(new Set());
   const forcedIncorrectQuestionIdsRef = React.useRef<Set<string>>(new Set());
   const hintedQuestionIdsRef = React.useRef<Set<string>>(new Set());
@@ -103,8 +138,19 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     setPracticeCompleted({});
     setPracticeSkipped({});
     setShowSkipAllConfirm(false);
+    setCurrentQuestionIdx(0);
+    setSelectedAdaptiveVariantId(null);
+    pendingAdaptiveVariantSuffixRef.current = null;
+    setActiveAttemptCount(0);
+    setActiveHintLevel(0);
+    setActiveIncorrectFeedback(null);
+    setActiveIncorrectOption(null);
+    setShowRemediation(false);
+    setIsRemediationExpanded(false);
+    setIsExpandableRemedialOpen(false);
+    setIsCorrectAnswered(false);
+    setIsCurrentQuestionCorrect(false);
     attemptCountRef.current = 0;
-    incorrectAttemptsByQuestionRef.current = {};
     solvedQuestionIdsRef.current = new Set();
     forcedIncorrectQuestionIdsRef.current = new Set();
     hintedQuestionIdsRef.current = new Set();
@@ -136,14 +182,26 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   React.useEffect(() => {
     setConceptStage(entryStage);
     setIsCorrectAnswered(false);
+    setIsCurrentQuestionCorrect(false);
     setIsRemediationExpanded(false);
+    setIsExpandableRemedialOpen(false);
+    setShowRemediation(false);
+    setActiveAttemptCount(0);
+    setActiveHintLevel(0);
+    setActiveIncorrectFeedback(null);
+    setActiveIncorrectOption(null);
 
-    if (entryStage === 'questions' && filteredQuestions.length > 0 && entryQuestionMode === 'last') {
+    if (
+      entryStage === 'questions' &&
+      filteredQuestions.length > 0 &&
+      entryQuestionMode === 'last' &&
+      !adaptiveBaseQuestion
+    ) {
       setCurrentQuestionIdx(filteredQuestions.length - 1);
     } else {
       setCurrentQuestionIdx(0);
     }
-  }, [concept.id, entryStage, entryQuestionMode, filteredQuestions.length]);
+  }, [concept.id, entryStage, entryQuestionMode, filteredQuestions.length, adaptiveBaseQuestion]);
 
   React.useEffect(() => {
     onStageChange?.(conceptStage);
@@ -187,31 +245,145 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     return false;
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
+  const currentQuestion = questionSequence[currentQuestionIdx];
+
+  const getQuestionHints = (hintLevel: number): Array<{ level: 1 | 2; text: string }> => {
+    if (!currentQuestion || hintLevel <= 0) return [];
+
+    const level1 = currentQuestion.hintLevel1 || currentQuestion.hint;
+    const level2 = currentQuestion.hintLevel2 || level1;
+    const hints: Array<{ level: 1 | 2; text: string }> = [];
+
+    if (level1) {
+      hints.push({ level: 1, text: level1 });
+    }
+    if (hintLevel >= 2 && level2) {
+      hints.push({ level: 2, text: level2 });
+    }
+
+    return hints;
+  };
+
+  const computeAdaptiveVariantSuffix = (isCorrect: boolean, attemptCount: number, hintCount: number): number => {
+    if (!isCorrect) return 6;
+    if (attemptCount > 1) {
+      if (hintCount >= 2) return 5;
+      if (hintCount === 0) return 2;
+      return 5;
+    }
+    if (hintCount >= 2) return 4;
+    if (hintCount === 1) return 3;
+    return 1;
+  };
+
+  const resetActiveQuestionState = React.useCallback(() => {
+    setActiveAttemptCount(0);
+    setActiveHintLevel(0);
+    setActiveIncorrectFeedback(null);
+    setActiveIncorrectOption(null);
+    setShowRemediation(false);
+    setIsRemediationExpanded(false);
+    setIsExpandableRemedialOpen(false);
+    setIsCorrectAnswered(false);
+    setIsCurrentQuestionCorrect(false);
+  }, []);
+
+  React.useEffect(() => {
+    resetActiveQuestionState();
+  }, [currentQuestion?.id, resetActiveQuestionState]);
+
+  const scrollHintPanelIntoView = React.useCallback(() => {
+    window.setTimeout(() => {
+      const panel = hintPanelRef.current;
+      if (!panel) return;
+
+      const top = window.scrollY + panel.getBoundingClientRect().top - 100;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    }, 40);
+  }, []);
+
+  React.useEffect(() => {
+    if (activeHintLevel <= 0) return;
+    scrollHintPanelIntoView();
+  }, [activeHintLevel, currentQuestion?.id, scrollHintPanelIntoView]);
+
+  const handleHintRequest = () => {
+    if (!currentQuestion) return;
+
+    const nextLevel = Math.min(2, activeHintLevel + 1);
+    if (nextLevel === activeHintLevel) {
+      scrollHintPanelIntoView();
+      return;
+    }
+
+    hintedQuestionIdsRef.current.add(currentQuestion.id);
+    setActiveHintLevel(nextLevel);
+    updateMetrics({ hintsUsed: (session?.chapterMetrics?.hintsUsed || 0) + 1 });
+    trackTelemetryEvent('hint_opened', {
+      module_id: moduleId,
+      question_id: currentQuestion.id,
+      event_data: {
+        level: nextLevel,
+      }
+    });
+  };
+
+  const handleAnswer = (isCorrect: boolean, selectedValue?: string | number | string[]) => {
     if (checkRushing()) return;
+    if (!currentQuestion || isCorrectAnswered) return;
+
     attemptCountRef.current += 1;
-    const result = onAnswer(isCorrect);
-    if (result) {
+    const nextAttemptCount = activeAttemptCount + 1;
+    setActiveAttemptCount(nextAttemptCount);
+
+    if (isCorrect) {
+      solvedQuestionIdsRef.current.add(currentQuestion.id);
+      setIsCurrentQuestionCorrect(true);
       setIsCorrectAnswered(true);
-      if (currentQuestion?.id) {
-        solvedQuestionIdsRef.current.add(currentQuestion.id);
+      setShowRemediation(false);
+      setActiveIncorrectFeedback(null);
+
+      if (adaptiveBaseQuestion && currentQuestion.id === adaptiveBaseQuestion.id) {
+        pendingAdaptiveVariantSuffixRef.current = computeAdaptiveVariantSuffix(true, nextAttemptCount, activeHintLevel);
       }
       return;
     }
 
-    if (currentQuestion?.id) {
-      const incorrectAttempts = (incorrectAttemptsByQuestionRef.current[currentQuestion.id] || 0) + 1;
-      incorrectAttemptsByQuestionRef.current[currentQuestion.id] = incorrectAttempts;
+    const selectedText = Array.isArray(selectedValue)
+      ? selectedValue.join(', ')
+      : (selectedValue !== undefined && selectedValue !== null ? String(selectedValue) : null);
+    setActiveIncorrectOption(selectedText);
 
-      if (incorrectAttempts >= MAX_INCORRECT_BEFORE_ADVANCE) {
-        forcedIncorrectQuestionIdsRef.current.add(currentQuestion.id);
-        setIsCorrectAnswered(true);
+    const feedbackMap = currentQuestion.incorrectOptionFeedback || {};
+    const feedbackText = selectedText && feedbackMap[selectedText]
+      ? feedbackMap[selectedText]
+      : 'Not quite. Review your choice and try again.';
+    setActiveIncorrectFeedback(feedbackText);
+
+    if (nextAttemptCount >= MAX_INCORRECT_BEFORE_ADVANCE) {
+      forcedIncorrectQuestionIdsRef.current.add(currentQuestion.id);
+      setShowRemediation(true);
+      setIsCurrentQuestionCorrect(false);
+      setIsCorrectAnswered(true);
+
+      remediatedQuestionIdsRef.current.add(currentQuestion.id);
+      updateMetrics({ remedialClicks: (session?.chapterMetrics?.remedialClicks || 0) + 1 });
+      trackTelemetryEvent('remedial_opened', {
+        module_id: moduleId,
+        question_id: currentQuestion.id,
+        event_data: {
+          attempt: nextAttemptCount,
+        }
+      });
+
+      if (adaptiveBaseQuestion && currentQuestion.id === adaptiveBaseQuestion.id) {
+        pendingAdaptiveVariantSuffixRef.current = 6;
       }
     }
   };
 
   const buildConceptPerformance = () => {
-    const totalQuestions = filteredQuestions.length;
+    const totalQuestions = adaptiveBaseQuestion ? 2 : filteredQuestions.length;
     const solvedCount = solvedQuestionIdsRef.current.size;
     const forcedIncorrectCount = forcedIncorrectQuestionIdsRef.current.size;
     const hintsUsed = hintedQuestionIdsRef.current.size;
@@ -250,7 +422,6 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   };
 
   const handleNext = () => {
-    setIsCorrectAnswered(false);
     trackTelemetryEvent('navigation', {
       module_id: moduleId,
       question_id: currentQuestion?.id,
@@ -258,11 +429,27 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
         action: 'next_question',
       }
     });
-    if (currentQuestionIdx < filteredQuestions.length - 1) {
-      setCurrentQuestionIdx(prev => prev + 1);
-    } else {
-      onComplete(buildConceptPerformance());
+
+    if (adaptiveBaseQuestion && currentQuestion?.id === adaptiveBaseQuestion.id) {
+      const suffix = pendingAdaptiveVariantSuffixRef.current ?? 6;
+      const adaptiveVariantId = `${adaptiveBaseQuestion.id}_${suffix}`;
+      const nextVariantQuestion = adaptiveVariantMap[adaptiveVariantId];
+
+      if (nextVariantQuestion) {
+        setSelectedAdaptiveVariantId(adaptiveVariantId);
+        setCurrentQuestionIdx(1);
+        resetActiveQuestionState();
+        return;
+      }
     }
+
+    if (currentQuestionIdx < questionSequence.length - 1) {
+      setCurrentQuestionIdx(prev => prev + 1);
+      resetActiveQuestionState();
+      return;
+    }
+
+    onComplete(buildConceptPerformance());
   };
 
   const handleReadConcept = () => {
@@ -306,46 +493,16 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     }
   }, [filteredQuestions.length, showQuestionsInBlock]);
 
-  const currentQuestion = filteredQuestions[currentQuestionIdx];
-  const { attempts, showHint, showRemediation, onAnswer } = useConstraintEngine(currentQuestion?.id || '', moduleId);
-    React.useEffect(() => {
-      if (!currentQuestion?.id || !showHint) return;
-      if (trackedHintQuestionRef.current === currentQuestion.id) return;
-      trackedHintQuestionRef.current = currentQuestion.id;
-      hintedQuestionIdsRef.current.add(currentQuestion.id);
-
-      trackTelemetryEvent('hint_opened', {
-        module_id: moduleId,
-        question_id: currentQuestion.id,
-        event_data: {
-          attempts,
-        }
-      });
-    }, [attempts, currentQuestion?.id, moduleId, showHint]);
-
-    React.useEffect(() => {
-      if (!currentQuestion?.id || !showRemediation) return;
-      if (trackedRemediationQuestionRef.current === currentQuestion.id) return;
-      trackedRemediationQuestionRef.current = currentQuestion.id;
-      remediatedQuestionIdsRef.current.add(currentQuestion.id);
-
-      updateMetrics({ remedialClicks: (session?.chapterMetrics?.remedialClicks || 0) + 1 });
-      trackTelemetryEvent('remedial_opened', {
-        module_id: moduleId,
-        question_id: currentQuestion.id,
-        event_data: {
-          attempts,
-        }
-      });
-    }, [attempts, currentQuestion?.id, moduleId, session?.chapterMetrics?.remedialClicks, showRemediation, updateMetrics]);
-
   const remediationEntry = currentQuestion ? remedialContentBank[currentQuestion.id] : undefined;
   const referenceTags = currentQuestion ? getReferenceTagsForQuestion(currentQuestion.id) : [];
+  const questionTags = currentQuestion?.questionTags || [];
+  const tagsToShow = referenceTags.length > 0 ? referenceTags : questionTags;
+  const visibleHints = getQuestionHints(activeHintLevel);
   const segmentedVideoUrl = buildSegmentedVideoUrl(concept);
   const hasYouTubeEmbed = concept.videoUrl.includes('youtube.com/embed/');
   const isLocalVideoFile = /\.mp4($|\?)/i.test(concept.videoUrl) || concept.videoUrl.startsWith('/');
 
-  const showQuestions = showQuestionsInBlock && filteredQuestions.length > 0;
+  const showQuestions = showQuestionsInBlock && questionSequence.length > 0;
   const showExampleStage = conceptStage === 'examples';
   const showQuestionStage = conceptStage === 'questions';
 
@@ -1006,6 +1163,15 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
             Back to Examples
           </button>
 
+          <div className="flex items-center justify-end">
+            <button
+              onClick={handleHintRequest}
+              className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-black uppercase tracking-wider text-amber-800 transition hover:bg-amber-100"
+            >
+              Hint {activeHintLevel > 0 ? `(${activeHintLevel}/2)` : ''}
+            </button>
+          </div>
+
           <GameQuestion
             key={currentQuestion.id}
             questionId={currentQuestion.id}
@@ -1019,41 +1185,52 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
             onAnswer={handleAnswer}
           />
 
-          {isCorrectAnswered && (
-            <motion.button
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              onClick={handleNext}
-              className="w-full rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2"
-            >
-              Next
-              <span className="text-xl">→</span>
-            </motion.button>
-          )}
-
-          {showHint && !showRemediation && (
+          {activeIncorrectFeedback && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl bg-amber-50 p-6 border border-amber-200"
+              className="rounded-2xl border border-rose-200 bg-rose-50 p-4"
             >
-              <p className="font-bold text-amber-800 flex items-center gap-2">
-                <span className="text-xl">💡</span> Hint
+              <p className="text-sm font-black uppercase tracking-wider text-rose-700">What went wrong</p>
+              <p className="mt-1 text-sm font-semibold text-rose-900">{activeIncorrectFeedback}</p>
+              {activeIncorrectOption && (
+                <p className="mt-1 text-xs font-semibold text-rose-700">Your choice: {activeIncorrectOption}</p>
+              )}
+            </motion.div>
+          )}
+
+          {visibleHints.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              ref={hintPanelRef}
+              className="rounded-2xl border border-amber-200 bg-amber-50 p-6"
+            >
+              <p className="flex items-center gap-2 font-bold text-amber-800">
+                <span className="text-xl">💡</span>
+                Hints ({Math.min(activeHintLevel, 2)}/2)
               </p>
-              <p className="mt-2 text-amber-700">{currentQuestion.hint}</p>
+              <div className="mt-3 space-y-3">
+                {visibleHints.map((hintItem) => (
+                  <div key={`hint-${hintItem.level}`} className="rounded-xl border border-amber-300/70 bg-amber-100/60 p-3">
+                    <p className="text-xs font-black uppercase tracking-wider text-amber-700">Hint {hintItem.level}</p>
+                    <p className="mt-1 text-amber-800">{hintItem.text}</p>
+                  </div>
+                ))}
+              </div>
             </motion.div>
           )}
 
           {showRemediation && (
             <RemediationBlock
-              briefText={remediationEntry?.brief || currentQuestion.remedialBrief}
+              briefText={currentQuestion.remedialBrief || remediationEntry?.brief || 'Review this concept and try again.'}
               detailedContent={
                 <div className="space-y-4">
-                  {referenceTags.length > 0 && (
+                  {tagsToShow.length > 0 && (
                     <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
                       <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-700">Refer Content Tags</p>
                       <div className="flex flex-wrap gap-2">
-                        {referenceTags.map((tag) => (
+                        {tagsToShow.map((tag) => (
                           <span key={tag} className="rounded-full bg-white px-2 py-1 text-[11px] font-bold text-amber-800">
                             {tag}
                           </span>
@@ -1063,7 +1240,61 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
                     </div>
                   )}
 
-                  {remediationEntry ? (
+                  {currentQuestion.remedialContent ? (
+                    <>
+                      {currentQuestion.remedialContent.coreConcept && (
+                        <div>
+                          <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">
+                            {currentQuestion.remedialContent.coreConcept.title || 'Core Concept'}
+                          </p>
+                          <ul className="list-disc space-y-1 pl-5">
+                            {(currentQuestion.remedialContent.coreConcept.points || []).map((point) => (
+                              <li key={point}>{point}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {currentQuestion.remedialContent.stepByStep && (
+                        <div>
+                          <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">
+                            {currentQuestion.remedialContent.stepByStep.title || 'Step-by-Step'}
+                          </p>
+                          <ol className="list-decimal space-y-1 pl-5">
+                            {(currentQuestion.remedialContent.stepByStep.steps || []).map((step) => (
+                              <li key={step}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      )}
+
+                      {currentQuestion.remedialContent.expandable && (
+                        <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
+                          <button
+                            onClick={() => setIsExpandableRemedialOpen((prev) => !prev)}
+                            className="flex w-full items-center justify-between rounded-lg border border-amber-400 bg-white px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-amber-800 hover:bg-amber-50"
+                          >
+                            <span>{currentQuestion.remedialContent.expandable.buttonLabel || 'Show more examples and background'}</span>
+                            <span aria-hidden>{isExpandableRemedialOpen ? '−' : '+'}</span>
+                          </button>
+                          {isExpandableRemedialOpen && (
+                            <div className="mt-3 space-y-3">
+                              {(currentQuestion.remedialContent.expandable.sections || []).map((section) => (
+                                <div key={section.title}>
+                                  <p className="text-xs font-black uppercase tracking-wider text-amber-700">{section.title}</p>
+                                  <ul className="mt-1 list-disc space-y-1 pl-5">
+                                    {section.points.map((point) => (
+                                      <li key={point}>{point}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : remediationEntry ? (
                     remediationEntry.details.map((section) => (
                       <div key={section.heading}>
                         <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">{section.heading}</p>
@@ -1075,12 +1306,21 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
                       </div>
                     ))
                   ) : (
-                    <p>{currentQuestion.remedialDetail}</p>
+                    <p>{currentQuestion.remedialDetail || 'Review the concept and attempt again.'}</p>
                   )}
-                  <p className="font-bold">Hint: {currentQuestion.hint}</p>
+                  {visibleHints.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="font-bold">Hints used:</p>
+                      {visibleHints.map((hintItem) => (
+                        <p key={`used-hint-${hintItem.level}`} className="text-sm">
+                          Hint {hintItem.level}: {hintItem.text}
+                        </p>
+                      ))}
+                    </div>
+                  )}
                 </div>
               }
-              autoExpand={false}
+              autoExpand={true}
               isExpanded={isRemediationExpanded}
               onToggle={() => setIsRemediationExpanded(!isRemediationExpanded)}
               onExpandedChange={(expanded) => {
@@ -1092,6 +1332,18 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
                 });
               }}
             />
+          )}
+
+          {isCorrectAnswered && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={handleNext}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-90"
+            >
+              {adaptiveBaseQuestion && currentQuestion.id === adaptiveBaseQuestion.id ? 'Continue to Question 2' : (isCurrentQuestionCorrect ? 'Next' : 'Continue')}
+              <span className="text-xl">→</span>
+            </motion.button>
           )}
         </div>
       )}

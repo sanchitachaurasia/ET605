@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Lock, LogOut, Play, Settings, Star } from 'lucide-react';
-import { useSessionStore } from '../store/sessionStore';
+import { DEFAULT_SETTINGS, useSessionStore } from '../store/sessionStore';
 import { getChapterDataForPath } from '../data/Standard/pathData';
 import { RocketProgress } from '../components/RocketProgress';
 import { SettingsModal } from '../components/SettingsModal';
@@ -19,7 +19,7 @@ export default function Dashboard() {
 
   if (!session) return null;
 
-  const settings = session.settings || { darkMode: false };
+  const settings = session.settings || DEFAULT_SETTINGS;
   const modules = getChapterDataForPath(session.learningPath || 'B');
   const toPathLabel = (value: 'A' | 'B' | 'C') =>
     value === 'A' ? 'Foundational' : value === 'C' ? 'Advanced' : 'Standard';

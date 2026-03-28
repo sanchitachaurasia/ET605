@@ -13,12 +13,22 @@ interface GameQuestionProps {
   options?: string[];
   correctAnswer: string | number | string[];
   format: GameFormat;
-  onAnswer: (isCorrect: boolean) => void;
+  onAnswer: (isCorrect: boolean, selectedValue?: string | number | string[]) => void;
   isPreTest?: boolean;
   styles?: Record<string, any>;
   image?: string;
   visual?: any;
 }
+
+const DEFAULT_ENABLED_MECHANICS: GameFormat[] = [
+  GameFormat.RAINDROP,
+  GameFormat.DRAG_SORT,
+  GameFormat.SPIN_WHEEL,
+  GameFormat.BAR_BUILDER,
+  GameFormat.HOTSPOT,
+  GameFormat.PIE_SLICER,
+  GameFormat.TALLY_TAP,
+];
 
 const renderQuestionVisual = (visual: any, darkMode: boolean) => {
   if (!visual || !visual.kind) return null;
@@ -121,30 +131,58 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   visual,
 }) => {
   const { session, updateSettings, updateMetrics } = useSessionStore();
+
+  const normalizeText = (value: string) => value.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[°º]/g, '');
+
+  const isAnswerMatch = (value: any, expected: any): boolean => {
+    if (Array.isArray(expected)) {
+      if (!Array.isArray(value) || value.length !== expected.length) return false;
+      return value.every((item, index) => isAnswerMatch(item, expected[index]));
+    }
+
+    if (Array.isArray(value)) return false;
+
+    if (typeof value === 'string' && typeof expected === 'string') {
+      return normalizeText(value) === normalizeText(expected);
+    }
+
+    const parsedValue = typeof value === 'string' ? Number(value.trim()) : value;
+    const parsedExpected = typeof expected === 'string' ? Number(expected.trim()) : expected;
+
+    if (
+      typeof parsedValue === 'number' &&
+      typeof parsedExpected === 'number' &&
+      !Number.isNaN(parsedValue) &&
+      !Number.isNaN(parsedExpected)
+    ) {
+      return parsedValue === parsedExpected;
+    }
+
+    return normalizeText(String(value ?? '')) === normalizeText(String(expected ?? ''));
+  };
+
   const rawSettings = session?.settings || ({} as any);
+  const enabledMechanics = React.useMemo(() => {
+    const configured = Array.isArray(rawSettings.enabledMechanics) ? rawSettings.enabledMechanics : [];
+    return configured.length > 0 ? configured : DEFAULT_ENABLED_MECHANICS;
+  }, [rawSettings.enabledMechanics]);
   const settings = {
     ...rawSettings,
     darkMode: rawSettings.darkMode || false,
-    enabledMechanics: rawSettings.enabledMechanics || [
-      GameFormat.RAINDROP,
-      GameFormat.DRAG_SORT,
-      GameFormat.SPIN_WHEEL,
-      GameFormat.BAR_BUILDER,
-      GameFormat.HOTSPOT,
-      GameFormat.PIE_SLICER,
-      GameFormat.TALLY_TAP
-    ],
+    enabledMechanics,
   };
 
   // Determine the active format and data
   const [activeFormat, setActiveFormat] = useState(format);
   const [activeData, setActiveData] = useState({ questionText, options, correctAnswer, image, visual });
   const [selected, setSelected] = useState<any>(null);
+  const [typedAnswer, setTypedAnswer] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
 
   useEffect(() => {
-    // Reset state when format or data changes
+    // Reset state when question payload changes
     setSelected(null);
+    setTypedAnswer('');
     setFeedback(null);
 
     if (isPreTest) {
@@ -153,27 +191,31 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       return;
     }
 
-    let nextFormat = format;
-    if (settings.enabledMechanics && settings.enabledMechanics.length > 0) {
-      // Pick a random format from enabled mechanics
-      nextFormat = settings.enabledMechanics[Math.floor(Math.random() * settings.enabledMechanics.length)];
-    }
+    const candidateFormats = enabledMechanics.filter((mechanic) => {
+      if (!styles) return true;
+      return Boolean(styles[mechanic]);
+    });
+
+    const randomPool = candidateFormats.length > 0 ? candidateFormats : enabledMechanics;
+    const nextFormat = randomPool[Math.floor(Math.random() * randomPool.length)] || format;
 
     setActiveFormat(nextFormat);
-    
-    if (styles && styles[nextFormat]) {
+
+    const fallbackStyle = styles ? Object.values(styles)[0] : undefined;
+    const selectedStyle = (styles && (styles[nextFormat] || styles[format])) || fallbackStyle;
+
+    if (selectedStyle) {
       setActiveData({
-        questionText: styles[nextFormat].text || questionText,
-        options: styles[nextFormat].options || options,
-        correctAnswer: styles[nextFormat].correctAnswer || correctAnswer,
-        image: styles[nextFormat].image || image,
-        visual: styles[nextFormat].visual || visual,
+        questionText: selectedStyle.text || questionText,
+        options: selectedStyle.options || options,
+        correctAnswer: selectedStyle.correctAnswer || correctAnswer,
+        image: selectedStyle.image || image,
+        visual: selectedStyle.visual || visual,
       });
     } else {
       setActiveData({ questionText, options, correctAnswer, image, visual });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [format, styles, isPreTest, questionText, correctAnswer, image, visual]);
+  }, [questionId, format, styles, isPreTest, questionText, options, correctAnswer, image, visual, enabledMechanics]);
 
   useEffect(() => {
     if (!questionId) return;
@@ -187,16 +229,15 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   }, [activeFormat, moduleId, questionId]);
 
   if (!session) return null;
-  const isEnabled = isPreTest || (settings.enabledMechanics?.includes(activeFormat) ?? true);
+  const isEnabled = isPreTest || (enabledMechanics.includes(activeFormat) ?? true);
+  const requiresTypedInput = (activeData.options?.length || 0) === 0;
 
-  const isImmediate = [GameFormat.RAINDROP, GameFormat.DRAG_SORT, GameFormat.SPIN_WHEEL].includes(activeFormat);
+  const isImmediate = !requiresTypedInput && [GameFormat.RAINDROP, GameFormat.DRAG_SORT, GameFormat.SPIN_WHEEL].includes(activeFormat);
 
   const handleSubmit = (val: any) => {
     if (feedback === 'correct') return;
     
-    const isCorrect = Array.isArray(activeData.correctAnswer)
-      ? JSON.stringify(val) === JSON.stringify(activeData.correctAnswer)
-      : val === activeData.correctAnswer;
+    const isCorrect = isAnswerMatch(val, activeData.correctAnswer);
 
     setFeedback(isCorrect ? 'correct' : 'incorrect');
     trackTelemetryEvent('question_attempt', {
@@ -213,7 +254,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       question_id: questionId,
     });
 
-    onAnswer(isCorrect);
+    onAnswer(isCorrect, val);
   };
 
   const handleSelectOption = (value: any) => {
@@ -241,8 +282,13 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
     }
   };
 
+  const submissionValue = requiresTypedInput ? typedAnswer : selected;
+  const hasSubmissionValue = requiresTypedInput
+    ? typedAnswer.trim().length > 0
+    : selected !== null && selected !== undefined;
+
   if (!isEnabled) {
-    const currentMechanics = settings.enabledMechanics || [];
+    const currentMechanics = enabledMechanics || [];
     return (
       <div className={cn(
         "flex flex-col items-center justify-center gap-6 rounded-3xl p-12 text-center shadow-xl transition-colors",
@@ -476,14 +522,50 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
         </div>
       )}
 
+      {requiresTypedInput && (
+        <div className="space-y-3">
+          <label
+            htmlFor="typed-answer"
+            className={cn(
+              "block text-sm font-black uppercase tracking-wider",
+              settings.darkMode ? "text-slate-300" : "text-slate-600"
+            )}
+          >
+            Type Your Answer
+          </label>
+          <input
+            id="typed-answer"
+            type="text"
+            inputMode="text"
+            value={typedAnswer}
+            onChange={(e) => {
+              setTypedAnswer(e.target.value);
+              if (feedback === 'incorrect') setFeedback(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && typedAnswer.trim() && feedback !== 'correct') {
+                handleSubmit(typedAnswer);
+              }
+            }}
+            placeholder="Enter your answer"
+            className={cn(
+              "w-full rounded-2xl border-2 px-5 py-4 text-lg font-bold outline-none transition",
+              settings.darkMode
+                ? "border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:border-brand"
+                : "border-slate-200 bg-slate-50 text-slate-800 placeholder:text-slate-400 focus:border-brand"
+            )}
+          />
+        </div>
+      )}
+
       {!isImmediate && (
         <div className="mt-8 flex justify-center">
           <button
-            onClick={() => handleSubmit(selected)}
-            disabled={!selected || feedback === 'correct'}
+            onClick={() => handleSubmit(submissionValue)}
+            disabled={!hasSubmissionValue || feedback === 'correct'}
             className={cn(
               "px-16 py-5 rounded-[2rem] font-black text-xl shadow-xl transition-all",
-              selected && feedback !== 'correct'
+              hasSubmissionValue && feedback !== 'correct'
                 ? "bg-brand text-white hover:opacity-90 hover:scale-105 active:scale-95" 
                 : (settings.darkMode ? "bg-slate-800 text-slate-600 cursor-not-allowed" : "bg-slate-200 text-slate-400 cursor-not-allowed")
             )}

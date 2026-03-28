@@ -253,9 +253,34 @@ export interface Question {
   correctAnswer: string | number | string[];
   format: GameFormat;
   difficulty?: 'easy' | 'medium' | 'hard';
-  hint: string;
-  remedialBrief: string;
-  remedialDetail: string;
+  hint?: string;
+  hintLevel1?: string;
+  hintLevel2?: string;
+  correctAnswerExplanation?: string;
+  incorrectOptionFeedback?: Record<string, string>;
+  questionTags?: string[];
+  remedialBrief?: string;
+  remedialDetail?: string;
+  expandedRemedial?: Record<string, string[]>;
+  remedialContent?: {
+    coreConcept?: {
+      title?: string;
+      points?: string[];
+    };
+    stepByStep?: {
+      title?: string;
+      steps?: string[];
+    };
+    expandable?: {
+      buttonLabel?: string;
+      sections?: Array<{
+        title: string;
+        points: string[];
+      }>;
+    };
+  };
+  adaptiveBase?: boolean;
+  adaptiveVariant?: boolean;
   image?: string;
   path?: LearningPath;
   styles?: Record<string, any>;
