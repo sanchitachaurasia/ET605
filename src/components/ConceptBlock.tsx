@@ -83,6 +83,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const checkpointRef = React.useRef<HTMLDivElement | null>(null);
   const rushingPromptRef = React.useRef<HTMLDivElement | null>(null);
   const lessonContentRef = React.useRef<HTMLDivElement | null>(null);
+  const openLessonAnswersRef = React.useRef<Set<string>>(new Set());
   const attemptCountRef = React.useRef(0);
   const incorrectAttemptsByQuestionRef = React.useRef<Record<string, number>>({});
   const solvedQuestionIdsRef = React.useRef<Set<string>>(new Set());
@@ -397,52 +398,149 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   });
 
   const renderedLessonHtml = React.useMemo(() => {
-    // Strip inline event handlers from authored HTML content before rendering.
-    return concept.textContent.replace(/\son\w+="[^"]*"/g, '');
+    // Strip inline event handlers and normalize authored show-answer buttons.
+    const withoutInlineHandlers = concept.textContent
+      .replace(/\son\w+="[^"]*"/g, '')
+      .replace(/\son\w+='[^']*'/g, '');
+
+    return withoutInlineHandlers.replace(
+      /<button([^>]*\bclass=("|')[^"']*show-ans-btn[^"']*\2[^>]*)>/gi,
+      (full, attrs) => {
+        if (/\btype\s*=\s*("|')button\1/i.test(attrs)) {
+          return `<button${attrs}>`;
+        }
+        return `<button${attrs} type="button">`;
+      }
+    );
   }, [concept.textContent]);
+
+  const lessonAnswerSelector = '.practice-ans, .answer-block, .answer, .solution';
+  const lessonScopeSelector = '.card, .practice-box, .question-card, .section-block';
+
+  const getAnswerKeyForButton = React.useCallback((button: HTMLButtonElement): string | null => {
+    const lessonContainer = button.closest('.lesson-rich-content') as HTMLElement | null;
+    if (!lessonContainer) return null;
+    const buttons = Array.from(lessonContainer.querySelectorAll<HTMLButtonElement>('.show-ans-btn'));
+    const index = buttons.indexOf(button);
+    if (index < 0) return null;
+    return `${concept.id}:${index}`;
+  }, [concept.id]);
+
+  const findAnswerForButton = React.useCallback((button: HTMLButtonElement): HTMLElement | null => {
+    const nextSibling = button.nextElementSibling as HTMLElement | null;
+    const adjacentAnswer = nextSibling?.matches(lessonAnswerSelector) ? nextSibling : null;
+
+    let answer: HTMLElement | null = adjacentAnswer;
+    if (!answer) {
+      let cursor = button.nextElementSibling as HTMLElement | null;
+      while (cursor) {
+        if (cursor.matches('.show-ans-btn, .reveal-btn')) break;
+
+        if (cursor.matches(lessonAnswerSelector)) {
+          answer = cursor;
+          break;
+        }
+
+        const nestedAnswer = cursor.querySelector<HTMLElement>(lessonAnswerSelector);
+        if (nestedAnswer) {
+          answer = nestedAnswer;
+          break;
+        }
+
+        cursor = cursor.nextElementSibling as HTMLElement | null;
+      }
+    }
+
+    if (!answer) {
+      const scopedContainer = button.closest(lessonScopeSelector) as HTMLElement | null;
+      answer = scopedContainer?.querySelector<HTMLElement>(lessonAnswerSelector) || null;
+    }
+
+    return answer;
+  }, [lessonAnswerSelector, lessonScopeSelector]);
+
+  const applyAnswerVisibility = React.useCallback((button: HTMLButtonElement, answer: HTMLElement, makeVisible: boolean) => {
+    answer.classList.toggle('is-visible', makeVisible);
+    answer.style.setProperty('display', makeVisible ? 'block' : 'none', 'important');
+    answer.setAttribute('aria-hidden', makeVisible ? 'false' : 'true');
+    if (makeVisible) {
+      answer.removeAttribute('hidden');
+    } else {
+      answer.setAttribute('hidden', 'true');
+    }
+    button.textContent = makeVisible ? 'Hide Answer' : 'Show Answer';
+  }, []);
+
+  React.useEffect(() => {
+    openLessonAnswersRef.current.clear();
+  }, [concept.id]);
+
+  React.useEffect(() => {
+    const toggleAnswerForButton = (button: HTMLButtonElement) => {
+      const answer = findAnswerForButton(button);
+      if (!answer) return;
+
+      const makeVisible = !answer.classList.contains('is-visible');
+      applyAnswerVisibility(button, answer, makeVisible);
+
+      const answerKey = getAnswerKeyForButton(button);
+      if (answerKey) {
+        if (makeVisible) {
+          openLessonAnswersRef.current.add(answerKey);
+        } else {
+          openLessonAnswersRef.current.delete(answerKey);
+        }
+      }
+    };
+
+    const handleDocumentClick = (event: MouseEvent) => {
+      const rawTarget = event.target as EventTarget | null;
+      const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+
+      let targetElement: Element | null = null;
+      if (rawTarget instanceof Element) {
+        targetElement = rawTarget;
+      } else if (rawTarget instanceof Node) {
+        targetElement = rawTarget.parentElement;
+      }
+
+      const pathButton = path.find(
+        (item) => item instanceof Element && item.classList.contains('show-ans-btn')
+      ) as Element | undefined;
+
+      const button = ((pathButton as HTMLButtonElement | undefined) ||
+        (targetElement?.closest('.show-ans-btn') as HTMLButtonElement | null)) as HTMLButtonElement | null;
+      if (!button) return;
+
+      const lessonContainer = button.closest('.lesson-rich-content') as HTMLElement | null;
+      if (!lessonContainer) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      toggleAnswerForButton(button);
+    };
+
+    document.addEventListener('click', handleDocumentClick, true);
+    return () => {
+      document.removeEventListener('click', handleDocumentClick, true);
+    };
+  }, [applyAnswerVisibility, findAnswerForButton, getAnswerKeyForButton]);
 
   React.useEffect(() => {
     const container = lessonContentRef.current;
     if (!container) return;
 
-    const handleLessonContentClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
+    const buttons = Array.from(container.querySelectorAll<HTMLButtonElement>('.show-ans-btn'));
+    buttons.forEach((button) => {
+      const answerKey = getAnswerKeyForButton(button);
+      if (!answerKey || !openLessonAnswersRef.current.has(answerKey)) return;
 
-      const button = target.closest('.show-ans-btn') as HTMLButtonElement | null;
-      if (!button || !container.contains(button)) return;
-
-      const practiceBox = button.closest('.practice-box');
-      const nextSibling = button.nextElementSibling as HTMLElement | null;
-      const adjacentAnswer = nextSibling?.classList.contains('practice-ans') ? nextSibling : null;
-      let answerInPractice: HTMLElement | null = null;
-      if (practiceBox && !adjacentAnswer) {
-        let cursor = button.nextElementSibling as HTMLElement | null;
-        while (cursor) {
-          if (cursor.classList.contains('practice-ans')) {
-            answerInPractice = cursor;
-            break;
-          }
-          if (cursor.classList.contains('show-ans-btn')) {
-            break;
-          }
-          cursor = cursor.nextElementSibling as HTMLElement | null;
-        }
-      }
-
-      const answer = adjacentAnswer ?? answerInPractice;
+      const answer = findAnswerForButton(button);
       if (!answer) return;
 
-      event.preventDefault();
-      const isVisible = answer.classList.toggle('is-visible');
-      button.textContent = isVisible ? 'Hide Answer' : 'Show Answer';
-    };
-
-    container.addEventListener('click', handleLessonContentClick);
-    return () => {
-      container.removeEventListener('click', handleLessonContentClick);
-    };
-  }, [renderedLessonHtml]);
+      applyAnswerVisibility(button, answer, true);
+    });
+  });
 
   const primaryContentMode = settings.contentMode === 'video' ? 'video' : 'text';
   const secondaryContentMode = primaryContentMode === 'video' ? 'text' : 'video';
