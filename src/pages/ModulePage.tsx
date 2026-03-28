@@ -15,7 +15,7 @@ import confetti from 'canvas-confetti';
 import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
 import { remedialContentBank, getReferenceTagsForQuestion } from '../data/Standard/remedialContentBank';
 import { trackTelemetryEvent, updateTrackingModule, flushTrackingEvents } from '../analytics/telemetry';
-import type { ModuleProgress } from '../types';
+import type { ConfidenceRating, ModuleProgress } from '../types';
 import type { LearningPath } from '../types';
 
 function decodeHtmlEntities(value: string): string {
@@ -58,6 +58,18 @@ function toPathLabel(path: 'A' | 'B' | 'C'): string {
   return 'Standard';
 }
 
+function toConfidenceLabel(value?: ConfidenceRating) {
+  if (value === 'low') return 'Low';
+  if (value === 'med') return 'Medium';
+  if (value === 'high') return 'High';
+  return null;
+}
+
+type PendingCompletionPayload = {
+  moduleProgressOverride?: ModuleProgress[];
+  learningPathOverride?: LearningPath;
+};
+
 export default function ModulePage() {
   useMergeIntegration();
   const { moduleId } = useParams();
@@ -83,9 +95,13 @@ export default function ModulePage() {
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showReviewSnapshotPopup, setShowReviewSnapshotPopup] = useState(false);
+  const [showConfidencePrompt, setShowConfidencePrompt] = useState(false);
+  const [selectedConfidence, setSelectedConfidence] = useState<ConfidenceRating | null>(null);
   const [isExiting, setIsExiting] = useState(false);
+  const [isFinalizingCompletion, setIsFinalizingCompletion] = useState(false);
   const [redirectCountdown, setRedirectCountdown] = useState(3);
   const lastPersistedModuleStateRef = useRef('');
+  const pendingCompletionRef = useRef<PendingCompletionPayload | null>(null);
   const lastInteractionRef = useRef(Date.now());
   const activeSecondsRef = useRef(0);
   const idleSecondsRef = useRef(0);
@@ -311,6 +327,7 @@ export default function ModulePage() {
     : [];
   const reviewedPathLabel = toPathLabel((reviewedPath || 'B') as 'A' | 'B' | 'C');
   const currentPathLabel = toPathLabel((session.learningPath || 'B') as 'A' | 'B' | 'C');
+  const moduleConfidenceLabel = toConfidenceLabel(moduleProgress?.confidenceRating);
 
   const handleExitClick = () => {
     setShowExitConfirm(true);
@@ -346,7 +363,12 @@ export default function ModulePage() {
     }
   };
 
-  const handleModuleComplete = async (moduleProgressOverride?: ModuleProgress[], learningPathOverride?: LearningPath) => {
+  const finalizeModuleCompletion = async (
+    confidenceRating?: ConfidenceRating,
+    moduleProgressOverride?: ModuleProgress[],
+    learningPathOverride?: LearningPath
+  ) => {
+    setIsFinalizingCompletion(true);
     setShowCompletionCelebration(true);
     setRedirectCountdown(3);
 
@@ -379,6 +401,8 @@ export default function ModulePage() {
         completed: true,
         learningPath: finalPath,
         completedPathSnapshot: finalPath,
+        confidenceRating: confidenceRating || newProgress[modIdx].confidenceRating,
+        confidenceUpdatedAt: confidenceRating ? Date.now() : newProgress[modIdx].confidenceUpdatedAt,
         attemptsCount: {
           ...priorAttemptsCount,
           _moduleAttempts: moduleAttemptCount,
@@ -395,6 +419,8 @@ export default function ModulePage() {
         stars: 3,
         learningPath: finalPath,
         completedPathSnapshot: finalPath,
+        confidenceRating,
+        confidenceUpdatedAt: confidenceRating ? Date.now() : undefined,
         masteryMap: {},
         attemptsCount: {
           _moduleAttempts: 1,
@@ -410,6 +436,7 @@ export default function ModulePage() {
       module_id: moduleId,
       event_data: {
         xp_after: (session.xp || 0) + 500,
+        confidence_rating: confidenceRating || null,
       }
     });
     trackTelemetryEvent('session_end', {
@@ -424,7 +451,38 @@ export default function ModulePage() {
       await submitMergePayload(session, 'completed', { isSync: false });
     } catch (error) {
       console.error('Error submitting completion payload:', error);
+    } finally {
+      setIsFinalizingCompletion(false);
     }
+  };
+
+  const handleModuleComplete = (moduleProgressOverride?: ModuleProgress[], learningPathOverride?: LearningPath) => {
+    if (isReviewMode) {
+      navigate('/dashboard');
+      return;
+    }
+
+    pendingCompletionRef.current = { moduleProgressOverride, learningPathOverride };
+    setSelectedConfidence(null);
+    setShowConfidencePrompt(true);
+  };
+
+  const handleConfidenceDecision = async (rating?: ConfidenceRating) => {
+    const pending = pendingCompletionRef.current;
+    pendingCompletionRef.current = null;
+    setShowConfidencePrompt(false);
+
+    if (rating) {
+      trackTelemetryEvent('profile_updated', {
+        module_id: moduleId,
+        event_data: {
+          confidence_rating: rating,
+          scope: 'module_completion',
+        }
+      });
+    }
+
+    await finalizeModuleCompletion(rating, pending?.moduleProgressOverride, pending?.learningPathOverride);
   };
 
   const handleConceptComplete = (performance?: ConceptPerformanceSummary) => {
@@ -829,6 +887,11 @@ export default function ModulePage() {
               <p className={cn('mt-1 text-sm font-semibold', settings.darkMode ? 'text-slate-200' : 'text-slate-700')}>
                 Showing your saved attempt on {reviewedPathLabel} path.
               </p>
+              {moduleConfidenceLabel && (
+                <p className={cn('mt-1 text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-emerald-300' : 'text-emerald-700')}>
+                  Saved Confidence: {moduleConfidenceLabel}
+                </p>
+              )}
 
               <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
                 {reviewConceptSummary.map((item, index) => (
@@ -907,6 +970,62 @@ export default function ModulePage() {
                   className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isExiting ? 'Saving...' : 'Exit'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {showConfidencePrompt && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 8 }}
+              className="w-full max-w-md rounded-[2rem] border border-[#ddd7ca] bg-white p-6 shadow-2xl"
+            >
+              <p className="text-xs font-black uppercase tracking-widest text-blue-700">Confidence Check</p>
+              <h3 className="app-display mt-1 text-2xl font-extrabold text-slate-900">How confident are you now?</h3>
+              <p className="mt-2 text-sm font-semibold text-slate-600">
+                Rate your confidence after completing this module.
+              </p>
+
+              <div className="mt-5 grid grid-cols-3 gap-2">
+                {([
+                  { key: 'low', label: 'Low', active: 'border-rose-400 bg-rose-50 text-rose-700' },
+                  { key: 'med', label: 'Med', active: 'border-amber-400 bg-amber-50 text-amber-700' },
+                  { key: 'high', label: 'High', active: 'border-emerald-400 bg-emerald-50 text-emerald-700' },
+                ] as Array<{ key: ConfidenceRating; label: string; active: string }>).map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    onClick={() => setSelectedConfidence(item.key)}
+                    className={cn(
+                      'rounded-xl border px-3 py-3 text-sm font-black transition',
+                      selectedConfidence === item.key
+                        ? item.active
+                        : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  onClick={() => handleConfidenceDecision(undefined)}
+                  disabled={isFinalizingCompletion}
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={() => handleConfidenceDecision(selectedConfidence || undefined)}
+                  disabled={isFinalizingCompletion}
+                  className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isFinalizingCompletion ? 'Saving...' : 'Complete Module'}
                 </button>
               </div>
             </motion.div>

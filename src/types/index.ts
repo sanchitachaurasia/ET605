@@ -9,6 +9,7 @@ export enum GameFormat {
 }
 
 export type LearningPath = 'A' | 'B' | 'C';
+export type ConfidenceRating = 'low' | 'med' | 'high';
 export type AccessibilityLevel =
   | 'standard'
   | 'highContrast'
@@ -121,6 +122,25 @@ export interface PostTestProgress {
   currentQuestionIdx: number;
   answers: boolean[];
   startTime: number;
+  selectedOptions?: Array<string | number | null>;
+  reviewFlags?: boolean[];
+  submittedAt?: number;
+  completedAt?: number;
+  timeLimitSeconds?: number;
+  autoSubmitted?: boolean;
+}
+
+export interface PostTestAttempt {
+  id: string;
+  score: number;
+  correctCount: number;
+  totalQuestions: number;
+  answeredCount: number;
+  reviewMarkedCount: number;
+  startedAt?: number;
+  submittedAt: number;
+  durationSeconds?: number | null;
+  autoSubmitted?: boolean;
 }
 
 export interface ModuleProgress {
@@ -129,6 +149,8 @@ export interface ModuleProgress {
   score: number;
   stars: number;
   learningPath: LearningPath;
+  confidenceRating?: ConfidenceRating;
+  confidenceUpdatedAt?: number;
   completedPathSnapshot?: LearningPath;
   masteryMap: Record<string, 'untried' | 'mastered' | 'masteredWithSupport' | 'struggling' | 'attempted'>;
   attemptsCount: Record<string, number>;
@@ -210,6 +232,7 @@ export interface StudentSession {
   moduleTracking?: Record<string, ModuleTracking>;
   badgesEarned: string[];
   postTestScore: number | null;
+  postTestAttempts?: PostTestAttempt[];
   journeyComplete: boolean;
   completed?: boolean;
   lives: number;
@@ -248,6 +271,7 @@ export interface GuidedPracticeItem {
 export interface Concept {
   id: string;
   title: string;
+  skillTags?: string[];
   textContent: string;
   videoUrl: string;
   videoStartSeconds?: number;

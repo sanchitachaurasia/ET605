@@ -161,6 +161,7 @@ export const useSessionStore = create<SessionState>()(
             moduleProgress: [],
             badgesEarned: [],
             postTestScore: null,
+            postTestAttempts: [],
             journeyComplete: false,
             lives: 5,
             xp: 0,

@@ -291,16 +291,43 @@ export default function Dashboard() {
                 <h3 className={cn('app-display mt-1 text-3xl font-extrabold', settings.darkMode ? 'text-slate-100' : 'text-[var(--text-strong)]')}>Ready for the Post-Test?</h3>
                 <p className={cn('mt-2 text-sm font-medium', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>Complete all modules to unlock the final challenge and compare your growth.</p>
               </div>
-              <button
-                onClick={() => navigate('/post-test')}
-                disabled={completedCount < modules.length}
-                className={cn(
-                  'rounded-full px-6 py-3 text-sm font-black transition',
-                  completedCount < modules.length ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-slate-900 text-white'
-                )}
-              >
-                Unlock Post-Test
-              </button>
+              {session.postTestScore === null ? (
+                <button
+                  onClick={() => navigate('/post-test')}
+                  disabled={completedCount < modules.length}
+                  className={cn(
+                    'rounded-full px-6 py-3 text-sm font-black transition',
+                    completedCount < modules.length ? 'cursor-not-allowed bg-slate-200 text-slate-500' : 'bg-slate-900 text-white'
+                  )}
+                >
+                  {completedCount < modules.length ? `${completedCount}/${modules.length} Modules Complete` : 'Unlock Post-Test'}
+                </button>
+              ) : (
+                <div className="flex flex-col items-start gap-3 sm:items-end">
+                  <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+                    Latest Score: {Math.round(session.postTestScore)}%
+                  </p>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <button
+                      onClick={() => navigate('/post-test?mode=review')}
+                      className={cn(
+                        'rounded-full border px-5 py-2 text-sm font-black transition',
+                        settings.darkMode
+                          ? 'border-slate-500 bg-slate-800 text-slate-100 hover:bg-slate-700'
+                          : 'border-slate-300 bg-white text-slate-800 hover:bg-slate-50'
+                      )}
+                    >
+                      Review Post-Test
+                    </button>
+                    <button
+                      onClick={() => navigate('/post-test?mode=reattempt')}
+                      className="rounded-full bg-slate-900 px-5 py-2 text-sm font-black text-white transition hover:opacity-90"
+                    >
+                      Reattempt Post-Test
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         </main>

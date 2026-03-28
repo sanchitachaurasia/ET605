@@ -391,6 +391,7 @@ router.post('/profile', verifyToken, async (req: Request, res: Response) => {
       'moduleTracking',
       'badgesEarned',
       'postTestScore',
+      'postTestAttempts',
       'journeyComplete',
       'lives',
       'xp',

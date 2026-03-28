@@ -118,6 +118,7 @@ export default function App() {
         moduleTracking: session.moduleTracking,
         badgesEarned: session.badgesEarned,
         postTestScore: session.postTestScore,
+        postTestAttempts: session.postTestAttempts,
         journeyComplete: session.journeyComplete,
         settings: session.settings,
         lives: session.lives,
