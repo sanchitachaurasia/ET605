@@ -26,7 +26,15 @@ interface ConceptBlockProps {
   moduleId: string;
   concept: Concept;
   path: LearningPath;
-  onComplete: () => void;
+  onComplete: (performance?: {
+    conceptId: string;
+    mastery: number;
+    accuracy: number;
+    attempts: number;
+    hintsUsed: number;
+    remediationUsed: number;
+    timeSpentSec: number;
+  }) => void;
   onStageChange?: (stage: 'content' | 'examples' | 'questions') => void;
   onPreviousPage?: () => void;
   entryStage?: 'content' | 'examples' | 'questions';
@@ -75,6 +83,13 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const checkpointRef = React.useRef<HTMLDivElement | null>(null);
   const rushingPromptRef = React.useRef<HTMLDivElement | null>(null);
   const lessonContentRef = React.useRef<HTMLDivElement | null>(null);
+  const attemptCountRef = React.useRef(0);
+  const incorrectAttemptsByQuestionRef = React.useRef<Record<string, number>>({});
+  const solvedQuestionIdsRef = React.useRef<Set<string>>(new Set());
+  const forcedIncorrectQuestionIdsRef = React.useRef<Set<string>>(new Set());
+  const hintedQuestionIdsRef = React.useRef<Set<string>>(new Set());
+  const remediatedQuestionIdsRef = React.useRef<Set<string>>(new Set());
+  const MAX_INCORRECT_BEFORE_ADVANCE = 2;
 
   React.useEffect(() => {
     setStartTime(Date.now());
@@ -87,6 +102,12 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     setPracticeCompleted({});
     setPracticeSkipped({});
     setShowSkipAllConfirm(false);
+    attemptCountRef.current = 0;
+    incorrectAttemptsByQuestionRef.current = {};
+    solvedQuestionIdsRef.current = new Set();
+    forcedIncorrectQuestionIdsRef.current = new Set();
+    hintedQuestionIdsRef.current = new Set();
+    remediatedQuestionIdsRef.current = new Set();
   }, [concept.id, settings.contentMode]);
 
   React.useEffect(() => {
@@ -167,10 +188,64 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
   const handleAnswer = (isCorrect: boolean) => {
     if (checkRushing()) return;
+    attemptCountRef.current += 1;
     const result = onAnswer(isCorrect);
     if (result) {
       setIsCorrectAnswered(true);
+      if (currentQuestion?.id) {
+        solvedQuestionIdsRef.current.add(currentQuestion.id);
+      }
+      return;
     }
+
+    if (currentQuestion?.id) {
+      const incorrectAttempts = (incorrectAttemptsByQuestionRef.current[currentQuestion.id] || 0) + 1;
+      incorrectAttemptsByQuestionRef.current[currentQuestion.id] = incorrectAttempts;
+
+      if (incorrectAttempts >= MAX_INCORRECT_BEFORE_ADVANCE) {
+        forcedIncorrectQuestionIdsRef.current.add(currentQuestion.id);
+        setIsCorrectAnswered(true);
+      }
+    }
+  };
+
+  const buildConceptPerformance = () => {
+    const totalQuestions = filteredQuestions.length;
+    const solvedCount = solvedQuestionIdsRef.current.size;
+    const forcedIncorrectCount = forcedIncorrectQuestionIdsRef.current.size;
+    const hintsUsed = hintedQuestionIdsRef.current.size;
+    const remediationUsed = remediatedQuestionIdsRef.current.size;
+    const attempts = attemptCountRef.current;
+    const timeSpentSec = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+
+    const unresolvedCount = Math.max(0, totalQuestions - solvedCount - forcedIncorrectCount);
+    const incorrectQuestionCount = forcedIncorrectCount + unresolvedCount;
+    const accuracy = totalQuestions > 0
+      ? Math.max(0, (totalQuestions - incorrectQuestionCount) / totalQuestions)
+      : 1;
+    const averageAttemptsPerQuestion = totalQuestions > 0 ? attempts / totalQuestions : 1;
+    const attemptsScore = Math.max(0, Math.min(1, 2 - averageAttemptsPerQuestion));
+    const hintScore = totalQuestions > 0 ? Math.max(0, 1 - (hintsUsed / totalQuestions)) : 1;
+
+    const expectedTimeSec = concept.estimatedTimeSeconds || Math.max(45, Math.round(concept.title.length * 4));
+    const timeDeviation = Math.abs(timeSpentSec - expectedTimeSec) / Math.max(expectedTimeSec, 1);
+    const timeScore = Math.max(0, Math.min(1, 1 - timeDeviation));
+
+    const mastery =
+      accuracy * 0.5 +
+      attemptsScore * 0.2 +
+      hintScore * 0.15 +
+      timeScore * 0.15;
+
+    return {
+      conceptId: concept.id,
+      mastery,
+      accuracy,
+      attempts,
+      hintsUsed,
+      remediationUsed,
+      timeSpentSec,
+    };
   };
 
   const handleNext = () => {
@@ -185,13 +260,13 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     if (currentQuestionIdx < filteredQuestions.length - 1) {
       setCurrentQuestionIdx(prev => prev + 1);
     } else {
-      onComplete();
+      onComplete(buildConceptPerformance());
     }
   };
 
   const handleReadConcept = () => {
     if (checkRushing()) return;
-    onComplete();
+    onComplete(buildConceptPerformance());
   };
 
   const handleContinueToExamples = () => {
@@ -527,7 +602,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
         target_stage: 'complete_concept',
       },
     });
-    onComplete();
+    onComplete(buildConceptPerformance());
   };
 
   const hasGuidedPractice = !!concept.guidedPracticeItems?.length;

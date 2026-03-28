@@ -34,6 +34,22 @@ function extractDurationBadgeText(textContent?: string): string | null {
   return decodeHtmlEntities(plain);
 }
 
+type ConceptPerformanceSummary = {
+  conceptId: string;
+  mastery: number;
+  accuracy: number;
+  attempts: number;
+  hintsUsed: number;
+  remediationUsed: number;
+  timeSpentSec: number;
+};
+
+function getPathForMastery(mastery: number): 'A' | 'B' | 'C' {
+  if (mastery < 0.4) return 'A';
+  if (mastery <= 0.75) return 'B';
+  return 'C';
+}
+
 export default function ModulePage() {
   useMergeIntegration();
   const { moduleId } = useParams();
@@ -309,7 +325,98 @@ export default function ModulePage() {
     }
   };
 
-  const handleConceptComplete = () => {
+  const handleConceptComplete = (performance?: ConceptPerformanceSummary) => {
+    const existingProgress = [...(session.moduleProgress || [])];
+    const existingModIdx = existingProgress.findIndex((p) => p.moduleId === moduleId);
+    const existingModule = existingModIdx >= 0 ? existingProgress[existingModIdx] : null;
+    const isReviewingCompletedModule = !!existingModule?.completed;
+    const currentModuleIndex = moduleCatalog.findIndex((m) => m.id === moduleId);
+    const nextModuleId = currentModuleIndex >= 0 ? moduleCatalog[currentModuleIndex + 1]?.id : undefined;
+
+    let nextPath = path;
+    let updatedMasteryMap = existingModule?.masteryMap || {};
+    let updatedAttemptsCount = existingModule?.attemptsCount || {};
+
+    if (performance && !isReviewingCompletedModule) {
+      const roundedMastery = Math.round(performance.mastery * 100);
+      updatedAttemptsCount = {
+        ...updatedAttemptsCount,
+        [performance.conceptId]: performance.attempts,
+        [`mastery_${performance.conceptId}`]: roundedMastery,
+        [`hints_${performance.conceptId}`]: performance.hintsUsed,
+        [`time_${performance.conceptId}`]: performance.timeSpentSec,
+      };
+
+      const masteryStatus =
+        performance.mastery >= 0.75
+          ? 'mastered'
+          : performance.mastery >= 0.4
+            ? 'attempted'
+            : 'struggling';
+
+      updatedMasteryMap = {
+        ...updatedMasteryMap,
+        [performance.conceptId]: masteryStatus,
+      };
+
+      const conceptIdsSoFar = filteredConcepts
+        .slice(0, currentConceptIdx + 1)
+        .map((c) => c.id)
+        .filter(Boolean);
+
+      const masteryTrail = conceptIdsSoFar
+        .map((id) => {
+          if (id === performance.conceptId) return performance.mastery;
+          const stored = updatedAttemptsCount[`mastery_${id}`];
+          return typeof stored === 'number' ? stored / 100 : null;
+        })
+        .filter((value): value is number => typeof value === 'number');
+
+      const rollingWindow = masteryTrail.slice(-3);
+      const rollingMastery = rollingWindow.length
+        ? rollingWindow.reduce((sum, value) => sum + value, 0) / rollingWindow.length
+        : performance.mastery;
+
+      nextPath = getPathForMastery(rollingMastery);
+    }
+
+    const applyPathToCurrentModule = (includeStage?: { currentConceptIdx: number; currentConceptStage: 'content' | 'examples' | 'questions' }) => {
+      if (existingModIdx >= 0) {
+        existingProgress[existingModIdx] = {
+          ...existingProgress[existingModIdx],
+          learningPath: isReviewingCompletedModule
+            ? existingProgress[existingModIdx].learningPath
+            : nextPath,
+          masteryMap: updatedMasteryMap,
+          attemptsCount: updatedAttemptsCount,
+          ...(includeStage || {}),
+        };
+      } else {
+        existingProgress.push({
+          moduleId: moduleId!,
+          completed: false,
+          score: 0,
+          stars: 0,
+          learningPath: nextPath,
+          masteryMap: updatedMasteryMap,
+          attemptsCount: updatedAttemptsCount,
+          ...(includeStage || {}),
+        });
+      }
+    };
+
+    const applyPathToNextModule = () => {
+      if (isReviewingCompletedModule) return;
+      if (!nextModuleId) return;
+      const nextIdx = existingProgress.findIndex((p) => p.moduleId === nextModuleId);
+      if (nextIdx >= 0) {
+        existingProgress[nextIdx] = {
+          ...existingProgress[nextIdx],
+          learningPath: nextPath,
+        };
+      }
+    };
+
     if (currentConceptIdx < filteredConcepts.length - 1) {
       const nextIdx = currentConceptIdx + 1;
       setCurrentConceptIdx(nextIdx);
@@ -318,28 +425,30 @@ export default function ModulePage() {
       setConceptEntryQuestionMode('first');
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      const newProgress = [...(session.moduleProgress || [])];
-      const modIdx = newProgress.findIndex((p) => p.moduleId === moduleId);
-      if (modIdx >= 0) {
-        newProgress[modIdx] = { ...newProgress[modIdx], currentConceptIdx: nextIdx, currentConceptStage: 'content' };
+      applyPathToCurrentModule({ currentConceptIdx: nextIdx, currentConceptStage: 'content' });
+      if (isReviewingCompletedModule) {
+        updateSession({ moduleProgress: existingProgress });
       } else {
-        newProgress.push({
-          moduleId: moduleId!,
-          completed: false,
-          score: 0,
-          stars: 0,
-          learningPath: path,
-          masteryMap: {},
-          attemptsCount: {},
-          currentConceptIdx: nextIdx,
-          currentConceptStage: 'content',
-        });
+        updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
       }
-      updateSession({ moduleProgress: newProgress });
     } else if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
+      applyPathToCurrentModule();
+      applyPathToNextModule();
+      if (isReviewingCompletedModule) {
+        updateSession({ moduleProgress: existingProgress });
+      } else {
+        updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+      }
       setShowFinalAssessment(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
+      applyPathToCurrentModule();
+      applyPathToNextModule();
+      if (isReviewingCompletedModule) {
+        updateSession({ moduleProgress: existingProgress });
+      } else {
+        updateSession({ moduleProgress: existingProgress, learningPath: nextPath });
+      }
       handleModuleComplete();
     }
   };

@@ -19,6 +19,7 @@ export default function PreTest() {
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
   const [preferredQuestionIds, setPreferredQuestionIds] = useState<string[]>([]);
+  const [prefAssessmentStyle, setPrefAssessmentStyle] = useState<'gamified' | 'traditional' | 'balanced'>('balanced');
   const [showRecommendation, setShowRecommendation] = useState(false);
   const [recommendation, setRecommendation] = useState('');
   const [prefContentMode, setPrefContentMode] = useState<'text' | 'video'>('video');
@@ -65,6 +66,7 @@ export default function PreTest() {
     setScore(saved.score ?? 0);
     setCorrectAnswers(saved.correctAnswers ?? {});
     setPreferredQuestionIds(saved.preferredQuestionIds ?? []);
+    setPrefAssessmentStyle(saved.assessmentStyle ?? 'balanced');
     setRecommendation(saved.recommendation ?? '');
     setPrefContentMode(saved.prefContentMode ?? 'video');
     setPrefAssessmentTime(saved.prefAssessmentTime ?? 'inModule');
@@ -95,6 +97,7 @@ export default function PreTest() {
       score,
       correctAnswers,
       preferredQuestionIds,
+      assessmentStyle: prefAssessmentStyle,
       recommendation,
       prefContentMode,
       prefAssessmentTime,
@@ -114,6 +117,7 @@ export default function PreTest() {
     score,
     correctAnswers,
     preferredQuestionIds,
+    prefAssessmentStyle,
     recommendation,
     prefContentMode,
     prefAssessmentTime,
@@ -285,7 +289,6 @@ export default function PreTest() {
     const path26 = 'B'; // Data ethics - intermediate
 
     // Initial Personalization Logic (can be overridden by preferences)
-    let assessmentStyle: 'gamified' | 'traditional' | 'balanced' = 'balanced';
     let contentMode: 'text' | 'video' = 'video';
     let assessmentTime: 'inModule' | 'endOfModule' = 'inModule';
     let rec = `Personalized Setup (${finalScore}% Mastery)`;
@@ -315,7 +318,7 @@ export default function PreTest() {
         { moduleId: '2.5', completed: false, score: 0, stars: 0, learningPath: path25, masteryMap: {}, attemptsCount: {} },
         { moduleId: '2.6', completed: false, score: 0, stars: 0, learningPath: path26, masteryMap: {}, attemptsCount: {} }
       ],
-      style: assessmentStyle
+      style: prefAssessmentStyle
     };
     (window as any)._tempPreTestResults = tempResults;
   };
@@ -344,7 +347,8 @@ export default function PreTest() {
 
       return {
         ...existingModule,
-        learningPath: nextModule.learningPath,
+        // Preserve studied path for completed modules so review opens exact learned variant.
+        learningPath: existingModule.completed ? existingModule.learningPath : nextModule.learningPath,
       };
     });
 
@@ -363,7 +367,7 @@ export default function PreTest() {
       moduleProgress: [...mergedModuleProgress, ...missingExistingModules],
       settings: {
         ...(session?.settings || {}),
-        assessmentStyle: results.style,
+        assessmentStyle: prefAssessmentStyle,
         contentMode: prefContentMode,
         assessmentTime: prefAssessmentTime,
         enabledMechanics
@@ -424,13 +428,41 @@ export default function PreTest() {
           
           <div className="mb-4 rounded-2xl bg-brand/10 p-3 border-2 border-brand/20 text-center">
             <p className="text-xs font-bold text-brand uppercase tracking-wider mb-1">Your Learning Profile</p>
-            <p className="text-base sm:text-lg font-black text-brand-dark">{recommendation}</p>
+            <p className="text-sm sm:text-base font-extrabold text-brand-dark">Recommended: {recommendation}</p>
+            <p className="mt-1 text-sm sm:text-base font-extrabold text-slate-700">
+              Current: {prefAssessmentStyle === 'gamified' ? 'Gamified' : prefAssessmentStyle === 'traditional' ? 'Traditional' : 'Balanced'}
+            </p>
           </div>
 
           <div className={cn(
             "space-y-4",
             isMobile && "space-y-3"
           )}>
+            <section>
+              <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-slate-400">Assessment Style</h3>
+              <p className="mb-2 text-xs text-slate-500">How would you like assessment to feel?</p>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { id: 'gamified', icon: '🎮', label: 'Gamified', desc: 'More game-like formats first' },
+                  { id: 'traditional', icon: '📚', label: 'Traditional', desc: 'More direct/quiz-like formats first' },
+                  { id: 'balanced', icon: '⚖️', label: 'Balanced', desc: 'Mix of both styles' },
+                ].map((style) => (
+                  <button
+                    key={style.id}
+                    onClick={() => setPrefAssessmentStyle(style.id as any)}
+                    className={cn(
+                      "rounded-xl border-2 p-2.5 text-center transition-all",
+                      prefAssessmentStyle === style.id ? "border-brand bg-brand/5 text-brand" : "border-slate-100 text-slate-500"
+                    )}
+                  >
+                    <p className="text-lg">{style.icon}</p>
+                    <p className="mt-1 text-xs font-black uppercase tracking-wider">{style.label}</p>
+                    <p className="mt-1 text-[11px] font-semibold leading-tight">{style.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </section>
+
             <section>
               <h3 className="mb-2 text-xs font-black uppercase tracking-widest text-slate-400">Which Question Type Do You Prefer?</h3>
               <p className="mb-2 text-xs text-slate-500">Choose one or more. We will prioritize these formats in your journey.</p>

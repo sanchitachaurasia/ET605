@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify, Gamepad2, SlidersHorizontal, ShieldCheck, Monitor, ClipboardCheck, UserCog, Download } from 'lucide-react';
+import { X, Moon, Sun, Volume2, VolumeX, Zap, ZapOff, RotateCcw, LogOut, Palette, Eye, Type, AlignJustify, SlidersHorizontal, ShieldCheck, Monitor, ClipboardCheck, UserCog, Download } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
 import { AccessibilityMode, GameFormat } from '../types';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +14,6 @@ interface SettingsModalProps {
 }
 
 type SettingsCategory =
-  | 'mechanics'
   | 'preferences'
   | 'accessibility'
   | 'display'
@@ -26,7 +25,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
   const navigate = useNavigate();
 
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
-  const [activeCategory, setActiveCategory] = React.useState<SettingsCategory>('mechanics');
+  const [activeCategory, setActiveCategory] = React.useState<SettingsCategory>('assessment');
   const [profileName, setProfileName] = React.useState('');
   const [profileSchool, setProfileSchool] = React.useState('');
   const [profileClass, setProfileClass] = React.useState('');
@@ -39,10 +38,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
   const [accountError, setAccountError] = React.useState('');
   const firstControlRef = React.useRef<HTMLElement | null>(null);
   const contentPanelRef = React.useRef<HTMLDivElement | null>(null);
-  const lastCategoryScrollSwitchAtRef = React.useRef(0);
+  const sectionRefs = React.useRef<Record<SettingsCategory, HTMLElement | null>>({
+    preferences: null,
+    accessibility: null,
+    display: null,
+    assessment: null,
+    account: null,
+  });
 
   const categoryOrder: SettingsCategory[] = [
-    'mechanics',
     'preferences',
     'accessibility',
     'display',
@@ -56,7 +60,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
       firstControlRef.current?.focus();
     }, 40);
     return () => window.clearTimeout(id);
-  }, [activeCategory, isOpen]);
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const panel = contentPanelRef.current;
+    if (!panel) return;
+
+    const onScroll = () => {
+      const cursor = panel.scrollTop + 48;
+      let current: SettingsCategory = categoryOrder[0];
+
+      for (const cat of categoryOrder) {
+        const el = sectionRefs.current[cat];
+        if (el && el.offsetTop <= cursor) {
+          current = cat;
+        }
+      }
+
+      setActiveCategory((prev) => (prev === current ? prev : current));
+    };
+
+    panel.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => panel.removeEventListener('scroll', onScroll);
+  }, [isOpen]);
 
   React.useEffect(() => {
     if (!isOpen || !session) return;
@@ -285,38 +313,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
     setAccountMessage(result.message || 'User ID updated successfully.');
   };
 
-  const handleCategoryWheelNavigation = (e: React.WheelEvent<HTMLDivElement>) => {
-    const panel = contentPanelRef.current;
-    if (!panel) return;
-
-    const isScrollingDown = e.deltaY > 8;
-    const isScrollingUp = e.deltaY < -8;
-    if (!isScrollingDown && !isScrollingUp) return;
-
-    const atTop = panel.scrollTop <= 2;
-    const atBottom = panel.scrollTop + panel.clientHeight >= panel.scrollHeight - 2;
-    if (!(isScrollingDown && atBottom) && !(isScrollingUp && atTop)) {
-      return;
-    }
-
-    const now = Date.now();
-    if (now - lastCategoryScrollSwitchAtRef.current < 420) {
-      return;
-    }
-
-    const currentIndex = categoryOrder.indexOf(activeCategory);
-    if (currentIndex === -1) return;
-
-    const nextIndex = isScrollingDown
-      ? Math.min(currentIndex + 1, categoryOrder.length - 1)
-      : Math.max(currentIndex - 1, 0);
-
-    if (nextIndex === currentIndex) return;
-
-    e.preventDefault();
-    lastCategoryScrollSwitchAtRef.current = now;
-    setActiveCategory(categoryOrder[nextIndex]);
-    panel.scrollTo({ top: 0 });
+  const scrollToCategory = (category: SettingsCategory) => {
+    const target = sectionRefs.current[category];
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveCategory(category);
   };
 
   const themePalettes = [
@@ -367,6 +368,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
       description: 'Count tally marks correctly.',
     },
   };
+
+  const recommendedMechanicsByStyle: Record<'gamified' | 'traditional' | 'balanced', GameFormat[]> = {
+    gamified: [GameFormat.RAINDROP, GameFormat.SPIN_WHEEL, GameFormat.DRAG_SORT],
+    traditional: [GameFormat.HOTSPOT, GameFormat.TALLY_TAP, GameFormat.BAR_BUILDER],
+    balanced: [GameFormat.DRAG_SORT, GameFormat.BAR_BUILDER, GameFormat.HOTSPOT, GameFormat.PIE_SLICER],
+  };
+
+  const styleHintText: Record<'gamified' | 'traditional' | 'balanced', string> = {
+    gamified: 'Recommended for Gamified: fast-paced and playful mechanics are highlighted.',
+    traditional: 'Recommended for Traditional: direct and quiz-style mechanics are highlighted.',
+    balanced: 'Recommended for Balanced: a mixed set of mechanics is highlighted.',
+  };
+
+  const recommendedMechanics = recommendedMechanicsByStyle[settings.assessmentStyle];
 
   const renderMechanicPreview = (format: GameFormat) => {
     if (format === GameFormat.RAINDROP) {
@@ -423,12 +438,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
       headingClass: string;
     }
   > = {
-    mechanics: {
-      label: 'Game Mechanics',
-      icon: <Gamepad2 size={16} />,
-      panelClass: 'border-blue-100 bg-blue-50/40',
-      headingClass: 'text-blue-500',
-    },
     preferences: {
       label: 'Preferences',
       icon: <SlidersHorizontal size={16} />,
@@ -496,7 +505,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
             <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 overflow-hidden p-6 sm:grid-cols-[220px_1fr] sm:gap-8">
               <aside className="rounded-2xl border border-[#ddd7ca] bg-[#f7f5ef] p-2 sm:h-full sm:overflow-y-auto">
                 {[
-                  { id: 'mechanics', label: 'Game Mechanics' },
                   { id: 'preferences', label: 'Preferences' },
                   { id: 'accessibility', label: 'Accessibility' },
                   { id: 'display', label: 'Display' },
@@ -505,7 +513,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                 ].map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => setActiveCategory(item.id as SettingsCategory)}
+                    onClick={() => scrollToCategory(item.id as SettingsCategory)}
                     aria-current={activeCategory === item.id ? 'page' : undefined}
                     className={`mb-2 flex h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm font-bold transition-all ${activeCategory === item.id ? 'bg-slate-900 text-white shadow-sm' : 'border border-transparent text-slate-600 hover:border-[#ddd7ca] hover:bg-white'}`}
                   >
@@ -517,52 +525,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
 
               <div
                 ref={contentPanelRef}
-                onWheel={handleCategoryWheelNavigation}
-                className={`h-full min-h-[420px] rounded-2xl border p-4 sm:overflow-y-auto sm:p-5 ${categoryConfig[activeCategory].panelClass}`}
+                className="h-full min-h-[420px] rounded-2xl border border-slate-200 bg-white p-4 sm:overflow-y-auto sm:p-5"
               >
-                {activeCategory === 'mechanics' && (
-                  <section>
-                    <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.mechanics.headingClass}`}>Game Mechanics</h3>
-                    <p className="mb-3 text-xs font-semibold text-slate-500">Choose preferred question formats. We use these styles during your journey.</p>
-                    <div className="mb-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
-                      Selected: {enabledMechanics.length} (minimum 1 required)
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      {Object.values(GameFormat).map((format, idx) => (
-                        <button
-                          key={format}
-                          ref={(el) => {
-                            if (activeCategory === 'mechanics' && idx === 0 && el) {
-                              firstControlRef.current = el;
-                            }
-                          }}
-                          onClick={() => toggleMechanic(format)}
-                          className={`rounded-2xl border-2 p-3 text-left transition-all ${enabledMechanics.includes(format) ? 'border-brand bg-brand/10 shadow-sm' : 'border-slate-100 bg-white hover:border-blue-200'}`}
-                        >
-                          <div className="mb-2 flex items-start gap-3">
-                            <div className="flex items-center gap-2">
-                              <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${enabledMechanics.includes(format) ? 'bg-brand/20 text-brand' : 'bg-slate-100 text-slate-500'}`}>
-                                {renderMechanicPreview(format)}
-                              </span>
-                              <div>
-                                <p className="text-sm font-black text-slate-800">{mechanicMeta[format].label}</p>
-                                <p className="text-xs font-medium text-slate-500">{mechanicMeta[format].description}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {activeCategory === 'preferences' && (
-                  <section>
+                <section
+                  ref={(el) => {
+                    sectionRefs.current.preferences = el;
+                  }}
+                  className="mb-8 rounded-2xl border border-violet-100 bg-violet-50/40 p-4"
+                >
                     <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.preferences.headingClass}`}>Preferences</h3>
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         ref={(el) => {
-                          if (activeCategory === 'preferences' && el) {
+                          if (el) {
                             firstControlRef.current = el;
                           }
                         }}
@@ -587,11 +562,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         <span className="text-xs font-bold">Visual FX</span>
                       </button>
                     </div>
-                  </section>
-                )}
+                </section>
 
-                {activeCategory === 'accessibility' && (
-                  <section>
+                <section
+                  ref={(el) => {
+                    sectionRefs.current.accessibility = el;
+                  }}
+                  className="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4"
+                >
                     <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.accessibility.headingClass}`}>Accessibility</h3>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       {[
@@ -626,11 +604,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         );
                       })}
                     </div>
-                  </section>
-                )}
+                </section>
 
-                {activeCategory === 'display' && (
-                  <section className="space-y-6">
+                <section
+                  ref={(el) => {
+                    sectionRefs.current.display = el;
+                  }}
+                  className="mb-8 space-y-6 rounded-2xl border border-amber-100 bg-amber-50/40 p-4"
+                >
                     <div>
                       <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.display.headingClass}`}>Theme Color</h3>
                       <p className="mb-3 text-xs font-semibold text-slate-500">Choose a vibrant accent or switch to a softer palette for calmer visuals.</p>
@@ -640,11 +621,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         {vividPalettes.map((c, idx) => (
                           <button
                             key={c.value}
-                            ref={(el) => {
-                              if (activeCategory === 'display' && idx === 0 && el) {
-                                firstControlRef.current = el;
-                              }
-                            }}
                             onClick={() => updateSettings({ themeColor: c.value })}
                             className={`h-10 w-10 rounded-full border-4 transition-all hover:scale-110 ${settings.themeColor === c.value ? 'border-white ring-2 ring-slate-900' : 'border-transparent'}`}
                             style={{ backgroundColor: c.value }}
@@ -713,28 +689,73 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         ))}
                       </div>
                     </div>
-                  </section>
-                )}
+                </section>
 
-                {activeCategory === 'assessment' && (
-                  <section className="space-y-6">
+                <section
+                  ref={(el) => {
+                    sectionRefs.current.assessment = el;
+                  }}
+                  className="mb-8 space-y-6 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-4"
+                >
                     <div>
                       <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.assessment.headingClass}`}>Assessment Style</h3>
                       <div className="flex rounded-2xl bg-slate-100 p-1">
                         {['gamified', 'traditional', 'balanced'].map((style, idx) => (
                           <button
                             key={style}
-                            ref={(el) => {
-                              if (activeCategory === 'assessment' && idx === 0 && el) {
-                                firstControlRef.current = el;
-                              }
-                            }}
                             onClick={() => updateSettings({ assessmentStyle: style as any })}
                             className={`flex-1 rounded-xl py-2 text-xs font-bold capitalize transition-all ${settings.assessmentStyle === style ? 'bg-white text-brand shadow-sm' : 'text-slate-500'}`}
                           >
                             {style}
                           </button>
                         ))}
+                      </div>
+                      <p className="mt-2 text-[11px] font-semibold text-slate-500">Changes apply immediately.</p>
+                    </div>
+
+                    <div>
+                      <h3 className="mb-2 text-sm font-black uppercase tracking-widest text-slate-400">Game Mechanics</h3>
+                      <p className="mb-3 text-xs font-semibold text-slate-500">Choose preferred formats. Recommended options are highlighted based on selected assessment style.</p>
+                      <div className="mb-3 rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700">
+                        {styleHintText[settings.assessmentStyle]}
+                      </div>
+                      <div className="mb-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700">
+                        Selected: {enabledMechanics.length} (minimum 1 required)
+                      </div>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {Object.values(GameFormat).map((format, idx) => {
+                          const selected = enabledMechanics.includes(format);
+                          const recommended = recommendedMechanics.includes(format);
+                          return (
+                            <button
+                              key={format}
+                              ref={(el) => {
+                                if (activeCategory === 'assessment' && idx === 0 && el) {
+                                  firstControlRef.current = el;
+                                }
+                              }}
+                              onClick={() => toggleMechanic(format)}
+                              className={`rounded-2xl border-2 p-3 text-left transition-all ${selected ? 'border-brand bg-brand/10 shadow-sm' : 'border-slate-100 bg-white hover:border-blue-200'}`}
+                            >
+                              <div className="mb-2 flex items-start justify-between gap-2">
+                                <div className="flex items-center gap-2">
+                                  <span className={`flex h-9 w-9 items-center justify-center rounded-lg ${selected ? 'bg-brand/20 text-brand' : 'bg-slate-100 text-slate-500'}`}>
+                                    {renderMechanicPreview(format)}
+                                  </span>
+                                  <div>
+                                    <p className="text-sm font-black text-slate-800">{mechanicMeta[format].label}</p>
+                                    <p className="text-xs font-medium text-slate-500">{mechanicMeta[format].description}</p>
+                                  </div>
+                                </div>
+                                {recommended && (
+                                  <span className="rounded-full bg-indigo-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-700">
+                                    Recommended
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -779,11 +800,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         ))}
                       </div>
                     </div>
-                  </section>
-                )}
+                </section>
 
-                {activeCategory === 'account' && (
-                  <section className="space-y-4">
+                <section
+                  ref={(el) => {
+                    sectionRefs.current.account = el;
+                  }}
+                  className="space-y-4 rounded-2xl border border-rose-100 bg-rose-50/40 p-4"
+                >
                     <h3 className={`mb-4 text-sm font-black uppercase tracking-widest ${categoryConfig.account.headingClass}`}>Account Actions</h3>
 
                     <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -818,11 +842,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         <div className="sm:col-span-2">
                           <label className="mb-1 block text-xs font-bold text-slate-600">Name</label>
                           <input
-                            ref={(el) => {
-                              if (activeCategory === 'account' && el) {
-                                firstControlRef.current = el;
-                              }
-                            }}
                             value={profileName}
                             onChange={(e) => setProfileName(e.target.value)}
                             className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-brand"
@@ -909,8 +928,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                         <span className="text-sm font-bold">Reset Progress</span>
                       </button>
                     </div>
-                  </section>
-                )}
+                </section>
               </div>
             </div>
 

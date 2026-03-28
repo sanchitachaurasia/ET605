@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Lock, LogOut, Play, Settings, Star } from 'lucide-react';
 import { useSessionStore } from '../store/sessionStore';
 import { getChapterDataForPath } from '../data/Standard/pathData';
@@ -14,12 +14,21 @@ export default function Dashboard() {
   const { session, clearSession } = useSessionStore();
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [showPathTimeline, setShowPathTimeline] = useState(false);
   const { isMobile } = useResponsive();
 
   if (!session) return null;
 
   const settings = session.settings || { darkMode: false };
   const modules = getChapterDataForPath(session.learningPath || 'B');
+  const toPathLabel = (value: 'A' | 'B' | 'C') =>
+    value === 'A' ? 'Foundational' : value === 'C' ? 'Advanced' : 'Standard';
+  const currentAssessmentStyleLabel =
+    settings.assessmentStyle === 'gamified'
+      ? 'Gamified'
+      : settings.assessmentStyle === 'traditional'
+        ? 'Traditional'
+        : 'Balanced';
 
   const isModuleLocked = (index: number) => {
     if (!session.preTestDone) return true;
@@ -28,16 +37,49 @@ export default function Dashboard() {
     return !session.moduleProgress.some((p) => p.moduleId === prevModule.id && p.completed);
   };
 
-  const getModuleStars = (moduleId: string) => {
-    return session.moduleProgress.find((p) => p.moduleId === moduleId)?.stars || 0;
-  };
-
   const isModuleCompleted = (moduleId: string) => {
     return session.moduleProgress.some((p) => p.moduleId === moduleId && p.completed);
   };
 
   const completedCount = session.moduleProgress.filter((p) => p.completed).length;
-  const pathLabel = session.learningPath === 'A' ? 'Foundational' : session.learningPath === 'C' ? 'Advanced' : 'Standard';
+  const currentDynamicPath = (() => {
+    const moduleOrder = modules.map((mod) => mod.id);
+    const lastCompleted = [...session.moduleProgress]
+      .filter((p) => p.completed)
+      .sort((a, b) => moduleOrder.indexOf(a.moduleId) - moduleOrder.indexOf(b.moduleId))
+      .pop();
+
+    if (lastCompleted?.learningPath) return lastCompleted.learningPath;
+
+    const firstIncompleteModule = modules.find((mod) => !isModuleCompleted(mod.id));
+    if (firstIncompleteModule) {
+      const progress = session.moduleProgress.find((p) => p.moduleId === firstIncompleteModule.id);
+      if (progress?.learningPath) return progress.learningPath;
+    }
+
+    return session.learningPath || 'B';
+  })();
+
+  const pathLabel = toPathLabel(currentDynamicPath);
+
+  const pathTimeline = [
+    {
+      id: 'pretest',
+      title: 'Pretest',
+      path: session.learningPath || 'B',
+    },
+    ...modules
+      .map((mod) => {
+        const progress = session.moduleProgress.find((p) => p.moduleId === mod.id);
+        if (!progress?.learningPath || !progress.completed) return null;
+        return {
+          id: mod.id,
+          title: `Module ${mod.id}`,
+          path: progress.learningPath,
+        };
+      })
+      .filter((item): item is { id: string; title: string; path: 'A' | 'B' | 'C' } => Boolean(item)),
+  ];
 
   const handleLogout = () => {
     clearSession();
@@ -89,11 +131,20 @@ export default function Dashboard() {
               <RocketProgress progress={(completedCount / modules.length) * 100} />
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <div className={cn('rounded-2xl border p-3', settings.darkMode ? 'border-slate-700 bg-slate-900/70' : 'border-[#dbd6ca] bg-white/75')}>
-                  <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>Learner Profile</p>
+                <button
+                  type="button"
+                  onClick={() => setShowPathTimeline(true)}
+                  className={cn('rounded-2xl border p-3 text-left transition-all', settings.darkMode ? 'border-slate-700 bg-slate-900/70 hover:border-slate-500' : 'border-[#dbd6ca] bg-white/75 hover:border-slate-400')}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>Learner Profile</p>
+                    <span className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-400' : 'text-slate-500')}>
+                      View Path History
+                    </span>
+                  </div>
                   <p className={cn('mt-2 text-lg font-extrabold', settings.darkMode ? 'text-slate-100' : 'text-[var(--text-strong)]')}>Path: {pathLabel}</p>
                   <p className={cn('text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>Adaptive difficulty enabled</p>
-                </div>
+                </button>
 
                 <div className={cn('rounded-2xl border p-3', settings.darkMode ? 'border-slate-700 bg-slate-900/70' : 'border-[#dbd6ca] bg-white/75')}>
                   <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>Progress Snapshot</p>
@@ -114,6 +165,9 @@ export default function Dashboard() {
                 <div className={cn('rounded-2xl border p-3', settings.darkMode ? 'border-slate-700 bg-slate-900/70' : 'border-[#dbd6ca] bg-white/75')}>
                   <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>Recommended</p>
                   <p className={cn('mt-1 text-lg font-extrabold', settings.darkMode ? 'text-slate-100' : 'text-[var(--text-strong)]')}>{session.recommendedStyle || 'Balanced'}</p>
+                  <p className={cn('mt-1 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+                    Current: {currentAssessmentStyleLabel}
+                  </p>
                 </div>
               </div>
             </div>
@@ -171,7 +225,6 @@ export default function Dashboard() {
               {modules.map((mod, i) => {
                 const locked = isModuleLocked(i);
                 const completed = isModuleCompleted(mod.id);
-                const stars = getModuleStars(mod.id);
 
                 return (
                   <motion.div
@@ -191,13 +244,6 @@ export default function Dashboard() {
                         </div>
                         <h3 className="app-display text-2xl font-extrabold leading-tight text-[var(--text-strong)]">{mod.title}</h3>
                       </div>
-                      {completed && (
-                        <div className="flex gap-0.5">
-                          {[...Array(3)].map((_, si) => (
-                            <Star key={si} size={15} className={cn(si < stars ? 'text-amber-500 fill-amber-500' : 'text-slate-300')} />
-                          ))}
-                        </div>
-                      )}
                     </div>
 
                     <p className={cn('mt-1 text-sm font-medium', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
@@ -246,6 +292,49 @@ export default function Dashboard() {
         onClose={() => setIsSettingsOpen(false)}
         activityExportUrl={getAdminAnalyticsExportUrl(session.studentId, 10000)}
       />
+
+      <AnimatePresence>
+        {showPathTimeline && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4"
+            onClick={() => setShowPathTimeline(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              onClick={(e) => e.stopPropagation()}
+              className={cn(
+                'w-full max-w-2xl rounded-3xl border p-6 shadow-2xl',
+                settings.darkMode ? 'border-slate-700 bg-slate-900 text-slate-100' : 'border-slate-200 bg-white text-slate-900'
+              )}
+            >
+              <p className={cn('text-xs font-black uppercase tracking-widest', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>
+                Path Progression
+              </p>
+              <p className={cn('mt-3 text-sm font-semibold leading-relaxed', settings.darkMode ? 'text-slate-200' : 'text-slate-700')}>
+                {pathTimeline.map((step) => `${step.title}: ${toPathLabel(step.path)}`).join(' -> ')}
+              </p>
+              <p className={cn('mt-3 text-xs font-semibold', settings.darkMode ? 'text-slate-400' : 'text-slate-500')}>
+                Showing pretest and completed modules only.
+              </p>
+
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowPathTimeline(false)}
+                  className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-black text-white transition-opacity hover:opacity-90"
+                >
+                  Done
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

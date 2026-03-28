@@ -109,6 +109,7 @@ export interface PreTestProgress {
   score: number;
   correctAnswers: Record<string, boolean>;
   preferredQuestionIds: string[];
+  assessmentStyle: 'gamified' | 'traditional' | 'balanced';
   recommendation: string;
   prefContentMode: 'text' | 'video';
   prefAssessmentTime: 'inModule' | 'endOfModule';
