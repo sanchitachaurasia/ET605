@@ -173,3 +173,22 @@ export const inline_2_1_5_3: Question = {
   options: ['Dependent', 'Independent', 'Random', 'Equal'],
   correctAnswer: 'Dependent'
 };
+
+// Export all questions as a single array for PostTest.tsx
+export const postTestQuestions: Question[] = [
+  inline_2_1_1_1,
+  inline_2_1_1_2,
+  inline_2_1_1_3,
+  inline_2_1_2_1,
+  inline_2_1_2_2,
+  inline_2_1_2_3,
+  inline_2_1_3_1,
+  inline_2_1_3_2,
+  inline_2_1_3_3,
+  inline_2_1_4_1,
+  inline_2_1_4_2,
+  inline_2_1_4_3,
+  inline_2_1_5_1,
+  inline_2_1_5_2,
+  inline_2_1_5_3,
+];
