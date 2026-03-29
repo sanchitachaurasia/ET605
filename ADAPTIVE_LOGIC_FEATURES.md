@@ -226,6 +226,48 @@ Selection-then-submit mechanics:
 - PieSlicer
 - TallyTap
 
+### 3.6A Question adaptive variant logic (Q1 -> Q2)
+
+Each topic now uses a base adaptive question and a routed follow-up variant.
+
+Base ID naming rule:
+
+- inline_[moduleId with . replaced by _]_[topicNumber]_0
+- Example: module 2.1, topic 1 -> inline_2_1_1_0
+
+After Q1 is finished, the runtime appends a suffix _x to select Q2:
+
+| Q1 outcome bucket | Suffix x | Q2 ID example |
+| --- | --- | --- |
+| Correct, 0 hints, first try | 1 | inline_2_1_1_0_1 |
+| Correct, 0 hints, second try (after one incorrect feedback cycle) | 2 | inline_2_1_1_0_2 |
+| Correct, 1 hint, first try | 3 | inline_2_1_1_0_3 |
+| Correct, 2 hints, first try | 4 | inline_2_1_1_0_4 |
+| Correct, 2 hints, second try | 5 | inline_2_1_1_0_5 |
+| Incorrect (forced advance) | 6 | inline_2_1_1_0_6 |
+
+Implementation details used by runtime selector:
+
+- The selector is computed in ConceptBlock using correctness + attempt count + hint level.
+- Incorrect route uses suffix 6.
+- Correct on second try with hints also routes to suffix 5 (so second-try + one hint is currently treated as bucket 5).
+- Forced incorrect happens after MAX_INCORRECT_BEFORE_ADVANCE = 2 attempts.
+
+### 3.6B Additional adaptive question-bank updates now in code
+
+Recent content/system updates reflected in the course datasets:
+
+- Every topic in modules 2.1 through 2.6 now loads a 7-question adaptive bundle (base + _1.._6).
+- Path datasets (Foundational/Standard/Advanced) use buildAdaptiveQuestions(moduleNumber, topicNumber) for each topic.
+- Variant bundles include per-question difficulty labels (easy/medium/hard) via ADAPTIVE_DIFFICULTY mapping.
+- Question payloads now consistently carry:
+  - hintLevel1 and hintLevel2
+  - option-wise incorrectOptionFeedback
+  - questionTags
+  - remedialBrief/remedialDetail
+  - structured remedialContent (core concept + step-by-step)
+- Styles payloads are populated across all supported game formats so mechanics can be switched without losing correctness metadata.
+
 ### 3.7 Hint and remediation trigger logic
 
 Constraint engine behavior per question:
@@ -327,7 +369,7 @@ At completion:
 - confidence prompt captures low/med/high
 - confidence is stored in moduleProgress
 - completedPathSnapshot is stored (for review consistency)
-- _moduleAttempts and _moduleReattempts counters increment
+- \_moduleAttempts and \_moduleReattempts counters increment
 - +500 XP is awarded
 
 Review mode:
@@ -571,7 +613,9 @@ Adaptive data and configuration:
 - src/store/sessionStore.ts: persisted state and metric updates.
 - src/config/gameConfig.ts: path difficulty config and XP constants.
 - src/data/Standard/pathData.ts: A/B/C module routing and skill-tag enrichment.
-- src/data/Foundational/*.ts, src/data/Standard/*.ts, src/data/Advanced/*.ts: path-specific authored content.
+- src/data/Foundational/\*.ts, src/data/Standard/\*.ts, src/data/Advanced/\*.ts: path-specific authored content.
+- src/data/questions/module_1.ts ... module_6.ts: adaptive question banks with base (_0) and variant (_1.._6) IDs per topic.
+- src/data/questions/questionFactory.ts: generator utility for consistent adaptive question structure (hints, feedback, remedial content, tags, styles).
 - src/data/Pre-Test/questions.ts, src/data/Post-Test/questions.ts: diagnostic and final assessment datasets.
 - src/data/Standard/remedialContentBank.ts: remediation detail bank + content reference tags.
 
