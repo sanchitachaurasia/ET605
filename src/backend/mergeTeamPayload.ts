@@ -13,7 +13,7 @@ export interface MergeTeamSessionPayload {
   // REQUIRED FIELDS - Student & Session Identity
   student_id: string;           // Type: String (from platform auth)
   session_id: string;           // Type: String (format: s_{student_id}_{chapter_id}_{timestamp})
-  chapter_id: string;           // Type: String (canonical: grade8_data_handling_probability)
+  chapter_id: string;           // Type: String (canonical: grade8_data_handling)
   
   // REQUIRED FIELDS - Session Metadata
   timestamp: string;            // Type: String (UTC ISO 8601, e.g., 2026-03-25T14:30:00Z)
@@ -160,7 +160,7 @@ export class MergeTeamPayloadValidator {
 export const exampleValidPayload: MergeTeamSessionPayload = {
   student_id: "student_1042",
   session_id: "s_1042_g8data_1711353000000",
-  chapter_id: "grade8_data_handling_probability",
+  chapter_id: "grade8_data_handling",
   timestamp: "2026-03-25T14:30:00Z",
   session_status: "exited_midway",
   correct_answers: 12,
@@ -176,7 +176,7 @@ export const exampleValidPayload: MergeTeamSessionPayload = {
 
 /**
  * READY-TO-SUBMIT CHECKLIST
- * ✓ Canonical chapter_id format used (grade8_data_handling_probability)
+ * ✓ Canonical chapter_id format used (grade8_data_handling)
  * ✓ All required fields present with correct types
  * ✓ student_id from platform auth/session
  * ✓ One payload sent at completed or exited_midway

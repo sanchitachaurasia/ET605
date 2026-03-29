@@ -39,30 +39,34 @@ export function useMergeTeamIntegration() {
   const buildMergePayload = (): Partial<MergeTeamSessionPayload> | null => {
     if (!session) return null;
 
-    const completed_concepts = session.conceptsCompleted?.length || 0;
+    const safe = (v: any) => (v === undefined || v === null || Number.isNaN(v) ? null : v);
+    const completed_concepts = safe(session.conceptsCompleted?.length);
     const total_concepts = 20; // From our expanded curriculum
 
     return {
-      student_id: session.student_id || 'anonymous',
-      session_id: session.session_id,
-      chapter_id: 'grade8_data_handling_probability',
+      student_id: safe(session.student_id) || 'anonymous',
+      session_id: safe(session.session_id),
+      chapter_id: 'grade8_data_handling',
       timestamp: new Date().toISOString(),
       session_status: 'completed',
-      
+
       // Question metrics
-      correct_answers: session.correctAnswers || 0,
-      wrong_answers: session.wrongAnswers || 0,
-      questions_attempted: session.questionsAttempted?.length || 0,
-      total_questions: session.totalQuestions || 50, // Approximate for 20 concepts
-      
+      correct_answers: safe(session.correctAnswers),
+      wrong_answers: safe(session.wrongAnswers),
+      questions_attempted: safe(session.questionsAttempted?.length),
+      total_questions: safe(session.totalQuestions),
+
       // Attempt & hint tracking
-      retry_count: session.retryCount || 0,
-      hints_used: session.hintsUsed || 0,
-      total_hints_embedded: session.totalHintsEmbedded || 100, // Approximate
+      retry_count: safe(session.retryCount),
+      hints_used: safe(session.hintsUsed),
+      total_hints_embedded: safe(session.totalHintsEmbedded),
 
       // Time & progress
-      time_spent_seconds: Math.round((session.activeTimeSpent || 0) / 1000), // Convert ms → seconds
-      topic_completion_ratio: completed_concepts / total_concepts
+      time_spent_seconds: safe(session.activeTimeSpent) === null ? null : Math.round(session.activeTimeSpent / 1000),
+      topic_completion_ratio:
+        completed_concepts === null || safe(total_concepts) === null || total_concepts === 0
+          ? null
+          : Math.max(0, Math.min(1, completed_concepts / total_concepts))
     };
   };
 

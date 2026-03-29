@@ -1,5 +1,6 @@
-import { Request, Response, Router } from 'express';
-import { auth, db } from './firebase';
+import express from 'express';
+const { Request, Response, Router } = express;
+import { auth, db } from './firebase.ts';
 import admin from 'firebase-admin';
 
 const router = Router();

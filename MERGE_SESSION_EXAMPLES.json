@@ -1,8 +1,8 @@
 {
   "session_completed_example": {
     "student_id": "student-8347-dataquest",
-    "session_id": "s_student-8347-dataquest_grade8_data_handling_probability_1711448400000",
-    "chapter_id": "grade8_data_handling_probability",
+    "session_id": "s_student-8347-dataquest_grade8_data_handling_1711448400000",
+    "chapter_id": "grade8_data_handling",
     "timestamp": "2026-03-26T10:00:00.000Z",
     "session_status": "completed",
     "correct_answers": 22,
@@ -18,8 +18,8 @@
   },
   "session_exited_midway_example": {
     "student_id": "student-9125-dataquest",
-    "session_id": "s_student-9125-dataquest_grade8_data_handling_probability_1711439600000",
-    "chapter_id": "grade8_data_handling_probability",
+    "session_id": "s_student-9125-dataquest_grade8_data_handling1711439600000",
+    "chapter_id": "grade8_data_handling",
     "timestamp": "2026-03-26T08:15:00.000Z",
     "session_status": "exited_midway",
     "correct_answers": 8,

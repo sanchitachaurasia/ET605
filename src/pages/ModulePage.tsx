@@ -9,6 +9,7 @@ import { RocketProgress } from '../components/RocketProgress';
 import { useSessionStore } from '../store/sessionStore';
 import { ChevronLeft, CheckCircle, Settings } from 'lucide-react';
 import { SettingsModal } from '../components/SettingsModal';
+import ExitConfirmationModal from '../components/ExitConfirmationModal';
 import { cn } from '../lib/utils';
 import confetti from 'canvas-confetti';
 import { useMergeIntegration, submitMergePayload } from '../hooks/useMergeIntegration';
@@ -135,6 +136,7 @@ export default function ModulePage() {
   const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? (reattemptSnapshot?.currentConceptStage || 'content') : moduleProgress?.currentConceptStage || 'content'));
   const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
+  const [redirectToDashboard, setRedirectToDashboard] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [showReviewSnapshotPopup, setShowReviewSnapshotPopup] = useState(false);
   const [showConfidencePrompt, setShowConfidencePrompt] = useState(false);
@@ -155,7 +157,7 @@ export default function ModulePage() {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
           window.clearInterval(timer);
-          navigate('/dashboard');
+          setRedirectToDashboard(true);
           return 0;
         }
         return prev - 1;
@@ -163,7 +165,13 @@ export default function ModulePage() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [showCompletionCelebration, navigate]);
+  }, [showCompletionCelebration]);
+
+  useEffect(() => {
+    if (redirectToDashboard) {
+      navigate('/dashboard');
+    }
+  }, [redirectToDashboard, navigate]);
 
   useEffect(() => {
     if (!session || !session.studentId) {
@@ -342,10 +350,26 @@ export default function ModulePage() {
     updateSession({ moduleProgress: newProgress });
   }, [session, moduleId, currentConceptIdx, conceptStage, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
 
+
+  // Defensive: get module and session, fallback UI if missing
   const moduleCatalog = getChapterDataForPath(path);
   const module = moduleCatalog.find((m) => m.id === moduleId);
-
-  if (!module || !session) return <div>Module not found</div>;
+  if (!module || !session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="rounded-2xl border p-8 text-center shadow-lg bg-white">
+          <h2 className="text-2xl font-black">Module or session not found</h2>
+          <p className="mt-2 text-sm font-semibold text-slate-600">We could not load the module or session data. Please return to the dashboard and try again.</p>
+          <button
+            onClick={() => window.location.assign('/dashboard')}
+            className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const filteredConcepts = module.concepts.filter((c) => !c.path || c.path === path);
   const safeConceptIdx = Math.min(currentConceptIdx, Math.max(filteredConcepts.length - 1, 0));
@@ -366,6 +390,70 @@ export default function ModulePage() {
   const allQuestions = filteredConcepts
     .flatMap((c) => c.questions.filter((q) => !q.path || q.path === path))
     .filter((q) => !q.adaptiveVariant);
+
+  // Defensive: fallback UI if no concepts or currentConcept is undefined
+  if (filteredConcepts.length === 0 || !currentConcept) {
+    return (
+      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
+        <main className="mx-auto mt-12 max-w-3xl px-4">
+          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
+            <h2 className="text-2xl font-black">No concepts found</h2>
+            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+              We could not load the concepts for this module. Please try resetting to the first concept or return to the dashboard.
+            </p>
+            <button
+              onClick={() => {
+                setCurrentConceptIdx(0);
+                setConceptStage('content');
+                setConceptEntryStage('content');
+                setConceptEntryQuestionMode('first');
+              }}
+              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+            >
+              Reset to first concept
+            </button>
+            <button
+              onClick={() => window.location.assign('/dashboard')}
+              className="mt-4 ml-2 rounded-xl bg-slate-500 px-4 py-2 text-sm font-bold text-white"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Defensive: fallback UI if showFinalAssessment but no questions
+  if (showFinalAssessment && allQuestions.length === 0) {
+    return (
+      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
+        <main className="mx-auto mt-12 max-w-3xl px-4">
+          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
+            <h2 className="text-2xl font-black">No assessment questions found</h2>
+            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+              We could not load the assessment questions for this module. Please return to the concept flow or dashboard.
+            </p>
+            <button
+              onClick={() => {
+                setShowFinalAssessment(false);
+                setFinalAssessmentIdx(0);
+              }}
+              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+            >
+              Return to concept flow
+            </button>
+            <button
+              onClick={() => window.location.assign('/dashboard')}
+              className="mt-4 ml-2 rounded-xl bg-slate-500 px-4 py-2 text-sm font-bold text-white"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (filteredConcepts.length === 0) {
@@ -435,19 +523,15 @@ export default function ModulePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Exit confirmation using ExitConfirmationModal and useMergeTeamIntegration
+  // Removed useMergeTeamIntegration, use useMergeIntegration and submitMergePayload instead
   const handleConfirmExit = async () => {
     if (isExiting) return;
     setIsExiting(true);
     try {
-      trackTelemetryEvent('session_end', {
-        module_id: moduleId,
-        event_data: {
-          status: 'exited_midway',
-          trigger: 'exit_button',
-        }
-      });
-      await flushTrackingEvents();
-      await submitMergePayload(session, 'exited_midway', { isSync: false });
+      await submitToMergeTeam('exited_midway');
+    } catch (e) {
+      // Optionally handle/log error
     } finally {
       setShowExitConfirm(false);
       navigate('/dashboard');
@@ -463,6 +547,7 @@ export default function ModulePage() {
     setIsFinalizingCompletion(true);
     setShowCompletionCelebration(true);
     setRedirectCountdown(3);
+    setRedirectToDashboard(false);
 
     confetti({
       particleCount: 200,
@@ -1347,34 +1432,15 @@ export default function ModulePage() {
         )}
 
         {showExitConfirm && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: 8 }}
-              className="w-full max-w-md rounded-[2rem] border border-[#ddd7ca] bg-white p-6 shadow-2xl"
-            >
-              <h3 className="app-display text-2xl font-extrabold text-slate-900">Exit Module?</h3>
-              <p className="mt-2 text-sm font-semibold text-slate-600">Are you sure you want to exit? Your session progress will be recorded.</p>
-
-              <div className="mt-6 flex items-center justify-end gap-3">
-                <button
-                  onClick={() => setShowExitConfirm(false)}
-                  disabled={isExiting}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmExit}
-                  disabled={isExiting}
-                  className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isExiting ? 'Saving...' : 'Exit'}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+          <ExitConfirmationModal
+            isOpen={showExitConfirm}
+            onConfirmExit={handleConfirmExit}
+            onResume={() => setShowExitConfirm(false)}
+            currentProgress={{
+              completed: currentConceptIdx,
+              total: filteredConcepts.length
+            }}
+          />
         )}
 
         {showConfidencePrompt && (

@@ -139,7 +139,6 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between gap-2">
                     <p className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>Learner Profile</p>
                     <span className={cn('text-xs font-black uppercase tracking-wide', settings.darkMode ? 'text-slate-400' : 'text-slate-500')}>
-                      View Path History
                     </span>
                   </div>
                   <p className={cn('mt-2 text-lg font-extrabold', settings.darkMode ? 'text-slate-100' : 'text-[var(--text-strong)]')}>Path: {pathLabel}</p>
@@ -340,46 +339,8 @@ export default function Dashboard() {
       />
 
       <AnimatePresence>
-        {showPathTimeline && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/55 p-4"
-            onClick={() => setShowPathTimeline(false)}
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 8 }}
-              onClick={(e) => e.stopPropagation()}
-              className={cn(
-                'w-full max-w-2xl rounded-3xl border p-6 shadow-2xl',
-                settings.darkMode ? 'border-slate-700 bg-slate-900 text-slate-100' : 'border-slate-200 bg-white text-slate-900'
-              )}
-            >
-              <p className={cn('text-xs font-black uppercase tracking-widest', settings.darkMode ? 'text-slate-300' : 'text-slate-500')}>
-                Path Progression
-              </p>
-              <p className={cn('mt-3 text-sm font-semibold leading-relaxed', settings.darkMode ? 'text-slate-200' : 'text-slate-700')}>
-                {pathTimeline.map((step) => `${step.title}: ${toPathLabel(step.path)}`).join(' -> ')}
-              </p>
-              <p className={cn('mt-3 text-xs font-semibold', settings.darkMode ? 'text-slate-400' : 'text-slate-500')}>
-                Showing pretest and completed modules only.
-              </p>
 
-              <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowPathTimeline(false)}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-black text-white transition-opacity hover:opacity-90"
-                >
-                  Done
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
+        {showPathTimeline && null}
       </AnimatePresence>
     </div>
   );

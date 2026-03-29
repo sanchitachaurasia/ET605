@@ -58,21 +58,27 @@ export const mergePayloadFormatter = (
     completionRatio: number;
   }
 ): MergeSessionPayload => {
+  // Helper to set null if missing or NaN
+  const safe = (v: any) => (v === undefined || v === null || Number.isNaN(v) ? null : v);
+
   const payload: MergeSessionPayload = {
-    student_id: session.studentId,
-    session_id: sessionId,
-    chapter_id: chapterId,
+    student_id: safe(session.studentId),
+    session_id: safe(sessionId),
+    chapter_id: safe(chapterId),
     timestamp: new Date().toISOString(), // UTC ISO 8601
     session_status: status,
-    correct_answers: metrics.correct,
-    wrong_answers: metrics.wrong,
-    questions_attempted: metrics.attempted,
-    total_questions: metrics.total,
-    retry_count: metrics.retries,
-    hints_used: metrics.hintsUsed,
-    total_hints_embedded: metrics.totalHints,
-    time_spent_seconds: metrics.timeSpent,
-    topic_completion_ratio: Math.max(0, Math.min(1, metrics.completionRatio)) // clamp to 0-1
+    correct_answers: safe(metrics.correct),
+    wrong_answers: safe(metrics.wrong),
+    questions_attempted: safe(metrics.attempted),
+    total_questions: safe(metrics.total),
+    retry_count: safe(metrics.retries),
+    hints_used: safe(metrics.hintsUsed),
+    total_hints_embedded: safe(metrics.totalHints),
+    time_spent_seconds: safe(metrics.timeSpent),
+    topic_completion_ratio:
+      safe(metrics.completionRatio) === null
+        ? null
+        : Math.max(0, Math.min(1, metrics.completionRatio)) // clamp to 0-1
   };
 
   // Validate payload

@@ -1,8 +1,9 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import authRoutes from "./src/backend/authRoutes";
-import sessionRoutes from "./src/backend/sessionRoutes";
+import authRoutes from "./src/backend/authRoutes.ts";
+import sessionRoutes from "./src/backend/sessionRoutes.ts";
+import mergeTeamRoutes from "./src/backend/mergeTeamRoutes.ts";
 
 async function startServer() {
   const app = express();
@@ -35,9 +36,10 @@ async function startServer() {
 
   app.use(express.json());
   
-  // Mount auth and session routes
+  // Mount auth, session, and merge team routes
   app.use("/api/auth", authRoutes);
   app.use("/api/session", sessionRoutes);
+  app.use(mergeTeamRoutes);
 
   // Chapter Metadata API
   app.get("/api/chapter/metadata", (req, res) => {

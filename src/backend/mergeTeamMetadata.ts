@@ -15,270 +15,90 @@ export const chapterMetadataForMerge = {
   chapter_difficulty: 0.55, // Medium difficulty: data org (easy) → probability (hard)
   expected_completion_time_seconds: 7200, // 2 hours
   
-  // SUBTOPICS STRUCTURE (6 subtopics × 3-4 concepts each = ~20 concepts total)
+  // SUBTOPICS STRUCTURE
   subtopics: [
+    // 1. Data Organisation & Types of Graphs
     {
       subtopic_id: "grade8_data_org_graphs",
-      subtopic_name: "Data Organisation & Graphs",
-      subtopic_difficulty: 0.45, // Easy-Medium
+      subtopic_name: "Data Organisation & Types of Graphs",
+      subtopic_difficulty: 0.45,
       concepts: [
-        {
-          concept_id: "c8_data_org_1",
-          concept_name: "Why Organise Data?",
-          learning_outcomes: [
-            "Understand why data organisation matters",
-            "Distinguish between raw and organized data",
-            "Recognize patterns in organized vs unorganized data"
-          ],
-          difficulty: 0.35
-        },
-        {
-          concept_id: "c8_data_org_2",
-          concept_name: "Tally Marks & Frequency Tables",
-          learning_outcomes: [
-            "Create tally marks correctly",
-            "Build frequency tables",
-            "Interpret frequency data"
-          ],
-          difficulty: 0.40
-        },
-        {
-          concept_id: "c8_data_org_3",
-          concept_name: "Pictographs",
-          learning_outcomes: [
-            "Read pictographs with scales",
-            "Understand symbol-to-value mapping",
-            "Handle fractional symbols"
-          ],
-          difficulty: 0.40
-        },
-        {
-          concept_id: "c8_data_org_4",
-          concept_name: "Bar Graphs & Comparison",
-          learning_outcomes: [
-            "Create and read bar graphs",
-            "Compare categories using bars",
-            "Distinguish bar graphs from histograms"
-          ],
-          difficulty: 0.45
-        }
+        { concept_id: "c8_data_org_1", concept_name: "Why Organise Data?", learning_outcomes: ["Explain the need for data organisation", "Distinguish raw vs organised data", "Describe challenges of raw data"], difficulty: 0.35 },
+        { concept_id: "c8_data_org_2", concept_name: "Tally Marks & Frequency Tables", learning_outcomes: ["Create and interpret tally marks", "Build frequency tables", "Verify frequency totals"], difficulty: 0.40 },
+        { concept_id: "c8_data_org_3", concept_name: "Pictographs", learning_outcomes: ["Read pictographs with keys", "Interpret half-symbols", "Explain pictograph scales"], difficulty: 0.40 },
+        { concept_id: "c8_data_org_4", concept_name: "Bar Graphs", learning_outcomes: ["Draw and interpret bar graphs", "Label axes and scales", "Compare values using bars"], difficulty: 0.45 },
+        { concept_id: "c8_data_org_5", concept_name: "Double Bar Graphs", learning_outcomes: ["Draw and interpret double bar graphs", "Use legends for group comparison", "Compare trends between groups"], difficulty: 0.45 },
+        { concept_id: "c8_data_org_6", concept_name: "Interpreting Graphs & Data Detective", learning_outcomes: ["Interpret trends and peaks in graphs", "Draw conclusions from visual data", "Organise raw data for analysis"], difficulty: 0.45 }
       ]
     },
-    {
-      subtopic_id: "grade8_graph_interpretation",
-      subtopic_name: "Graph Interpretation & Analysis",
-      subtopic_difficulty: 0.50, // Medium
-      concepts: [
-        {
-          concept_id: "c8_graph_read_1",
-          concept_name: "Reading & Interpreting Real Graphs",
-          learning_outcomes: [
-            "Identify scale manipulations in graphs",
-            "Detect broken axes",
-            "Spot 3D distortions",
-            "Criticize misleading presentations"
-          ],
-          difficulty: 0.50
-        },
-        {
-          concept_id: "c8_graph_read_2",
-          concept_name: "Class Data Collection Project",
-          learning_outcomes: [
-            "Design surveys",
-            "Collect real data",
-            "Choose appropriate graph types",
-            "Present findings"
-          ],
-          difficulty: 0.55
-        },
-        {
-          concept_id: "c8_graph_read_3",
-          concept_name: "Choosing the Right Graph",
-          learning_outcomes: [
-            "Match data type to graph form",
-            "Evaluate graph effectiveness",
-            "Understand when each graph fails"
-          ],
-          difficulty: 0.45
-        }
-      ]
-    },
+    // 2. Grouping Data & Histograms
     {
       subtopic_id: "grade8_histograms_grouping",
       subtopic_name: "Grouping Data & Histograms",
-      subtopic_difficulty: 0.55, // Medium
+      subtopic_difficulty: 0.55,
       concepts: [
-        {
-          concept_id: "c8_hist_1",
-          concept_name: "Class Intervals & Range",
-          learning_outcomes: [
-            "Calculate data range",
-            "Create class intervals",
-            "Choose appropriate bin widths"
-          ],
-          difficulty: 0.50
-        },
-        {
-          concept_id: "c8_hist_2",
-          concept_name: "What Is a Histogram?",
-          learning_outcomes: [
-            "Understand histogram structure",
-            "Read continuous data representations",
-            "Know when to use histograms vs bar graphs"
-          ],
-          difficulty: 0.55
-        },
-        {
-          concept_id: "c8_hist_3",
-          concept_name: "Choosing Bin Size",
-          learning_outcomes: [
-            "Apply √n rule",
-            "Use Sturges' formula",
-            "Evaluate bin size choices"
-          ],
-          difficulty: 0.60
-        },
-        {
-          concept_id: "c8_hist_4",
-          concept_name: "Real Data Analysis Project",
-          learning_outcomes: [
-            "Organize continuous data",
-            "Create appropriate histograms",
-            "Identify distribution patterns"
-          ],
-          difficulty: 0.55
-        }
+        { concept_id: "c8_hist_1", concept_name: "Class Intervals & Grouping", learning_outcomes: ["Explain class intervals", "Apply boundary rule", "Build grouped frequency tables"], difficulty: 0.50 },
+        { concept_id: "c8_hist_2", concept_name: "What Is a Histogram?", learning_outcomes: ["Distinguish histograms from bar graphs", "Draw histograms for grouped data", "Interpret histogram shapes"], difficulty: 0.55 },
+        { concept_id: "c8_hist_3", concept_name: "Choosing Bin Size", learning_outcomes: ["Calculate range and bin size", "Apply bin selection rules", "Compare bin size effects"], difficulty: 0.60 },
+        { concept_id: "c8_hist_4", concept_name: "Histograms vs Bar Graphs", learning_outcomes: ["Compare categorical vs continuous data", "Identify when to use each graph", "Explain gaps vs touching bars"], difficulty: 0.55 },
+        { concept_id: "c8_hist_5", concept_name: "Real Data Analysis Project", learning_outcomes: ["Conduct full data analysis", "Draw conclusions from grouped data", "Verify grouped data analysis"], difficulty: 0.60 },
+        { concept_id: "c8_hist_6", concept_name: "Practice & Application", learning_outcomes: ["Apply histogram concepts to new datasets", "Interpret real-world grouped data", "Choose appropriate graph types"], difficulty: 0.55 }
       ]
     },
+    // 3. Pie Charts & Circle Graphs
     {
       subtopic_id: "grade8_pie_charts",
-      subtopic_name: "Pie Charts & Proportional Representation",
-      subtopic_difficulty: 0.50, // Medium
+      subtopic_name: "Pie Charts & Circle Graphs",
+      subtopic_difficulty: 0.50,
       concepts: [
-        {
-          concept_id: "c8_pie_1",
-          concept_name: "What Is a Pie Chart?",
-          learning_outcomes: [
-            "Understand parts-of-whole representation",
-            "Read pie chart slices",
-            "Know when pie charts are useful"
-          ],
-          difficulty: 0.45
-        },
-        {
-          concept_id: "c8_pie_2",
-          concept_name: "Calculating Sector Angles",
-          learning_outcomes: [
-            "Calculate percentages from data",
-            "Convert percentages to degrees",
-            "Verify angle calculations (360° total)"
-          ],
-          difficulty: 0.55
-        },
-        {
-          concept_id: "c8_pie_3",
-          concept_name: "When to Use Pie Charts",
-          learning_outcomes: [
-            "Match data types to pie charts",
-            "Understand limitations (max 5-6 slices)",
-            "Choose alternatives for complex data"
-          ],
-          difficulty: 0.50
-        },
-        {
-          concept_id: "c8_pie_4",
-          concept_name: "Real-World Pie Chart Analysis",
-          learning_outcomes: [
-            "Analyze published pie charts",
-            "Detect misleading pie representations",
-            "Create effective pie charts from data"
-          ],
-          difficulty: 0.50
-        }
+        { concept_id: "c8_pie_1", concept_name: "What Is a Pie Chart?", learning_outcomes: ["Explain pie chart structure", "Relate pie charts to real data", "Calculate sector angles"], difficulty: 0.45 },
+        { concept_id: "c8_pie_2", concept_name: "Calculating Sector Angles", learning_outcomes: ["Convert percentages to degrees", "Verify angle calculations", "Sum angles to 360°"], difficulty: 0.50 },
+        { concept_id: "c8_pie_3", concept_name: "Parts-of-Whole Representation", learning_outcomes: ["Interpret pie chart slices", "Match data types to pie charts", "Explain limitations of pie charts"], difficulty: 0.50 },
+        { concept_id: "c8_pie_4", concept_name: "Real-World Pie Chart Analysis", learning_outcomes: ["Analyze published pie charts", "Detect misleading representations", "Create effective pie charts"], difficulty: 0.50 },
+        { concept_id: "c8_pie_5", concept_name: "Comparing Pie Charts", learning_outcomes: ["Compare multiple pie charts", "Identify trends across charts", "Draw conclusions from comparisons"], difficulty: 0.50 },
+        { concept_id: "c8_pie_6", concept_name: "Practice & Application", learning_outcomes: ["Apply pie chart concepts to new data", "Interpret real-world pie charts", "Choose alternatives for complex data"], difficulty: 0.50 }
       ]
     },
+    // 4. Chance & Probability
     {
       subtopic_id: "grade8_probability_basics",
-      subtopic_name: "Probability Foundations",
-      subtopic_difficulty: 0.60, // Medium-Hard
+      subtopic_name: "Chance & Probability",
+      subtopic_difficulty: 0.60,
       concepts: [
-        {
-          concept_id: "c8_prob_1",
-          concept_name: "Basic Probability Concepts",
-          learning_outcomes: [
-            "Calculate probability ratios",
-            "Understand probability range (0-1)",
-            "Distinguish favorable from total outcomes"
-          ],
-          difficulty: 0.55
-        },
-        {
-          concept_id: "c8_prob_2",
-          concept_name: "Equally Likely vs Non-Equally Likely",
-          learning_outcomes: [
-            "Identify fair probability distributions",
-            "Detect rigged or biased games",
-            "Evaluate game fairness"
-          ],
-          difficulty: 0.60
-        },
-        {
-          concept_id: "c8_prob_3",
-          concept_name: "Experimental vs Theoretical",
-          learning_outcomes: [
-            "Understand Law of Large Numbers",
-            "Compare experimental to theoretical probability",
-            "Use data to detect loaded dice/coins"
-          ],
-          difficulty: 0.65
-        },
-        {
-          concept_id: "c8_prob_4",
-          concept_name: "Probability in Real Life",
-          learning_outcomes: [
-            "Apply probability to games",
-            "Calculate expected values",
-            "Understand carnival game odds"
-          ],
-          difficulty: 0.60
-        }
+        { concept_id: "c8_prob_1", concept_name: "What Is Probability?", learning_outcomes: ["Define probability and its uses", "Calculate probability as a ratio", "Distinguish certain/impossible/possible events"], difficulty: 0.55 },
+        { concept_id: "c8_prob_2", concept_name: "Equally Likely vs Not Equally Likely", learning_outcomes: ["Identify equally likely events", "Explain fairness in probability", "Apply to real-world scenarios"], difficulty: 0.60 },
+        { concept_id: "c8_prob_3", concept_name: "Probability in Games", learning_outcomes: ["Apply probability to games", "Calculate expected values", "Understand odds in simple games"], difficulty: 0.60 },
+        { concept_id: "c8_prob_4", concept_name: "Experimental vs Theoretical Probability", learning_outcomes: ["Compare experimental and theoretical probability", "Understand Law of Large Numbers", "Detect loaded dice/coins"], difficulty: 0.60 },
+        { concept_id: "c8_prob_5", concept_name: "Probability in Real Life", learning_outcomes: ["Use probability in daily decisions", "Relate probability to trends/statistics", "Connect to business/inventory"], difficulty: 0.60 },
+        { concept_id: "c8_prob_6", concept_name: "Practice & Application", learning_outcomes: ["Apply probability concepts to new problems", "Interpret probability in real-world data", "Design simple probability experiments"], difficulty: 0.60 }
       ]
     },
+    // 5. Applying Probability to Life
     {
-      subtopic_id: "grade8_probability_advanced",
-      subtopic_name: "Advanced Probability & Logic",
-      subtopic_difficulty: 0.65, // Hard
+      subtopic_id: "grade8_probability_applied",
+      subtopic_name: "Applying Probability to Life",
+      subtopic_difficulty: 0.65,
       concepts: [
-        {
-          concept_id: "c8_adv_prob_1",
-          concept_name: "Independent Events",
-          learning_outcomes: [
-            "Recognize independent events",
-            "Calculate compound probabilities",
-            "Understand multiplication rule"
-          ],
-          difficulty: 0.60
-        },
-        {
-          concept_id: "c8_adv_prob_2",
-          concept_name: "Dependent Events",
-          learning_outcomes: [
-            "Understand conditional probability",
-            "Calculate dependent event probabilities",
-            "Apply without-replacement scenarios"
-          ],
-          difficulty: 0.65
-        },
-        {
-          concept_id: "c8_adv_prob_3",
-          concept_name: "Probability in Sports & Games",
-          learning_outcomes: [
-            "Apply probability to real sports scenarios",
-            "Understand betting odds",
-            "Evaluate sports statistics"
-          ],
-          difficulty: 0.60
-        }
+        { concept_id: "c8_prob_app_1", concept_name: "The Raincoat Dilemma", learning_outcomes: ["Use probability for predictions", "Relate probability to business decisions", "Connect probability to trends"], difficulty: 0.60 },
+        { concept_id: "c8_prob_app_2", concept_name: "Probability in Business", learning_outcomes: ["Explain probability in business planning", "Define inventory", "Apply probability to inventory scenarios"], difficulty: 0.65 },
+        { concept_id: "c8_prob_app_3", concept_name: "Sports & Statistics", learning_outcomes: ["Interpret sports statistics", "Apply probability to sports", "Understand averages/trends in sports"], difficulty: 0.60 },
+        { concept_id: "c8_prob_app_4", concept_name: "Probability in Weather & Science", learning_outcomes: ["Apply probability to weather predictions", "Interpret probability in science data", "Connect probability to real-world science"], difficulty: 0.60 },
+        { concept_id: "c8_prob_app_5", concept_name: "Probability in Social Contexts", learning_outcomes: ["Use probability in social decisions", "Interpret probability in surveys", "Apply probability to group outcomes"], difficulty: 0.60 },
+        { concept_id: "c8_prob_app_6", concept_name: "Practice & Application", learning_outcomes: ["Apply probability to new life scenarios", "Design probability-based activities", "Interpret probability in news/media"], difficulty: 0.60 }
+      ]
+    },
+    // 6. Master Revision - Data Handling
+    {
+      subtopic_id: "grade8_revision",
+      subtopic_name: "Master Revision - Data Handling",
+      subtopic_difficulty: 0.50,
+      concepts: [
+        { concept_id: "c8_rev_1", concept_name: "Warm-Up Recall", learning_outcomes: ["Recall key facts and definitions", "Answer rapid-fire recall questions", "Review core concepts"], difficulty: 0.40 },
+        { concept_id: "c8_rev_2", concept_name: "Active Recall", learning_outcomes: ["Recall and explain graph differences", "Apply boundary rule for intervals", "Convert percentages to angles"], difficulty: 0.45 },
+        { concept_id: "c8_rev_3", concept_name: "Mixed Practice", learning_outcomes: ["Solve mixed data handling problems", "Interpret multiple graph types", "Apply concepts in combination"], difficulty: 0.45 },
+        { concept_id: "c8_rev_4", concept_name: "Challenge Questions", learning_outcomes: ["Tackle advanced/challenge problems", "Explain reasoning for solutions", "Connect multiple concepts"], difficulty: 0.50 },
+        { concept_id: "c8_rev_5", concept_name: "Peer Review & Discussion", learning_outcomes: ["Review peer solutions", "Discuss alternative approaches", "Reflect on learning"], difficulty: 0.45 },
+        { concept_id: "c8_rev_6", concept_name: "Final Assessment & Reflection", learning_outcomes: ["Complete a final assessment", "Reflect on strengths and areas to improve", "Set goals for future learning"], difficulty: 0.45 }
       ]
     }
   ],

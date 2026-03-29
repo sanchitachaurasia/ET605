@@ -6,14 +6,12 @@
  * 3. Retry logic for network failures
  */
 
-import { Router, Request, Response } from 'express';
-import { db } from './firebase';
-import { chapterMetadataForMerge } from './mergeTeamMetadata';
-import {
-  MergeTeamSessionPayload,
-  MergeTeamPayloadValidator,
-  exampleValidPayload
-} from './mergeTeamPayload';
+import express from 'express';
+const { Router, Request, Response } = express;
+import { db } from './firebase.ts';
+import { chapterMetadataForMerge } from './mergeTeamMetadata.ts';
+import { MergeTeamPayloadValidator, exampleValidPayload } from './mergeTeamPayload.ts';
+import type { MergeTeamSessionPayload } from './mergeTeamPayload.ts';
 
 const mergeRouter = Router();
 
@@ -30,7 +28,7 @@ mergeRouter.get('/api/merge/chapter-metadata', (req: Request, res: Response) => 
    * Response: chapterMetadataForMerge object with all subtopics and concepts
    */
   try {
-    console.log('[Merge] Serving chapter metadata for grade8_data_handling_probability');
+    console.log('[Merge] Serving chapter metadata for grade8_data_handling');
     res.status(200).json({
       success: true,
       data: chapterMetadataForMerge,
@@ -284,7 +282,7 @@ mergeRouter.get('/api/merge/health', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     status: 'healthy',
-    chapter_id: 'grade8_data_handling_probability',
+    chapter_id: 'grade8_data_handling',
     integration: 'merge_team_v1',
     timestamp: new Date().toISOString()
   });
