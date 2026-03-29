@@ -1,3 +1,7 @@
+import { moduleData as module1 } from '../data/Standard/module_1';
+import { moduleData as module2 } from '../data/Standard/module_2';
+import { moduleData as module3 } from '../data/Standard/module_3';
+import { moduleData as module4 } from '../data/Standard/module_4';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
@@ -20,17 +24,9 @@ type ModuleSkillEval = {
 };
 
 const MODULE_SKILL_QUESTION_IDS: Record<string, string[]> = {
-  '2.1': ['q_pictograph_300', 'q_tally_7', 'q_bar_house'],
+  '2.1': ['q_pictograph_300', 'q_bar_house'],
   '2.2': ['q_interval_25', 'q_histogram_data', 'q_histogram_gap'],
-  '2.3': ['q_pie_chocolate', 'q_pie_fraction'],
-  '2.4': ['q_spinner_blue', 'q_probability_dependence'],
 };
-
-const SUPPORT_STYLE_FALLBACK: GameFormat[] = [
-  GameFormat.DRAG_SORT,
-  GameFormat.TALLY_TAP,
-  GameFormat.BAR_BUILDER,
-];
 
 const CHALLENGE_STYLE_FALLBACK: GameFormat[] = [
   GameFormat.SPIN_WHEEL,
@@ -38,11 +34,25 @@ const CHALLENGE_STYLE_FALLBACK: GameFormat[] = [
   GameFormat.PIE_SLICER,
 ];
 
+const SUPPORT_STYLE_FALLBACK: GameFormat[] = [
+  GameFormat.DRAG_SORT,
+  GameFormat.BAR_BUILDER,
+];
+
 const STYLE_FORMAT_PRIORITIES: Record<'gamified' | 'traditional' | 'balanced', GameFormat[]> = {
   gamified: [GameFormat.RAINDROP, GameFormat.SPIN_WHEEL, GameFormat.PIE_SLICER, GameFormat.DRAG_SORT],
-  traditional: [GameFormat.BAR_BUILDER, GameFormat.TALLY_TAP, GameFormat.HOTSPOT, GameFormat.DRAG_SORT],
-  balanced: [GameFormat.DRAG_SORT, GameFormat.BAR_BUILDER, GameFormat.RAINDROP, GameFormat.TALLY_TAP],
+  traditional: [GameFormat.BAR_BUILDER, GameFormat.HOTSPOT, GameFormat.DRAG_SORT],
+  balanced: [GameFormat.DRAG_SORT, GameFormat.BAR_BUILDER, GameFormat.RAINDROP],
 };
+
+const preTestPreferenceOptions = [
+  { id: 'DRAG_SORT', format: GameFormat.DRAG_SORT, label: 'Drag & Sort' },
+  { id: 'RAINDROP', format: GameFormat.RAINDROP, label: 'Raindrop Catch' },
+  { id: 'BAR_BUILDER', format: GameFormat.BAR_BUILDER, label: 'Bar Builder' },
+  { id: 'SPIN_WHEEL', format: GameFormat.SPIN_WHEEL, label: 'Spin Wheel' },
+  { id: 'PIE_SLICER', format: GameFormat.PIE_SLICER, label: 'Pie Slicer' },
+  { id: 'HOTSPOT', format: GameFormat.HOTSPOT, label: 'Hotspot' },
+];
 
 function getConfidenceWeight(isCorrect: boolean, confidence: PreTestConfidence): number {
   if (isCorrect && confidence === 'sure') return 1;
@@ -126,10 +136,14 @@ function buildRecommendedGameStyles(
   return merged.slice(0, 3).map((format) => format);
 }
 
+
+const MODULES = [module1, module2, module3, module4];
+
 export default function PreTest() {
   const isRestoringRef = useRef(false);
   const lastPersistedRef = useRef('');
   const [isProgressInitialized, setIsProgressInitialized] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [score, setScore] = useState(0);
   const [correctAnswers, setCorrectAnswers] = useState<Record<string, boolean>>({});
@@ -146,12 +160,12 @@ export default function PreTest() {
   const [showConfidenceCapture, setShowConfidenceCapture] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState<{ questionId: string; isCorrect: boolean } | null>(null);
   const { isMobile } = useResponsive();
-  
   const { session, updateSession, clearSession } = useSessionStore();
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session?.preTestDone && !session?.preTestRetakeInProgress) {
+    if (session?.preTestDone) {
       navigate('/dashboard');
     }
   }, [session, navigate]);
@@ -160,26 +174,18 @@ export default function PreTest() {
     if (!session) {
       return;
     }
-    
-    if (session.preTestDone && !session.preTestRetakeInProgress) {
+    if (session.preTestDone) {
       return;
     }
-
-    // Only try to restore if session has been properly initialized from storage
-    // (indicated by having a studentId and preTestProgress field exists)
     if (!session.studentId) {
       return;
     }
-
     const saved = session.preTestProgress;
-    
     if (!saved) {
       setIsProgressInitialized(true);
       return;
     }
-
     isRestoringRef.current = true;
-
     setCurrentIdx(saved.currentIdx ?? 0);
     setScore(saved.score ?? 0);
     setCorrectAnswers(saved.correctAnswers ?? {});
@@ -194,11 +200,9 @@ export default function PreTest() {
     setPrefContentMode(saved.prefContentMode ?? 'video');
     setPrefAssessmentTime(saved.prefAssessmentTime ?? 'inModule');
     setShowRecommendation(saved.stage === 'personalization');
-
     if (saved.pendingResults) {
       (window as any)._tempPreTestResults = saved.pendingResults;
     }
-
     window.setTimeout(() => {
       isRestoringRef.current = false;
       setIsProgressInitialized(true);
@@ -206,7 +210,7 @@ export default function PreTest() {
   }, [session]);
 
   useEffect(() => {
-    if (!session || (session.preTestDone && !session.preTestRetakeInProgress) || isRestoringRef.current || !isProgressInitialized) {
+    if (!session || session.preTestDone || isRestoringRef.current || !isProgressInitialized) {
       return;
     }
 
@@ -269,35 +273,11 @@ export default function PreTest() {
       data: {
         questionsAttempted: currentIdx,
         phase: 'pre-test',
-        retakeInProgress: Boolean(session?.preTestRetakeInProgress),
       }
     });
-
-    if (session?.preTestRetakeInProgress) {
-      // Keep previous pretest results and modules active; user can continue retake later.
-      updateSession({ preTestRetakeInProgress: true });
-    }
-
     navigate('/dashboard');
   };
 
-  const preTestPreferenceOptions = (() => {
-    const formatDescriptions: Record<GameFormat, string> = {
-      [GameFormat.DRAG_SORT]: 'Drag items into the right category',
-      [GameFormat.RAINDROP]: 'Catch correct falling drops quickly',
-      [GameFormat.SPIN_WHEEL]: 'Spin and answer from outcome chance',
-      [GameFormat.BAR_BUILDER]: 'Read or compare bar graph values',
-      [GameFormat.HOTSPOT]: 'Tap the correct value hotspot',
-      [GameFormat.PIE_SLICER]: 'Understand pie sectors and percentages',
-      [GameFormat.TALLY_TAP]: 'Read and count tally patterns',
-    };
-
-    return Object.values(GameFormat).map((format) => ({
-      id: format,
-      format,
-      label: formatDescriptions[format],
-    }));
-  })();
 
   const togglePreferredQuestion = (questionId: string) => {
     setPreferredQuestionIds((prev) =>
@@ -358,8 +338,6 @@ export default function PreTest() {
         return 'Raindrop Catch';
       case GameFormat.BAR_BUILDER:
         return 'Bar Builder';
-      case GameFormat.TALLY_TAP:
-        return 'Tally Tap';
       case GameFormat.SPIN_WHEEL:
         return 'Spin Wheel';
       case GameFormat.PIE_SLICER:
@@ -414,9 +392,8 @@ export default function PreTest() {
     if (format === GameFormat.PIE_SLICER) {
       return <div className="h-8 w-8 rounded-full bg-[conic-gradient(#3b82f6_0deg_180deg,#e2e8f0_180deg_360deg)]" />;
     }
-    if (format === GameFormat.TALLY_TAP) {
-      return <div className="font-mono text-sm tracking-widest text-slate-700">|||| /</div>;
-    }
+    //   return <div className="font-mono text-sm tracking-widest text-slate-700">|||| /</div>;
+    // }
     if (format === GameFormat.HOTSPOT) {
       return (
         <div className="relative h-8 w-12 rounded-lg border border-slate-200 bg-white">
@@ -699,6 +676,39 @@ export default function PreTest() {
     setShowConfidenceCapture(true);
   };
 
+  if (showWelcome) {
+    return (
+      <div className={cn(
+        'min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50',
+        'p-4 sm:p-6 lg:p-8'
+      )}>
+        <div className="w-full max-w-6xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
+          <h1 className="text-2xl font-black text-brand mb-2">Welcome!</h1>
+          <p className="text-base text-slate-700 mb-4 text-center">Before you begin, here are the topics you will explore in this module:</p>
+          <ul className="mb-6 w-full">
+            {MODULES.map((mod) => (
+              <li key={mod.id} className="mb-3">
+                <div className="font-bold text-brand-dark text-lg">{mod.title}</div>
+                <ul className="ml-4 mt-1 list-disc text-slate-700 text-sm">
+                  {mod.concepts.map((concept: any) => (
+                    <li key={concept.id}>{concept.title}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+          <button
+            className="w-full rounded-2xl bg-brand py-2.5 sm:py-3 text-base font-bold text-white shadow-lg transition-all hover:opacity-90 flex items-center justify-center gap-2 active:scale-95"
+            onClick={() => setShowWelcome(false)}
+          >
+            Start Diagnostic
+            <span>→</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (showRecommendation) {
     return (
       <div className={cn(
@@ -890,18 +900,7 @@ export default function PreTest() {
               )}>Diagnostic Mission</h1>
               <p className="mt-1 text-xs sm:text-sm text-slate-600">Welcome, <span className="font-bold text-brand">{session?.name}</span>! Let's find your perfect learning path.</p>
             </div>
-            {!isMobile && (
-              <div className="flex items-center gap-2 sm:gap-3">
-                <div className="rounded-lg bg-white px-3 sm:px-4 py-2 sm:py-3 text-right shadow-sm border border-slate-200">
-                  <p className="text-xs font-bold uppercase text-slate-500">School</p>
-                  <p className="font-semibold text-xs sm:text-sm text-slate-800">{session?.school}</p>
-                </div>
-                <div className="rounded-lg bg-white px-3 sm:px-4 py-2 sm:py-3 text-right shadow-sm border border-slate-200">
-                  <p className="text-xs font-bold uppercase text-slate-500">Class</p>
-                  <p className="font-semibold text-xs sm:text-sm text-slate-800">{session?.class}</p>
-                </div>
-              </div>
-            )}
+            {/* School/Class info removed for brevity */}
           </div>
           <div className={cn(
             "flex gap-2 sm:gap-3",

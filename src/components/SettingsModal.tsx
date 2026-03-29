@@ -113,7 +113,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
       GameFormat.BAR_BUILDER,
       GameFormat.HOTSPOT,
       GameFormat.PIE_SLICER,
-      GameFormat.TALLY_TAP
     ],
     soundEnabled: rawSettings.soundEnabled ?? true,
     vfxEnabled: rawSettings.vfxEnabled ?? true,
@@ -363,15 +362,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
       label: 'Pie Slicer',
       description: 'Interpret pie slices and percentages.',
     },
-    [GameFormat.TALLY_TAP]: {
-      label: 'Tally Tap',
-      description: 'Count tally marks correctly.',
-    },
   };
 
   const recommendedMechanicsByStyle: Record<'gamified' | 'traditional' | 'balanced', GameFormat[]> = {
     gamified: [GameFormat.RAINDROP, GameFormat.SPIN_WHEEL, GameFormat.DRAG_SORT],
-    traditional: [GameFormat.HOTSPOT, GameFormat.TALLY_TAP, GameFormat.BAR_BUILDER],
+    traditional: [GameFormat.HOTSPOT, GameFormat.BAR_BUILDER],
     balanced: [GameFormat.DRAG_SORT, GameFormat.BAR_BUILDER, GameFormat.HOTSPOT, GameFormat.PIE_SLICER],
   };
 
@@ -913,13 +908,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, a
                     )}
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                      <button
-                        onClick={handleRetakePreTest}
-                        className="flex items-center justify-center gap-2 rounded-2xl border-2 border-slate-100 bg-white p-4 text-slate-600 transition-all hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600"
-                      >
-                        <RotateCcw size={20} />
-                        <span className="text-sm font-bold">Retake Pre-Test</span>
-                      </button>
                       <button
                         onClick={() => setShowResetConfirm(true)}
                         className="flex items-center justify-center gap-2 rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 text-amber-600 transition-all hover:bg-amber-100"

@@ -213,14 +213,13 @@ Question rendering behavior:
 - Pre-test: fixed authored format
 - Module/Post contexts: can randomize to any enabled mechanic
 
-Immediate-submit mechanics:
+Answer submission behavior (current): all mechanics are selection-then-submit.
+
+Selection-first mechanics (then explicit Check Answer):
 
 - Raindrop
 - DragSort
 - SpinWheel
-
-Selection-then-submit mechanics:
-
 - BarBuilder
 - Hotspot
 - PieSlicer
@@ -270,12 +269,13 @@ Recent content/system updates reflected in the course datasets:
 
 ### 3.7 Hint and remediation trigger logic
 
-Constraint engine behavior per question:
+Hint/remediation behavior is implemented in two runtime layers:
+
+Constraint-engine policy (useConstraintEngine):
 
 - first wrong attempt:
   - show hint
-  - increment hintsUsed metric
-
+  - increment hintsUsed metric (when hint is newly shown)
 - second and later wrong attempts:
   - hide hint
   - show remediation block
@@ -285,10 +285,24 @@ Additional struggle signal:
 - per-concept struggle key increments
 - if 2+ concept struggle keys exist, session.isStruggling is set true
 
-In ConceptBlock, question progression has additional guard:
+ConceptBlock question runtime (active module flow):
+
+- hints are learner-triggered (up to 2 levels)
+- each hint request increments hintsUsed and emits hint_opened telemetry
+- wrong answers show option-wise incorrect feedback (incorrectOptionFeedback)
+
+In ConceptBlock, question progression has an additional guard:
 
 - MAX_INCORRECT_BEFORE_ADVANCE = 2
-- after 2 wrong attempts on same question, learner is forced to continue
+- after 2 wrong attempts on the same question:
+  - remediation is opened
+  - remedialClicks is incremented and remedial_opened telemetry is emitted
+  - learner is forced to continue
+
+Final assessment question guard (endOfModule mode):
+
+- MAX_FINAL_ATTEMPTS = 2
+- on second wrong attempt, remediation is opened before progression
 
 ### 3.8 Concept performance scoring (weighted formula)
 

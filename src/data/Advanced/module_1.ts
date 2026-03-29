@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_1';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,7 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
+
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -90,11 +91,7 @@ const moduleData: Module = {
     <!-- T3 -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-      estimatedTimeSeconds: 300,
-      videoStartSeconds: 0,
-      videoEndSeconds: 40,
-      videoCheckpointPrompt: 'Pause and answer: What problem did raw data create for Raj?',
+      videoUrl: videoLinks['module_1']['topic_1'],
       workedExamples: [],
       guidedPracticeTitle: 'Guided Practice — Topic 1',
       guidedPracticeItems: [
@@ -154,11 +151,7 @@ const moduleData: Module = {
     <!-- T3 -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-      estimatedTimeSeconds: 300,
-      videoStartSeconds: 40,
-      videoEndSeconds: 80,
-      videoCheckpointPrompt: 'Pause and answer: Why do tally marks use groups of 5?',
+      videoUrl: videoLinks['module_1']['topic_2'],
       workedExamples: [],
       guidedPracticeTitle: 'Guided Practice — Topic 2',
       guidedPracticeItems: [
@@ -205,11 +198,7 @@ const moduleData: Module = {
     <!-- T4 -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-      estimatedTimeSeconds: 300,
-      videoStartSeconds: 80,
-      videoEndSeconds: 120,
-      videoCheckpointPrompt: 'Pause and answer: What does the KEY in a pictograph represent?',
+      videoUrl: videoLinks['module_1']['topic_3'],
       workedExamples: [],
       guidedPracticeTitle: 'Guided Practice — Topic 3',
       guidedPracticeItems: [
@@ -267,11 +256,7 @@ const moduleData: Module = {
     <!-- T5+T6 combined for C -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-      estimatedTimeSeconds: 300,
-      videoStartSeconds: 120,
-      videoEndSeconds: 140,
-      videoCheckpointPrompt: 'Pause and answer: When should you use a double bar graph?',
+      videoUrl: videoLinks['module_1']['topic_4'],
       workedExamples: [],
       guidedPracticeTitle: 'Guided Practice — Topic 4',
       guidedPracticeItems: [
@@ -321,11 +306,7 @@ const moduleData: Module = {
   </div><!-- end panel-c -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-      estimatedTimeSeconds: 400,
-      videoStartSeconds: 340,
-      videoEndSeconds: 425,
-      videoCheckpointPrompt: 'Pause and answer: Which graph clue can reveal misleading data?',
+      videoUrl: videoLinks['module_1']['topic_5'],
       workedExamples: [],
       guidedPracticeTitle: 'Guided Practice — Topic 5',
       guidedPracticeItems: [
@@ -369,11 +350,7 @@ const moduleData: Module = {
     </div>
 
   </div><!-- end panel-c -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
-      estimatedTimeSeconds: 600,
-      videoStartSeconds: 425,
-      videoEndSeconds: 520,
-      videoCheckpointPrompt: 'Pause and answer: What are the 3 steps in your class data project?',
+      videoUrl: videoLinks['module_1']['topic_6'],
       workedExamples: [],
       guidedPracticeTitle: 'Final Reflection — Module 2.1',
       guidedPracticeItems: [

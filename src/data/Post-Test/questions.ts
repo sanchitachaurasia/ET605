@@ -1,177 +1,175 @@
 import { GameFormat, Question } from '../../types';
 
-const post_q1 = {
-  id: 'post_q1',
-  text: 'Frequency table: Dog=7, Cat=10, Fish=6, Rabbit=5, Cow=2 (Total=30). What FRACTION prefer Fish?',
-  hint: 'Fraction = Fish frequency ÷ total.',
-  remedialBrief: '6 out of 30 → 6/30.',
-  remedialDetail: 'The frequency for Fish is 6. The total number of animals is 30. So the fraction is 6/30.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      options: ['5/30', '6/30', '7/30', '10/30'],
-      correctAnswer: '6/30'
-    }
-  }
-};
-const post_q2 = {
-  id: 'post_q2',
-  text: 'Bar graph enrolment: 2007-08=325, 2003-04=100. By how much did enrolment increase?',
-  hint: 'Increase = final − starting value.',
-  remedialBrief: '325 − 100 = 225 students.',
-  remedialDetail: 'To find the increase, subtract the starting value (100) from the final value (325). 325 - 100 = 225.',
-  styles: {
-    [GameFormat.RAINDROP]: {
-      visual: {
-        kind: 'bar',
-        data: [
-          { label: '2003-04', value: 100 },
-          { label: '2007-08', value: 325 },
-        ],
-      },
-      options: ['100', '225', '325', '200'],
-      correctAnswer: '225'
-    }
-  }
-};
-const post_q3 = {
-  id: 'post_q3',
-  text: 'Class interval 20–30 in a frequency table. What is the width of this class interval?',
-  hint: 'Width = upper limit − lower limit.',
-  remedialBrief: '30 − 20 = 10.',
-  remedialDetail: 'The class width is the difference between the upper limit (30) and the lower limit (20). 30 - 20 = 10.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      options: ['5', '10', '20', '30'],
-      correctAnswer: '10'
-    }
-  }
-};
-const post_q4 = {
-  id: 'post_q4',
-  text: 'A student scores exactly 30. Intervals: 20–30 and 30–40. Which interval does 30 belong to?',
-  hint: 'Boundary convention: belongs to the HIGHER class.',
-  remedialBrief: '30 belongs to 30–40.',
-  remedialDetail: 'According to the boundary convention, a value equal to the upper limit of one class belongs to the next (higher) class. So 30 belongs to 30-40.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      options: ['20–30', '30–40', 'Both intervals', 'Neither interval'],
-      correctAnswer: '30–40'
-    }
-  }
-};
-const post_q5 = {
-  id: 'post_q5',
-  text: 'A histogram has no gaps between bars because:',
-  hint: 'Think: what makes class intervals continuous?',
-  remedialBrief: 'Class intervals are continuous — one ends exactly where the next begins.',
-  remedialDetail: 'Histograms represent continuous data grouped into intervals. Since the intervals are continuous (e.g., 10-20, 20-30), the bars must touch.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      options: ['Data has no gaps', 'Class intervals are continuous', 'Drawn with a ruler', 'Each bar = different category'],
-      correctAnswer: 'Class intervals are continuous'
-    }
-  }
-};
-const post_q6 = {
-  id: 'post_q6',
-  text: '36 students: Blue=18, Green=9, Red=6, Yellow=3. Central angle for YELLOW?',
-  hint: 'Angle = (3 ÷ 36) × 360°.',
-  remedialBrief: '(3/36)×360° = (1/12)×360° = 30°.',
-  remedialDetail: 'The central angle is calculated as (Value / Total) * 360. Here, (3 / 36) * 360 = 30 degrees.',
-  styles: {
-    [GameFormat.RAINDROP]: {
-      visual: {
-        kind: 'pie',
-        valuePercent: 8.33,
-        highlightLabel: 'Yellow',
-      },
-      options: ['15°', '30°', '45°', '60°'],
-      correctAnswer: '30°'
-    }
-  }
-};
-const post_q7 = {
-  id: 'post_q7',
-  text: 'Pie chart: Education=15%. Monthly income = Rs 20,000. Amount on Education?',
-  hint: 'Education = 15% of Rs 20,000.',
-  remedialBrief: '(15/100)×20,000 = Rs 3,000.',
-  remedialDetail: 'To find the amount, multiply the percentage (15%) by the total income (20,000). 0.15 * 20,000 = 3,000.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'pie',
-        valuePercent: 15,
-        highlightLabel: 'Education',
-      },
-      options: ['Rs 2,000', 'Rs 3,000', 'Rs 4,000', 'Rs 5,000'],
-      correctAnswer: 'Rs 3,000'
-    }
-  }
-};
-const post_q8 = {
-  id: 'post_q8',
-  text: 'Hostel: Hindi=40, English=12, Marathi=9, Tamil=7, Bengali=4 (Total=72). Central angle for HINDI?',
-  hint: '(40 ÷ 72) × 360°. Simplify first.',
-  remedialBrief: '(40/72)×360° = (5/9)×360° = 200°.',
-  remedialDetail: 'The central angle is (Value / Total) * 360. Here, (40 / 72) * 360 = (5/9) * 360 = 200 degrees.',
-  styles: {
-    [GameFormat.RAINDROP]: {
-      visual: {
-        kind: 'pie',
-        valuePercent: 55.56,
-        highlightLabel: 'Hindi',
-      },
-      options: ['160°', '180°', '200°', '220°'],
-      correctAnswer: '200°'
-    }
-  }
-};
-const post_q9 = {
-  id: 'post_q9',
-  text: 'Slips 1–10. P(number BOTH > 3 AND < 8)?',
-  hint: 'List: greater than 3 AND less than 8.',
-  remedialBrief: 'Numbers: {4,5,6,7} = 4. P = 4/10.',
-  remedialDetail: 'The numbers greater than 3 and less than 8 are 4, 5, 6, and 7. There are 4 such numbers out of 10 total slips.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'pictograph',
-        rows: [{ label: 'Slips 1-10', symbols: '1 2 3 4 5 6 7 8 9 10' }],
-        key: 'Favourable: 4, 5, 6, 7',
-      },
-      options: ['4/10', '3/10', '5/10', '2/10'],
-      correctAnswer: '4/10'
-    }
-  }
-};
-const post_q10 = {
-  id: 'post_q10',
-  text: 'Bag: 4 Red, 2 Yellow. E1=P(red), E2=P(yellow). Which is correct?',
-  hint: 'E1 and E2 cover all outcomes — they are complementary.',
-  remedialBrief: 'P(red)=4/6, P(yellow)=2/6. Sum=1.',
-  remedialDetail: 'Since Red and Yellow are the only possible outcomes, the sum of their probabilities must be 1. P(E1) + P(E2) = 4/6 + 2/6 = 1.',
-  styles: {
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'pictograph',
-        rows: [{ label: 'Bag', symbols: '🔴🔴🔴🔴🟡🟡' }],
-        key: 'Red = 4/6, Yellow = 2/6',
-      },
-      options: ['P(E1)+P(E2)=2', 'P(E1)+P(E2)=1', 'P(E1)=P(E2)', 'P(E1)<P(E2)'],
-      correctAnswer: 'P(E1)+P(E2)=1'
-    }
-  }
+// Stage 1: The Raw Survey
+export const inline_2_1_1_1: Question = {
+  id: 'inline_2_1_1_1',
+  text: 'What is the technical name for these marks used to count frequency?',
+  hintLevel1: 'Think about the tally system used to group items by five.',
+  remedialBrief: 'Tally (or Tally Marks)',
+  remedialDetail: 'System initialized; the South District responses are now being processed.',
+  format: GameFormat.RAINDROP,
+  options: ['Tally', 'Bar Marks', 'Frequency Strokes', 'Data Lines'],
+  correctAnswer: 'Tally'
 };
 
-export const postTestQuestions: Question[] = [
-  { ...post_q1, ...post_q1.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-  { ...post_q2, ...post_q2.styles[GameFormat.RAINDROP], format: GameFormat.RAINDROP },
-  { ...post_q3, ...post_q3.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-  { ...post_q4, ...post_q4.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-  { ...post_q5, ...post_q5.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-  { ...post_q6, ...post_q6.styles[GameFormat.RAINDROP], format: GameFormat.RAINDROP },
-  { ...post_q7, ...post_q7.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-  { ...post_q8, ...post_q8.styles[GameFormat.RAINDROP], format: GameFormat.RAINDROP },
-  { ...post_q9, ...post_q9.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-  { ...post_q10, ...post_q10.styles[GameFormat.DRAG_SORT], format: GameFormat.DRAG_SORT },
-];
+export const inline_2_1_1_2: Question = {
+  id: 'inline_2_1_1_2',
+  text: 'In a survey of 20 residents regarding their favorite zone, the responses are: Park, Library, Park, Gym, Park, Library, Gym, Park, Park, Library, Park, Gym, Park, Library, Park, Park, Gym, Park, Library, Park. Calculate the frequency for the "Park" preference?',
+  hintLevel1: 'Count how many times "Park" appears in the raw response list.',
+  remedialBrief: '11',
+  remedialDetail: 'Zone preferences identified; the Parks Department has been notified of high demand.',
+  format: GameFormat.RAINDROP,
+  options: ['11', '9', '10', '12'],
+  correctAnswer: '11'
+};
+
+export const inline_2_1_1_3: Question = {
+  id: 'inline_2_1_1_3',
+  text: 'The North District data is a mess. We have the frequencies for Gym (15) and Library (25), but the "Park" frequency is missing. We know there were 60 total respondents in this district. Which of the following is the correct strategic step to find the missing "Park" frequency?',
+  hintLevel1: 'Consider how to find a remainder when you know the total and the other parts.',
+  remedialBrief: 'Subtract the sum of Gym and Library from the total respondents.',
+  remedialDetail: 'North District data cleared; the full city survey is now organized.',
+  format: GameFormat.DRAG_SORT,
+  options: [
+    'Multiply Gym and Library frequencies.',
+    'Subtract the sum of Gym and Library from the total respondents.',
+    'Divide the total respondents by two.'
+  ],
+  correctAnswer: 'Subtract the sum of Gym and Library from the total respondents.'
+};
+
+// Stage 2: The Age Demographic
+export const inline_2_1_2_1: Question = {
+  id: 'inline_2_1_2_1',
+  text: 'We are grouping residents into age brackets to plan school and retirement zones. We have chosen the interval 0–10, 10–20, and 20–30.What is the "class size" (width) of these intervals?',
+  hintLevel1: 'Find the difference between the upper and lower limit of an interval.',
+  remedialBrief: '10',
+  remedialDetail: 'Demographics calibrated; age brackets are now standardized.',
+  format: GameFormat.RAINDROP,
+  options: ['10', '5', '15', '20'],
+  correctAnswer: '10'
+};
+
+export const inline_2_1_2_2: Question = {
+  id: 'inline_2_1_2_2',
+  text: 'We need a visual representation where the bars touch each other to show that age is a continuous scale, not separate categories. What specific type of graph should we use for this grouped numerical data?',
+  hintLevel1: 'This graph features bars that touch to show continuity.',
+  remedialBrief: 'Histogram',
+  remedialDetail: 'Blueprint generated; the age distribution is now visible.',
+  format: GameFormat.RAINDROP,
+  options: ['Histogram', 'Bar Graph', 'Pie Chart', 'Pictograph'],
+  correctAnswer: 'Histogram'
+};
+
+export const inline_2_1_2_3: Question = {
+  id: 'inline_2_1_2_3',
+  text: 'You are looking at the class interval 30–40 for the "Working Professional" group. A resident exactly 40 years old just submitted their form. In which class interval should this 40-year-old resident be counted?',
+  hintLevel1: 'In class intervals, the upper limit is excluded and the lower limit is included.',
+  remedialBrief: '40–50',
+  remedialDetail: 'Strategic accuracy confirmed; resident 40 has been correctly filed in the 40–50 bracket.',
+  format: GameFormat.DRAG_SORT,
+  options: ['30–40', '40–50', 'Both 30–40 and 40–50'],
+  correctAnswer: '40–50'
+};
+
+// Stage 3: The Public Opinion
+export const inline_2_1_3_1: Question = {
+  id: 'inline_2_1_3_1',
+  text: 'What is the name of this specific graphical tool used for comparison?',
+  hintLevel1: 'It shows two sets of data side-by-side using rectangular bars.',
+  remedialBrief: 'Double Bar Graph',
+  remedialDetail: 'Comparison mode active; transport trends are now appearing.',
+  format: GameFormat.DRAG_SORT,
+  options: ['Pictograph', 'Double Bar Graph', 'Histogram'],
+  correctAnswer: 'Double Bar Graph'
+};
+
+export const inline_2_1_3_2: Question = {
+  id: 'inline_2_1_3_2',
+  text: 'A bar graph shows that 150 people want more Bus Routes and 250 people want a New Metro Line. How many more residents prefer the Metro Line over Bus Routes?',
+  hintLevel1: 'Subtract the Bus Route preference count from the Metro Line count.',
+  remedialBrief: '100',
+  remedialDetail: 'Transport priority set; Metro expansion is now the lead project.',
+  format: GameFormat.RAINDROP,
+  options: ['100', '50', '150', '400'],
+  correctAnswer: '100'
+};
+
+export const inline_2_1_3_3: Question = {
+  id: 'inline_2_1_3_3',
+  text: 'In our "City Cleanliness" bar graph, each unit on the vertical axis represents 25 "Satisfied Residents." The bar for the "East Zone" reaches a height of 7 units. Calculate the total number of satisfied residents in the East Zone.',
+  hintLevel1: 'Multiply the height in units by the value each unit represents.',
+  remedialBrief: '175',
+  remedialDetail: 'Sanitation report verified; East Zone satisfaction is higher than projected.',
+  format: GameFormat.RAINDROP,
+  options: ['175', '150', '200', '225'],
+  correctAnswer: '175'
+};
+
+// Stage 4: The Budget Allocation
+export const inline_2_1_4_1: Question = {
+  id: 'inline_2_1_4_1',
+  text: 'What is the sum of the central angles of all the sectors in this circular budget map?',
+  hintLevel1: 'Think about the total degrees in a full circle.',
+  remedialBrief: '360',
+  remedialDetail: 'Budget circle initialized; all sectors are ready for calculation.',
+  format: GameFormat.RAINDROP,
+  options: ['360', '90', '180', '270'],
+  correctAnswer: '360'
+};
+
+export const inline_2_1_4_2: Question = {
+  id: 'inline_2_1_4_2',
+  text: 'The Mayor has decided that exactly 25% of the annual budget will go to "Education. Calculate the central angle needed to represent the Education sector on our pie chart.',
+  hintLevel1: 'The formula is (Percentage / 100) * 360.',
+  remedialBrief: '90',
+  remedialDetail: 'Education funding mapped; the school sector is correctly sized.',
+  format: GameFormat.RAINDROP,
+  options: ['90', '45', '60', '120'],
+  correctAnswer: '90'
+};
+
+export const inline_2_1_4_3: Question = {
+  id: 'inline_2_1_4_3',
+  text: 'The total City Budget is ₹5,00,000. On the pie chart, the "Emergency Services" sector has a central angle of 36°. How much money in Rupees is allocated to Emergency Services?',
+  hintLevel1: 'Use the angle (36°) to find the fraction of the total budget (5,00,000).',
+  remedialBrief: '50,000',
+  remedialDetail: 'Emergency funds secured; Datapur is now prepared for any crisis.',
+  format: GameFormat.RAINDROP,
+  options: ['50,000', '40,000', '60,000', '10,000'],
+  correctAnswer: '50,000'
+};
+
+// Stage 5: The Forecast
+export const inline_2_1_5_1: Question = {
+  id: 'inline_2_1_5_1',
+  text: 'What is the probability of your ticket being drawn?',
+  hintLevel1: 'Probability = (Favorable outcomes) / (Total outcomes).',
+  remedialBrief: '1/1000',
+  remedialDetail: 'Lottery parameters set; fair chance distribution confirmed.',
+  format: GameFormat.DRAG_SORT,
+  options: ['1/10', '1/1000', '1/100'],
+  correctAnswer: '1/1000'
+};
+
+export const inline_2_1_5_2: Question = {
+  id: 'inline_2_1_5_2',
+  text: 'The city fleet has 7 Electric Buses and 3 Diesel Buses. A bus is dispatched at random. What is the probability that the dispatched bus is NOT a Diesel Bus?',
+  hintLevel1: 'Calculate the probability for Electric Buses.',
+  remedialBrief: '0.7',
+  remedialDetail: 'Green energy forecast complete; high probability of eco-friendly transport today.',
+  format: GameFormat.RAINDROP,
+  options: ['0.7', '0.3', '0.5', '1.0'],
+  correctAnswer: '0.7'
+};
+
+export const inline_2_1_5_3: Question = {
+  id: 'inline_2_1_5_3',
+  text: 'You are drawing two planning files from a cabinet of 10. You take the first file and keep it on your desk. Then, you reach in for a second file. Does the probability of picking a specific file the second time change? Use the technical term.',
+  hintLevel1: 'Think about whether the outcome of the second draw relies on the first.',
+  remedialBrief: 'Dependent',
+  remedialDetail: 'Logic check passed; the sequence of planning events is understood.',
+  format: GameFormat.RAINDROP,
+  options: ['Dependent', 'Independent', 'Random', 'Equal'],
+  correctAnswer: 'Dependent'
+};

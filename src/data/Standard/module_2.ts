@@ -39,7 +39,7 @@ function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   };
 }
 
-const moduleData: Module = {
+export const moduleData: Module = {
   id: '2.2',
   title: 'Grouping Data & Histograms',
   concepts: [

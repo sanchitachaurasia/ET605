@@ -69,6 +69,47 @@ type PendingCompletionPayload = {
   learningPathOverride?: LearningPath;
 };
 
+type ReattemptNavigationSnapshot = {
+  currentConceptIdx: number;
+  currentConceptStage: 'content' | 'examples' | 'questions';
+  showFinalAssessment: boolean;
+  finalAssessmentIdx: number;
+};
+
+const REATTEMPT_SNAPSHOT_PREFIX = 'dataquest:reattempt:';
+
+function getReattemptSnapshotKey(moduleId?: string): string | null {
+  if (!moduleId) return null;
+  return `${REATTEMPT_SNAPSHOT_PREFIX}${moduleId}`;
+}
+
+function readReattemptSnapshot(moduleId?: string): ReattemptNavigationSnapshot | null {
+  if (typeof window === 'undefined') return null;
+  const key = getReattemptSnapshotKey(moduleId);
+  if (!key) return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as Partial<ReattemptNavigationSnapshot>;
+    const stage = parsed.currentConceptStage;
+
+    if (stage !== 'content' && stage !== 'examples' && stage !== 'questions') {
+      return null;
+    }
+
+    return {
+      currentConceptIdx: Math.max(0, Number(parsed.currentConceptIdx || 0)),
+      currentConceptStage: stage,
+      showFinalAssessment: Boolean(parsed.showFinalAssessment),
+      finalAssessmentIdx: Math.max(0, Number(parsed.finalAssessmentIdx || 0)),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function ModulePage() {
   useMergeIntegration();
   const { moduleId } = useParams();
@@ -80,16 +121,18 @@ export default function ModulePage() {
   const moduleProgress = session?.moduleProgress?.find((p) => p.moduleId === moduleId);
   const reviewedPath = moduleProgress?.completedPathSnapshot || moduleProgress?.learningPath;
   const isReviewMode = !!moduleProgress?.completed && !isReattemptMode;
+  const reattemptSnapshot = isReattemptMode ? readReattemptSnapshot(moduleId) : null;
+  const reattemptSnapshotKey = getReattemptSnapshotKey(moduleId);
   const path = isReattemptMode
     ? (session?.learningPath || 'B')
     : (isReviewMode ? reviewedPath : moduleProgress?.learningPath) || session?.learningPath || 'B';
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [currentConceptIdx, setCurrentConceptIdx] = useState(() => (isReattemptMode ? 0 : moduleProgress?.currentConceptIdx || 0));
-  const [showFinalAssessment, setShowFinalAssessment] = useState(() => (isReattemptMode ? false : moduleProgress?.showFinalAssessment || false));
-  const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => (isReattemptMode ? 0 : moduleProgress?.finalAssessmentIdx || 0));
-  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? 'content' : moduleProgress?.currentConceptStage || 'content'));
-  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? 'content' : moduleProgress?.currentConceptStage || 'content'));
+  const [currentConceptIdx, setCurrentConceptIdx] = useState(() => (isReattemptMode ? (reattemptSnapshot?.currentConceptIdx || 0) : moduleProgress?.currentConceptIdx || 0));
+  const [showFinalAssessment, setShowFinalAssessment] = useState(() => (isReattemptMode ? (reattemptSnapshot?.showFinalAssessment || false) : moduleProgress?.showFinalAssessment || false));
+  const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => (isReattemptMode ? (reattemptSnapshot?.finalAssessmentIdx || 0) : moduleProgress?.finalAssessmentIdx || 0));
+  const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? (reattemptSnapshot?.currentConceptStage || 'content') : moduleProgress?.currentConceptStage || 'content'));
+  const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? (reattemptSnapshot?.currentConceptStage || 'content') : moduleProgress?.currentConceptStage || 'content'));
   const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -145,14 +188,31 @@ export default function ModulePage() {
   useEffect(() => {
     if (!isReattemptMode) return;
 
-    setCurrentConceptIdx(0);
-    setShowFinalAssessment(false);
-    setFinalAssessmentIdx(0);
-    setConceptStage('content');
-    setConceptEntryStage('content');
+    const snapshot = readReattemptSnapshot(moduleId);
+    const restoredStage = snapshot?.currentConceptStage || 'content';
+
+    setCurrentConceptIdx(snapshot?.currentConceptIdx || 0);
+    setShowFinalAssessment(snapshot?.showFinalAssessment || false);
+    setFinalAssessmentIdx(snapshot?.finalAssessmentIdx || 0);
+    setConceptStage(restoredStage);
+    setConceptEntryStage(restoredStage);
     setConceptEntryQuestionMode('first');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [isReattemptMode, moduleId]);
+
+  useEffect(() => {
+    if (!isReattemptMode || !reattemptSnapshotKey) return;
+    if (typeof window === 'undefined') return;
+
+    const snapshot: ReattemptNavigationSnapshot = {
+      currentConceptIdx,
+      currentConceptStage: conceptStage,
+      showFinalAssessment,
+      finalAssessmentIdx,
+    };
+
+    window.sessionStorage.setItem(reattemptSnapshotKey, JSON.stringify(snapshot));
+  }, [isReattemptMode, reattemptSnapshotKey, currentConceptIdx, conceptStage, showFinalAssessment, finalAssessmentIdx]);
 
   useEffect(() => {
     if (!session || !moduleId || !moduleProgress?.completed || moduleProgress.completedPathSnapshot) {
@@ -288,6 +348,7 @@ export default function ModulePage() {
   if (!module || !session) return <div>Module not found</div>;
 
   const filteredConcepts = module.concepts.filter((c) => !c.path || c.path === path);
+  const safeConceptIdx = Math.min(currentConceptIdx, Math.max(filteredConcepts.length - 1, 0));
   const rawSettings = session.settings || ({} as any);
   const settings = {
     ...rawSettings,
@@ -295,16 +356,46 @@ export default function ModulePage() {
     assessmentTime: rawSettings.assessmentTime || 'inModule',
   };
 
-  const currentConcept = filteredConcepts[currentConceptIdx];
+  const currentConcept = filteredConcepts[safeConceptIdx];
   const moduleDurationBadge = extractDurationBadgeText(currentConcept?.textContent);
   const conceptStageWeight = conceptStage === 'content' ? 0.33 : conceptStage === 'examples' ? 0.66 : 1;
   const progress = showFinalAssessment
     ? 100
-    : Math.min(((currentConceptIdx + conceptStageWeight) / Math.max(filteredConcepts.length, 1)) * 100, 100);
+    : Math.min(((safeConceptIdx + conceptStageWeight) / Math.max(filteredConcepts.length, 1)) * 100, 100);
 
   const allQuestions = filteredConcepts
     .flatMap((c) => c.questions.filter((q) => !q.path || q.path === path))
     .filter((q) => !q.adaptiveVariant);
+
+  useEffect(() => {
+    if (filteredConcepts.length === 0) {
+      if (showFinalAssessment) {
+        setShowFinalAssessment(false);
+      }
+      return;
+    }
+
+    if (currentConceptIdx > filteredConcepts.length - 1) {
+      setCurrentConceptIdx(filteredConcepts.length - 1);
+      setConceptStage('content');
+      setConceptEntryStage('content');
+      setConceptEntryQuestionMode('first');
+    }
+  }, [filteredConcepts.length, currentConceptIdx, showFinalAssessment]);
+
+  useEffect(() => {
+    if (!showFinalAssessment) return;
+
+    if (allQuestions.length === 0) {
+      setShowFinalAssessment(false);
+      setFinalAssessmentIdx(0);
+      return;
+    }
+
+    if (finalAssessmentIdx > allQuestions.length - 1) {
+      setFinalAssessmentIdx(Math.max(0, allQuestions.length - 1));
+    }
+  }, [showFinalAssessment, allQuestions.length, finalAssessmentIdx]);
   const reviewConceptSummary = isReviewMode
     ? filteredConcepts.map((concept) => {
         const attempts = moduleProgress?.attemptsCount?.[concept.id] || 0;
@@ -433,6 +524,11 @@ export default function ModulePage() {
     }
 
     updateSession({ moduleProgress: newProgress, learningPath: finalPath, xp: (session.xp || 0) + 500, sessionStatus: 'completed' });
+
+    if (isReattemptMode && reattemptSnapshotKey && typeof window !== 'undefined') {
+      window.sessionStorage.removeItem(reattemptSnapshotKey);
+    }
+
     trackTelemetryEvent('module_complete', {
       module_id: moduleId,
       event_data: {
@@ -487,6 +583,7 @@ export default function ModulePage() {
   };
 
   const handleConceptComplete = (performance?: ConceptPerformanceSummary) => {
+    const activeConceptIdx = Math.min(currentConceptIdx, Math.max(filteredConcepts.length - 1, 0));
     const existingProgress = [...(session.moduleProgress || [])];
     const existingModIdx = existingProgress.findIndex((p) => p.moduleId === moduleId);
     const existingModule = existingModIdx >= 0 ? existingProgress[existingModIdx] : null;
@@ -528,7 +625,7 @@ export default function ModulePage() {
       };
 
       const conceptIdsSoFar = filteredConcepts
-        .slice(0, currentConceptIdx + 1)
+        .slice(0, activeConceptIdx + 1)
         .map((c) => c.id)
         .filter(Boolean);
 
@@ -549,10 +646,10 @@ export default function ModulePage() {
 
       const conceptQuestionCount = Math.max(
         1,
-        filteredConcepts[currentConceptIdx]?.questions.filter((q) => !q.path || q.path === path).length || 1
+        filteredConcepts[activeConceptIdx]?.questions.filter((q) => !q.path || q.path === path).length || 1
       );
       const expectedConceptTime =
-        filteredConcepts[currentConceptIdx]?.estimatedTimeSeconds || Math.max(60, conceptQuestionCount * 45);
+        filteredConcepts[activeConceptIdx]?.estimatedTimeSeconds || Math.max(60, conceptQuestionCount * 45);
 
       const isTelemetryStruggling =
         performance.mastery < 0.4 ||
@@ -646,8 +743,8 @@ export default function ModulePage() {
       }
     };
 
-    if (currentConceptIdx < filteredConcepts.length - 1) {
-      const nextIdx = currentConceptIdx + 1;
+    if (activeConceptIdx < filteredConcepts.length - 1) {
+      const nextIdx = activeConceptIdx + 1;
       setCurrentConceptIdx(nextIdx);
       setConceptStage(nextConceptStage);
       setConceptEntryStage(nextConceptStage);
@@ -684,10 +781,19 @@ export default function ModulePage() {
 
   const handlePreviousConcept = () => {
     if (currentConceptIdx <= 0) return;
-    setCurrentConceptIdx((prev) => prev - 1);
-    setConceptEntryStage('questions');
-    setConceptEntryQuestionMode('last');
-    setConceptStage('questions');
+
+    const previousIdx = currentConceptIdx - 1;
+    const previousConcept = filteredConcepts[previousIdx];
+    const hasInModuleQuestions =
+      settings.assessmentTime === 'inModule' &&
+      !!previousConcept?.questions?.some((q) => !q.path || q.path === path);
+
+    const targetStage: 'content' | 'examples' | 'questions' = hasInModuleQuestions ? 'questions' : 'examples';
+
+    setCurrentConceptIdx(previousIdx);
+    setConceptEntryStage(targetStage);
+    setConceptEntryQuestionMode(hasInModuleQuestions ? 'last' : 'first');
+    setConceptStage(targetStage);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -702,7 +808,8 @@ export default function ModulePage() {
   const finalHintPanelRef = useRef<HTMLDivElement | null>(null);
   const MAX_FINAL_ATTEMPTS = 2;
 
-  const currentFinalQuestion = allQuestions[finalAssessmentIdx];
+  const safeFinalAssessmentIdx = Math.min(finalAssessmentIdx, Math.max(allQuestions.length - 1, 0));
+  const currentFinalQuestion = allQuestions[safeFinalAssessmentIdx];
   const finalRemediationEntry = currentFinalQuestion ? remedialContentBank[currentFinalQuestion.id] : undefined;
   const finalReferenceTags = currentFinalQuestion ? getReferenceTagsForQuestion(currentFinalQuestion.id) : [];
   const finalQuestionTags = currentFinalQuestion?.questionTags || [];
@@ -827,6 +934,56 @@ export default function ModulePage() {
     setShowFinalRemediation(false);
   }, [currentFinalQuestion?.id]);
 
+  if (showFinalAssessment && !currentFinalQuestion) {
+    return (
+      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
+        <main className="mx-auto mt-12 max-w-3xl px-4">
+          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
+            <h2 className="text-2xl font-black">Refreshing assessment state...</h2>
+            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+              We could not load the current final question after navigation.
+            </p>
+            <button
+              onClick={() => {
+                setShowFinalAssessment(false);
+                setFinalAssessmentIdx(0);
+              }}
+              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+            >
+              Return to concept flow
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!showFinalAssessment && !currentConcept) {
+    return (
+      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
+        <main className="mx-auto mt-12 max-w-3xl px-4">
+          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
+            <h2 className="text-2xl font-black">Loading concept content...</h2>
+            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+              We are re-aligning your module position after navigation.
+            </p>
+            <button
+              onClick={() => {
+                setCurrentConceptIdx(0);
+                setConceptStage('content');
+                setConceptEntryStage('content');
+                setConceptEntryQuestionMode('first');
+              }}
+              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+            >
+              Reset to first concept
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
       <header
@@ -856,7 +1013,7 @@ export default function ModulePage() {
                   </span>
                 )}
               </div>
-              <span className="text-sm font-bold text-brand">{showFinalAssessment ? `${finalAssessmentIdx + 1} / ${allQuestions.length}` : `${currentConceptIdx + 1} / ${filteredConcepts.length}`}</span>
+              <span className="text-sm font-bold text-brand">{showFinalAssessment ? `${safeFinalAssessmentIdx + 1} / ${allQuestions.length}` : `${safeConceptIdx + 1} / ${filteredConcepts.length}`}</span>
             </div>
             <RocketProgress progress={progress} />
           </div>
@@ -908,7 +1065,7 @@ export default function ModulePage() {
                 path={path}
                 onComplete={handleConceptComplete}
                 onStageChange={setConceptStage}
-                onPreviousPage={currentConceptIdx > 0 ? handlePreviousConcept : undefined}
+                onPreviousPage={safeConceptIdx > 0 ? handlePreviousConcept : undefined}
                 entryStage={conceptEntryStage}
                 entryQuestionMode={conceptEntryQuestionMode}
               />
@@ -930,15 +1087,15 @@ export default function ModulePage() {
               </div>
 
               <GameQuestion
-                key={allQuestions[finalAssessmentIdx].id}
-                questionId={allQuestions[finalAssessmentIdx].id}
+                key={currentFinalQuestion.id}
+                questionId={currentFinalQuestion.id}
                 moduleId={moduleId}
-                questionText={allQuestions[finalAssessmentIdx].text}
-                options={allQuestions[finalAssessmentIdx].options}
-                correctAnswer={allQuestions[finalAssessmentIdx].correctAnswer}
-                format={allQuestions[finalAssessmentIdx].format}
-                styles={allQuestions[finalAssessmentIdx].styles}
-                image={allQuestions[finalAssessmentIdx].image}
+                questionText={currentFinalQuestion.text}
+                options={currentFinalQuestion.options}
+                correctAnswer={currentFinalQuestion.correctAnswer}
+                format={currentFinalQuestion.format}
+                styles={currentFinalQuestion.styles}
+                image={currentFinalQuestion.image}
                 onAnswer={handleFinalAnswer}
               />
 
@@ -968,7 +1125,7 @@ export default function ModulePage() {
 
               {showFinalRemediation && (
                 <RemediationBlock
-                  briefText={allQuestions[finalAssessmentIdx].remedialBrief || finalRemediationEntry?.brief || 'Review the concept and continue.'}
+                  briefText={currentFinalQuestion.remedialBrief || finalRemediationEntry?.brief || 'Review the concept and continue.'}
                   detailedContent={
                     <div className="space-y-4">
                       {finalTagsToShow.length > 0 && (
@@ -985,46 +1142,46 @@ export default function ModulePage() {
                         </div>
                       )}
 
-                      {allQuestions[finalAssessmentIdx].remedialContent ? (
+                      {currentFinalQuestion.remedialContent ? (
                         <>
-                          {allQuestions[finalAssessmentIdx].remedialContent?.coreConcept && (
+                          {currentFinalQuestion.remedialContent?.coreConcept && (
                             <div>
                               <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">
-                                {allQuestions[finalAssessmentIdx].remedialContent?.coreConcept?.title || 'Core Concept'}
+                                {currentFinalQuestion.remedialContent?.coreConcept?.title || 'Core Concept'}
                               </p>
                               <ul className="list-disc space-y-1 pl-5">
-                                {(allQuestions[finalAssessmentIdx].remedialContent?.coreConcept?.points || []).map((point) => (
+                                {(currentFinalQuestion.remedialContent?.coreConcept?.points || []).map((point) => (
                                   <li key={point}>{point}</li>
                                 ))}
                               </ul>
                             </div>
                           )}
 
-                          {allQuestions[finalAssessmentIdx].remedialContent?.stepByStep && (
+                          {currentFinalQuestion.remedialContent?.stepByStep && (
                             <div>
                               <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-600">
-                                {allQuestions[finalAssessmentIdx].remedialContent?.stepByStep?.title || 'Step-by-Step'}
+                                {currentFinalQuestion.remedialContent?.stepByStep?.title || 'Step-by-Step'}
                               </p>
                               <ol className="list-decimal space-y-1 pl-5">
-                                {(allQuestions[finalAssessmentIdx].remedialContent?.stepByStep?.steps || []).map((step) => (
+                                {(currentFinalQuestion.remedialContent?.stepByStep?.steps || []).map((step) => (
                                   <li key={step}>{step}</li>
                                 ))}
                               </ol>
                             </div>
                           )}
 
-                          {allQuestions[finalAssessmentIdx].remedialContent?.expandable && (
+                          {currentFinalQuestion.remedialContent?.expandable && (
                             <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
                               <button
                                 onClick={() => setIsFinalExpandableRemedialOpen((prev) => !prev)}
                                 className="flex w-full items-center justify-between rounded-lg border border-amber-400 bg-white px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-amber-800 hover:bg-amber-50"
                               >
-                                <span>{allQuestions[finalAssessmentIdx].remedialContent?.expandable?.buttonLabel || 'Show more examples and background'}</span>
+                                <span>{currentFinalQuestion.remedialContent?.expandable?.buttonLabel || 'Show more examples and background'}</span>
                                 <span aria-hidden>{isFinalExpandableRemedialOpen ? '−' : '+'}</span>
                               </button>
                               {isFinalExpandableRemedialOpen && (
                                 <div className="mt-3 space-y-3">
-                                  {(allQuestions[finalAssessmentIdx].remedialContent?.expandable?.sections || []).map((section) => (
+                                  {(currentFinalQuestion.remedialContent?.expandable?.sections || []).map((section) => (
                                     <div key={section.title}>
                                       <p className="text-xs font-black uppercase tracking-wider text-amber-700">{section.title}</p>
                                       <ul className="mt-1 list-disc space-y-1 pl-5">
@@ -1051,7 +1208,7 @@ export default function ModulePage() {
                           </div>
                         ))
                       ) : (
-                        <p>{allQuestions[finalAssessmentIdx].remedialDetail || 'Review and continue.'}</p>
+                        <p>{currentFinalQuestion.remedialDetail || 'Review and continue.'}</p>
                       )}
                       {visibleFinalHints.length > 0 && (
                         <div className="space-y-1">
@@ -1073,7 +1230,7 @@ export default function ModulePage() {
                       updateMetrics({ remedialClicks: (session.chapterMetrics?.remedialClicks || 0) + 1 });
                       trackTelemetryEvent('remedial_expanded', {
                         module_id: moduleId,
-                        question_id: allQuestions[finalAssessmentIdx].id,
+                        question_id: currentFinalQuestion.id,
                       });
                     }
                   }}

@@ -1,32 +1,5 @@
 import { GameFormat, Question } from '../../types';
 
-const q_tally_7 = {
-  id: 'q_tally_7',
-  text: 'Which tally correctly represents 13?',
-  hint: 'Tally marks are grouped in 5 using a diagonal strike.',
-  remedialBrief: '13 = 5 + 5 + 3, so you need two completed groups and three singles.',
-  remedialDetail: 'A correct tally for 13 has two bundles of five and then three vertical marks: ||||\\ ||||\\ |||.',
-  styles: {
-    [GameFormat.TALLY_TAP]: {
-      visual: {
-        kind: 'tally',
-        pattern: '||||\\ ||||\\ |||',
-        caption: '13 = 5 + 5 + 3',
-      },
-      options: ['||||\\ ||||\\ |||', '||||| ||||| |||', '||||\\ |||| |||', '|||| |||| |||| |'],
-      correctAnswer: '||||\\ ||||\\ |||'
-    },
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'tally',
-        pattern: '||||\\ ||||\\ |||',
-        caption: '13 = 5 + 5 + 3',
-      },
-      options: ['||||\\ ||||\\ |||', '||||| ||||| |||', '||||\\ |||| |||', '|||| |||| |||| |'],
-      correctAnswer: '||||\\ ||||\\ |||'
-    }
-  }
-};
 
 const q_pictograph_300 = {
   id: 'q_pictograph_300',
@@ -36,21 +9,7 @@ const q_pictograph_300 = {
   remedialDetail: 'Multiply the symbol count by the key value: 2.5 × 100 = 250.',
   styles: {
     [GameFormat.RAINDROP]: {
-      visual: {
-        kind: 'pictograph',
-        rows: [{ label: 'Cars', symbols: '🚗🚗◐' }],
-        key: 'Key: 1 symbol = 100 cars',
-      },
-      options: [],
-      correctAnswer: '250'
-    },
-    [GameFormat.DRAG_SORT]: {
-      visual: {
-        kind: 'pictograph',
-        rows: [{ label: 'Cars', symbols: '🚗🚗◐' }],
-        key: 'Key: 1 symbol = 100 cars',
-      },
-      options: [],
+      options: ['100', '150', '200', '250'],
       correctAnswer: '250'
     }
   }
@@ -87,7 +46,7 @@ const q_interval_25 = {
   remedialDetail: 'With grouped continuous intervals, the upper boundary belongs to the next class. So 30 is counted in 30–40.',
   styles: {
     [GameFormat.DRAG_SORT]: {
-      options: ['20–30', '30–40'],
+      options: ['10-20','20–30', '30–40', '40-50'],
       correctAnswer: '30–40'
     }
   }
@@ -217,11 +176,6 @@ export const preTestQuestions: Question[] = [
     ...q_books_raj,
     ...q_books_raj.styles[GameFormat.HOTSPOT],
     format: GameFormat.HOTSPOT
-  },
-  {
-    ...q_tally_7,
-    ...q_tally_7.styles[GameFormat.TALLY_TAP],
-    format: GameFormat.TALLY_TAP
   },
   {
     ...q_science_fraction,

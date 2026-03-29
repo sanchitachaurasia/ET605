@@ -9,8 +9,8 @@
 export const chapterMetadataForMerge = {
   // CANONICAL CHAPTER DEFINITION
   grade: 8,
-  chapter_name: "Data Handling & Probability",
-  chapter_id: "grade8_data_handling_probability",
+  chapter_name: "Data Handling",
+  chapter_id: "grade8_data_handling",
   chapter_url: "/module/grade8/data-handling",
   chapter_difficulty: 0.55, // Medium difficulty: data org (easy) → probability (hard)
   expected_completion_time_seconds: 7200, // 2 hours

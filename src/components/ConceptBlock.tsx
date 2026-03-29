@@ -506,6 +506,14 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const showExampleStage = conceptStage === 'examples';
   const showQuestionStage = conceptStage === 'questions';
 
+  React.useEffect(() => {
+    if (conceptStage !== 'questions') return;
+    if (showQuestions) return;
+
+    // If questions are unavailable (e.g. end-of-module mode), avoid a blank screen.
+    setConceptStage('examples');
+  }, [conceptStage, showQuestions]);
+
   const pathMeta = path === 'A'
     ? {
         label: 'Foundational Path Examples',

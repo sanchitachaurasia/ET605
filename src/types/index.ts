@@ -4,8 +4,7 @@ export enum GameFormat {
   SPIN_WHEEL = 'spinWheel',
   BAR_BUILDER = 'barBuilder',
   HOTSPOT = 'hotspot',
-  PIE_SLICER = 'pieSlicer',
-  TALLY_TAP = 'tallyTap'
+  PIE_SLICER = 'pieSlicer'
 }
 
 export type LearningPath = 'A' | 'B' | 'C';

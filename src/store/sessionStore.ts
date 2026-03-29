@@ -11,8 +11,7 @@ export const DEFAULT_SETTINGS: UserSettings = {
     GameFormat.SPIN_WHEEL,
     GameFormat.BAR_BUILDER,
     GameFormat.HOTSPOT,
-    GameFormat.PIE_SLICER,
-    GameFormat.TALLY_TAP
+    GameFormat.PIE_SLICER
   ],
   darkMode: false,
   soundEnabled: true,

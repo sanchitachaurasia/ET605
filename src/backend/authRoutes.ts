@@ -256,7 +256,7 @@ router.post('/signup', async (req: Request, res: Response) => {
       preTestDone: false,
       learningPath: 'B',
       settings: {
-        enabledMechanics: ['raindrop', 'dragSort', 'spinWheel', 'barBuilder', 'hotspot', 'pieSlicer', 'tallyTap'],
+        enabledMechanics: ['raindrop', 'dragSort', 'spinWheel', 'barBuilder', 'hotspot', 'pieSlicer'],
         darkMode: false,
         soundEnabled: true,
         vfxEnabled: true,

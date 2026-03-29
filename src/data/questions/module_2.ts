@@ -7,7 +7,6 @@ const SUPPORTED_GAME_FORMATS: GameFormat[] = [
   GameFormat.BAR_BUILDER,
   GameFormat.HOTSPOT,
   GameFormat.PIE_SLICER,
-  GameFormat.TALLY_TAP,
 ];
 
 function buildUniversalStyles(options: string[], correctAnswer: string, visual?: any): Record<string, any> {
