@@ -217,7 +217,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
   // Determine the active format and data
   const [activeFormat, setActiveFormat] = useState(format);
-  const [activeData, setActiveData] = useState({ questionText, options, correctAnswer, image, visual });
+  const [activeData, setActiveData] = useState({ questionText, options, correctAnswer, image, visual, remedialBrief: (null as string | undefined), remedialDetail: (null as string | undefined), remedialContent: (null as any) });
   const [selected, setSelected] = useState<any>(null);
   const [typedAnswer, setTypedAnswer] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
@@ -234,7 +234,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
     if (isPreTest) {
       setActiveFormat(format);
-      setActiveData({ questionText, options, correctAnswer, image, visual });
+      setActiveData({ questionText, options, correctAnswer, image, visual, remedialBrief, remedialDetail, remedialContent });
       return;
     }
 
@@ -258,9 +258,12 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
         correctAnswer: selectedStyle.correctAnswer || correctAnswer,
         image: selectedStyle.image || image,
         visual: selectedStyle.visual || visual,
+        remedialBrief,
+        remedialDetail,
+        remedialContent,
       });
     } else {
-      setActiveData({ questionText, options, correctAnswer, image, visual });
+      setActiveData({ questionText, options, correctAnswer, image, visual, remedialBrief, remedialDetail, remedialContent });
     }
   }, [questionId, format, styles, isPreTest, questionText, options, correctAnswer, image, visual, enabledMechanics]);
 
@@ -789,12 +792,68 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
           >
             {feedback === 'correct' ? "🎉 Awesome! You got it!" : "😅 Not quite, try again!"}
           </motion.div>
-          {showRemedial && (
-            <div className={cn("mt-4 rounded-2xl border-2 p-4", settings.darkMode ? "border-amber-400 bg-amber-900/20" : "border-amber-300 bg-amber-50")}> 
-              <div className="font-black text-amber-700 mb-2 text-base">Remedial Explanation</div>
-              <div className="text-sm text-amber-900 font-semibold">
-                {styles?.remedialBrief || styles?.remedialDetail || 'Review the explanation for this question.'}
-              </div>
+        </div>
+      )}
+
+      {/* Always show remedial content after feedback, before navigation */}
+      {feedback && (
+        <div className={cn(
+          "mt-6 rounded-2xl p-5 shadow-inner",
+          settings.darkMode ? "bg-slate-800 text-white" : "bg-slate-50 text-slate-900"
+        )}>
+          {/* Brief explanation */}
+          {activeData.remedialBrief && (
+            <div className="mb-2 font-bold text-base">
+              {activeData.remedialBrief}
+            </div>
+          )}
+          {/* Detailed explanation */}
+          {activeData.remedialDetail && (
+            <div className="mb-2 text-sm">
+              {activeData.remedialDetail}
+            </div>
+          )}
+          {/* Structured remedial content */}
+          {activeData.remedialContent && (
+            <div className="mt-2">
+              {/* Core Concept */}
+              {activeData.remedialContent.coreConcept && (
+                <div className="mb-2">
+                  <div className="font-semibold">{activeData.remedialContent.coreConcept.title || 'Core Concept'}</div>
+                  <ul className="list-disc ml-5">
+                    {(activeData.remedialContent.coreConcept.points || []).map((point: string, idx: number) => (
+                      <li key={idx}>{point}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {/* Step-by-Step */}
+              {activeData.remedialContent.stepByStep && (
+                <div className="mb-2">
+                  <div className="font-semibold">{activeData.remedialContent.stepByStep.title || 'Step-by-Step'}</div>
+                  <ol className="list-decimal ml-5">
+                    {(activeData.remedialContent.stepByStep.steps || []).map((step: string, idx: number) => (
+                      <li key={idx}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+              {/* Expandable sections */}
+              {activeData.remedialContent.expandable && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer font-semibold">{activeData.remedialContent.expandable.buttonLabel || 'Show more examples and background'}</summary>
+                  {(activeData.remedialContent.expandable.sections || []).map((section: any, idx: number) => (
+                    <div key={idx} className="mt-2">
+                      <div className="font-semibold">{section.title}</div>
+                      <ul className="list-disc ml-5">
+                        {(section.points || []).map((point: string, j: number) => (
+                          <li key={j}>{point}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </details>
+              )}
             </div>
           )}
         </div>
