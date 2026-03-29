@@ -172,6 +172,10 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
   styles,
   image,
   visual,
+  // Add remedial fields from props if present (for pre-test and fallback)
+  remedialBrief: propRemedialBrief = null,
+  remedialDetail: propRemedialDetail = null,
+  remedialContent: propRemedialContent = null,
 }) => {
   const { session, updateSettings, updateMetrics } = useSessionStore();
 
@@ -217,7 +221,16 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
   // Determine the active format and data
   const [activeFormat, setActiveFormat] = useState(format);
-  const [activeData, setActiveData] = useState({ questionText, options, correctAnswer, image, visual, remedialBrief: (null as string | undefined), remedialDetail: (null as string | undefined), remedialContent: (null as any) });
+  const [activeData, setActiveData] = useState({
+    questionText,
+    options,
+    correctAnswer,
+    image,
+    visual,
+    remedialBrief: propRemedialBrief,
+    remedialDetail: propRemedialDetail,
+    remedialContent: propRemedialContent,
+  });
   const [selected, setSelected] = useState<any>(null);
   const [typedAnswer, setTypedAnswer] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
@@ -234,7 +247,16 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
 
     if (isPreTest) {
       setActiveFormat(format);
-      setActiveData({ questionText, options, correctAnswer, image, visual, remedialBrief, remedialDetail, remedialContent });
+      setActiveData({
+        questionText,
+        options,
+        correctAnswer,
+        image,
+        visual,
+        remedialBrief: propRemedialBrief,
+        remedialDetail: propRemedialDetail,
+        remedialContent: propRemedialContent,
+      });
       return;
     }
 
@@ -258,12 +280,21 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
         correctAnswer: selectedStyle.correctAnswer || correctAnswer,
         image: selectedStyle.image || image,
         visual: selectedStyle.visual || visual,
-        remedialBrief,
-        remedialDetail,
-        remedialContent,
+        remedialBrief: propRemedialBrief,
+        remedialDetail: propRemedialDetail,
+        remedialContent: propRemedialContent,
       });
     } else {
-      setActiveData({ questionText, options, correctAnswer, image, visual, remedialBrief, remedialDetail, remedialContent });
+      setActiveData({
+        questionText,
+        options,
+        correctAnswer,
+        image,
+        visual,
+        remedialBrief: propRemedialBrief,
+        remedialDetail: propRemedialDetail,
+        remedialContent: propRemedialContent,
+      });
     }
   }, [questionId, format, styles, isPreTest, questionText, options, correctAnswer, image, visual, enabledMechanics]);
 

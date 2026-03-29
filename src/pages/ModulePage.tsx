@@ -744,6 +744,7 @@ export default function ModulePage() {
     };
 
     if (activeConceptIdx < filteredConcepts.length - 1) {
+      // Advance to next concept
       const nextIdx = activeConceptIdx + 1;
       setCurrentConceptIdx(nextIdx);
       setConceptStage(nextConceptStage);
@@ -758,6 +759,7 @@ export default function ModulePage() {
         updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
     } else if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
+      // Show final assessment if in end-of-module mode
       applyPathToCurrentModule();
       applyPathToNextModule();
       if (shouldUpdateGlobalPath) {
@@ -768,6 +770,7 @@ export default function ModulePage() {
       setShowFinalAssessment(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
+      // No more concepts in this module, try to advance to next module or dashboard
       applyPathToCurrentModule();
       applyPathToNextModule();
       if (shouldUpdateGlobalPath) {
@@ -775,7 +778,12 @@ export default function ModulePage() {
       } else {
         updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
-      handleModuleComplete(existingProgress, nextPath);
+      // If there is a next module, navigate to it, else go to dashboard
+      if (nextModuleId) {
+        navigate(`/module/${nextModuleId}`);
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
