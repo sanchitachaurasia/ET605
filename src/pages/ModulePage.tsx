@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { getChapterDataForPath } from '../data/Standard/pathData';
@@ -350,6 +350,11 @@ export default function ModulePage() {
     updateSession({ moduleProgress: newProgress });
   }, [session, moduleId, currentConceptIdx, conceptStage, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
 
+  // Ensure entryStage stays in sync with conceptStage during transitions
+  useEffect(() => {
+    setConceptEntryStage(conceptStage);
+  }, [conceptStage]);
+
 
   // Defensive: get module and session, fallback UI if missing
   const moduleCatalog = getChapterDataForPath(path);
@@ -512,6 +517,11 @@ export default function ModulePage() {
   const handleExitClick = () => {
     setShowExitConfirm(true);
   };
+
+  const handleConceptStageChange = useCallback((newStage: 'content' | 'examples' | 'questions') => {
+    setConceptStage(newStage);
+    setConceptEntryStage(newStage);
+  }, []);
 
   const jumpToConceptQuestions = (conceptIndex: number) => {
     setShowReviewSnapshotPopup(false);
@@ -1157,7 +1167,7 @@ export default function ModulePage() {
                 concept={currentConcept}
                 path={path}
                 onComplete={handleConceptComplete}
-                onStageChange={setConceptStage}
+                onStageChange={handleConceptStageChange}
                 onPreviousPage={safeConceptIdx > 0 ? handlePreviousConcept : undefined}
                 entryStage={conceptEntryStage}
                 entryQuestionMode={conceptEntryQuestionMode}

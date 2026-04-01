@@ -1161,7 +1161,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
         </motion.div>
       )}
 
-      {showQuestions && showQuestionStage && !showRushingPrompt && (
+      {showQuestions && showQuestionStage && !showRushingPrompt && currentQuestion && (
         <div className="space-y-4">
           <button
             onClick={() => setConceptStage('examples')}
@@ -1354,6 +1354,49 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
             </motion.button>
           )}
         </div>
+      )}
+
+      {showQuestionStage && !showQuestions && !showRushingPrompt && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-blue-200 bg-blue-50 p-6"
+        >
+          <p className="text-sm font-bold text-blue-900">
+            ✓ You've completed the guided practice. Great work! The practice questions will be available in the module assessment.
+          </p>
+          <button
+            onClick={() => {
+              setConceptStage('examples');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100"
+          >
+            Back to Examples
+          </button>
+        </motion.div>
+      )}
+
+      {showQuestionStage && showQuestions && !showRushingPrompt && !currentQuestion && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-6"
+        >
+          <p className="text-sm font-bold text-amber-900">
+            Loading the question... If this persists, please go back and try again.
+          </p>
+          <button
+            onClick={() => {
+              setCurrentQuestionIdx(0);
+              setConceptStage('examples');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100"
+          >
+            Back to Examples
+          </button>
+        </motion.div>
       )}
     </div>
   );
