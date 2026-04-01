@@ -133,6 +133,7 @@ export default function ModulePage() {
   const [showFinalAssessment, setShowFinalAssessment] = useState(() => (isReattemptMode ? (reattemptSnapshot?.showFinalAssessment || false) : moduleProgress?.showFinalAssessment || false));
   const [finalAssessmentIdx, setFinalAssessmentIdx] = useState(() => (isReattemptMode ? (reattemptSnapshot?.finalAssessmentIdx || 0) : moduleProgress?.finalAssessmentIdx || 0));
   const [conceptStage, setConceptStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? (reattemptSnapshot?.currentConceptStage || 'content') : moduleProgress?.currentConceptStage || 'content'));
+  // Keep entry stage as a navigation seed only; mirroring live stage back into it can reset ConceptBlock transitions.
   const [conceptEntryStage, setConceptEntryStage] = useState<'content' | 'examples' | 'questions'>(() => (isReattemptMode ? (reattemptSnapshot?.currentConceptStage || 'content') : moduleProgress?.currentConceptStage || 'content'));
   const [conceptEntryQuestionMode, setConceptEntryQuestionMode] = useState<'first' | 'last'>('first');
   const [showCompletionCelebration, setShowCompletionCelebration] = useState(false);
@@ -349,12 +350,6 @@ export default function ModulePage() {
 
     updateSession({ moduleProgress: newProgress });
   }, [session, moduleId, currentConceptIdx, conceptStage, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
-
-  // Ensure entryStage stays in sync with conceptStage during transitions
-  useEffect(() => {
-    setConceptEntryStage(conceptStage);
-  }, [conceptStage]);
-
 
   // Defensive: get module and session, fallback UI if missing
   const moduleCatalog = getChapterDataForPath(path);
@@ -845,7 +840,6 @@ export default function ModulePage() {
       setConceptStage(nextConceptStage);
       setConceptEntryStage(nextConceptStage);
       setConceptEntryQuestionMode('first');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       applyPathToCurrentModule({ currentConceptIdx: nextIdx, currentConceptStage: nextConceptStage });
       if (shouldUpdateGlobalPath) {
@@ -853,6 +847,11 @@ export default function ModulePage() {
       } else {
         updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
+      
+      // Scroll after state updates are batched
+      window.setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 0);
     } else if (settings.assessmentTime === 'endOfModule' && allQuestions.length > 0) {
       // Show final assessment if in end-of-module mode
       applyPathToCurrentModule();
@@ -863,7 +862,9 @@ export default function ModulePage() {
         updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
       setShowFinalAssessment(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 0);
     } else {
       // No more concepts in this module, try to advance to next module or dashboard
       applyPathToCurrentModule();
@@ -873,12 +874,15 @@ export default function ModulePage() {
       } else {
         updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
       }
-      // If there is a next module, navigate to it, else go to dashboard
-      if (nextModuleId) {
-        navigate(`/module/${nextModuleId}`);
-      } else {
-        navigate('/dashboard');
-      }
+      
+      // Schedule navigation to ensure it happens after state updates
+      window.setTimeout(() => {
+        if (nextModuleId) {
+          navigate(`/module/${nextModuleId}`);
+        } else {
+          navigate('/dashboard');
+        }
+      }, 0);
     }
   };
 

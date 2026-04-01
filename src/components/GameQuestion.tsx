@@ -219,9 +219,7 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
     enabledMechanics,
   };
 
-  // Determine the active format and data
-  const [activeFormat, setActiveFormat] = useState(format);
-  const [activeData, setActiveData] = useState({
+  const baseQuestionData = {
     questionText,
     options,
     correctAnswer,
@@ -230,7 +228,49 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
     remedialBrief: propRemedialBrief,
     remedialDetail: propRemedialDetail,
     remedialContent: propRemedialContent,
-  });
+  };
+
+  const resolveQuestionState = (useRandomPick: boolean) => {
+    if (isPreTest) {
+      return {
+        nextFormat: format,
+        nextData: baseQuestionData,
+      };
+    }
+
+    const candidateFormats = enabledMechanics.filter((mechanic) => {
+      if (!styles) return true;
+      return Boolean(styles[mechanic]);
+    });
+
+    const formatPool = candidateFormats.length > 0 ? candidateFormats : enabledMechanics;
+    const nextFormat = useRandomPick
+      ? formatPool[Math.floor(Math.random() * formatPool.length)] || format
+      : formatPool[0] || format;
+
+    const fallbackStyle = styles ? Object.values(styles)[0] : undefined;
+    const selectedStyle = (styles && (styles[nextFormat] || styles[format])) || fallbackStyle;
+
+    return {
+      nextFormat,
+      nextData: selectedStyle ? {
+        questionText: selectedStyle.text || questionText,
+        options: selectedStyle.options || options,
+        correctAnswer: selectedStyle.correctAnswer || correctAnswer,
+        image: selectedStyle.image || image,
+        visual: selectedStyle.visual || visual,
+        remedialBrief: propRemedialBrief,
+        remedialDetail: propRemedialDetail,
+        remedialContent: propRemedialContent,
+      } : baseQuestionData,
+    };
+  };
+
+  const initialQuestionState = resolveQuestionState(false);
+
+  // Determine the active format and data
+  const [activeFormat, setActiveFormat] = useState(initialQuestionState.nextFormat);
+  const [activeData, setActiveData] = useState(initialQuestionState.nextData);
   const [selected, setSelected] = useState<any>(null);
   const [typedAnswer, setTypedAnswer] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
@@ -244,58 +284,9 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
     setTypedAnswer('');
     setFeedback(null);
     setSpinRotation(0);
-
-    if (isPreTest) {
-      setActiveFormat(format);
-      setActiveData({
-        questionText,
-        options,
-        correctAnswer,
-        image,
-        visual,
-        remedialBrief: propRemedialBrief,
-        remedialDetail: propRemedialDetail,
-        remedialContent: propRemedialContent,
-      });
-      return;
-    }
-
-    const candidateFormats = enabledMechanics.filter((mechanic) => {
-      if (!styles) return true;
-      return Boolean(styles[mechanic]);
-    });
-
-    const randomPool = candidateFormats.length > 0 ? candidateFormats : enabledMechanics;
-    const nextFormat = randomPool[Math.floor(Math.random() * randomPool.length)] || format;
-
+    const { nextFormat, nextData } = resolveQuestionState(true);
     setActiveFormat(nextFormat);
-
-    const fallbackStyle = styles ? Object.values(styles)[0] : undefined;
-    const selectedStyle = (styles && (styles[nextFormat] || styles[format])) || fallbackStyle;
-
-    if (selectedStyle) {
-      setActiveData({
-        questionText: selectedStyle.text || questionText,
-        options: selectedStyle.options || options,
-        correctAnswer: selectedStyle.correctAnswer || correctAnswer,
-        image: selectedStyle.image || image,
-        visual: selectedStyle.visual || visual,
-        remedialBrief: propRemedialBrief,
-        remedialDetail: propRemedialDetail,
-        remedialContent: propRemedialContent,
-      });
-    } else {
-      setActiveData({
-        questionText,
-        options,
-        correctAnswer,
-        image,
-        visual,
-        remedialBrief: propRemedialBrief,
-        remedialDetail: propRemedialDetail,
-        remedialContent: propRemedialContent,
-      });
-    }
+    setActiveData(nextData);
   }, [questionId, format, styles, isPreTest, questionText, options, correctAnswer, image, visual, enabledMechanics]);
 
   useEffect(() => {
@@ -308,6 +299,13 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       }
     });
   }, [activeFormat, moduleId, questionId]);
+
+  // Keep hooks unconditional so a disabled-mechanic fallback cannot change hook order between renders.
+  useEffect(() => {
+    if (feedback && feedbackRef.current) {
+      feedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [feedback]);
 
   if (!session) return null;
   const isEnabled = isPreTest || (enabledMechanics.includes(activeFormat) ?? true);
@@ -393,13 +391,6 @@ export const GameQuestion: React.FC<GameQuestionProps> = ({
       </div>
     );
   }
-
-  // Auto-scroll to feedback/remedial when shown
-  useEffect(() => {
-    if (feedback && feedbackRef.current) {
-      feedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }, [feedback]);
 
   return (
     <div className={cn(
