@@ -9,7 +9,7 @@ import confetti from 'canvas-confetti';
 import { submitMergePayload } from '../hooks/useMergeIntegration';
 import { PostTestAttempt, Question } from '../types';
 
-const TEST_DURATION_SECONDS = 10 * 60;
+const TEST_DURATION_SECONDS = 15 * 60;
 
 type ResultsTab = 'analysis' | 'stats' | 'questionwise';
 
@@ -491,12 +491,12 @@ export default function PostTest() {
               <div className="grid gap-6 md:grid-cols-3 mb-12">
                 <div className="rounded-3xl bg-white p-6 shadow-xl">
                   <CheckCircle2 className="mx-auto mb-2 text-green-500" />
-                  <p className="font-bold text-slate-800">10 Questions</p>
+                  <p className="font-bold text-slate-800">15 Questions</p>
                   <p className="text-xs text-slate-400">Comprehensive coverage</p>
                 </div>
                 <div className="rounded-3xl bg-white p-6 shadow-xl">
                   <Clock3 className="mx-auto mb-2 text-blue-500" />
-                  <p className="font-bold text-slate-800">10 Minute Timer</p>
+                  <p className="font-bold text-slate-800">15 Minute Timer</p>
                   <p className="text-xs text-slate-400">Auto-submit on timeout</p>
                 </div>
                 <div className="rounded-3xl bg-white p-6 shadow-xl">
@@ -560,6 +560,21 @@ export default function PostTest() {
                     const selected = selectedOptions[idx];
                     const isFocused = idx === currentQuestionIdx;
                     const questionVisual = (question as any).visual;
+                    const questionWithComprehension = question as Question & {
+                      comprehensionId?: string;
+                      comprehensionTitle?: string;
+                      comprehensionText?: string;
+                    };
+                    const previousQuestionWithComprehension = idx > 0
+                      ? (postTestQuestions[idx - 1] as Question & { comprehensionId?: string })
+                      : null;
+                    const showComprehension = Boolean(
+                      questionWithComprehension.comprehensionId
+                      && (
+                        idx === 0
+                        || previousQuestionWithComprehension?.comprehensionId !== questionWithComprehension.comprehensionId
+                      )
+                    );
 
                     return (
                       <section
@@ -570,6 +585,19 @@ export default function PostTest() {
                           isFocused ? 'border-brand ring-2 ring-brand/20' : 'border-slate-200'
                         )}
                       >
+                        {showComprehension && (
+                          <div className="mb-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-4">
+                            <p className="text-xs font-black uppercase tracking-widest text-indigo-700">
+                              {questionWithComprehension.comprehensionTitle || 'Comprehension'}
+                            </p>
+                            {questionWithComprehension.comprehensionText && (
+                              <p className="mt-2 text-sm font-semibold leading-relaxed text-indigo-900">
+                                {questionWithComprehension.comprehensionText}
+                              </p>
+                            )}
+                          </div>
+                        )}
+
                         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
                           <p className="text-xs font-black uppercase tracking-widest text-brand">Question {idx + 1}</p>
                           <button
