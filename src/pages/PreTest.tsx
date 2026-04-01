@@ -164,45 +164,6 @@ export default function PreTest() {
   const { session, updateSession, clearSession } = useSessionStore();
   const navigate = useNavigate();
 
-  // Defensive: If questions are missing or currentIdx is out of bounds, show fallback UI
-  if (!Array.isArray(preTestQuestions) || preTestQuestions.length === 0) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        <div className="w-full max-w-xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
-          <h1 className="text-2xl font-black text-brand mb-2">Diagnostic Unavailable</h1>
-          <p className="text-base text-slate-700 mb-4 text-center">No diagnostic questions found. Please contact support or try again later.</p>
-          <button className="rounded-2xl bg-brand py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (typeof currentIdx !== 'number' || currentIdx < 0 || currentIdx >= preTestQuestions.length) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        <div className="w-full max-w-xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
-          <h1 className="text-2xl font-black text-brand mb-2">Something Went Wrong</h1>
-          <p className="text-base text-slate-700 mb-4 text-center">Your progress could not be restored. Please restart the diagnostic.</p>
-          <button className="rounded-2xl bg-brand py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/pre-test')}>Restart Diagnostic</button>
-          <button className="mt-3 rounded-2xl bg-slate-400 py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session || !session.studentId) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        <div className="w-full max-w-xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
-          <h1 className="text-2xl font-black text-brand mb-2">Session Expired</h1>
-          <p className="text-base text-slate-700 mb-4 text-center">Your session has expired. Please log in again.</p>
-          <button className="rounded-2xl bg-brand py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/login')}>Go to Login</button>
-        </div>
-      </div>
-    );
-  }
-  // ...existing code...
-
   useEffect(() => {
     if (session?.preTestDone) {
       navigate('/dashboard');
@@ -368,6 +329,46 @@ export default function PreTest() {
       setPreferredQuestionIds(recommendedIds);
     }
   }, [showRecommendation, preferredQuestionIds.length]);
+
+  const hasDiagnosticQuestions = Array.isArray(preTestQuestions) && preTestQuestions.length > 0;
+  const hasValidQuestionIndex = hasDiagnosticQuestions && typeof currentIdx === 'number' && currentIdx >= 0 && currentIdx < preTestQuestions.length;
+
+  if (!hasDiagnosticQuestions) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
+          <h1 className="text-2xl font-black text-brand mb-2">Diagnostic Unavailable</h1>
+          <p className="text-base text-slate-700 mb-4 text-center">No diagnostic questions found. Please contact support or try again later.</p>
+          <button className="rounded-2xl bg-brand py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasValidQuestionIndex) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
+          <h1 className="text-2xl font-black text-brand mb-2">Something Went Wrong</h1>
+          <p className="text-base text-slate-700 mb-4 text-center">Your progress could not be restored. Please restart the diagnostic.</p>
+          <button className="rounded-2xl bg-brand py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/pre-test')}>Restart Diagnostic</button>
+          <button className="mt-3 rounded-2xl bg-slate-400 py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session || !session.studentId) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
+        <div className="w-full max-w-xl rounded-3xl bg-white shadow-xl border border-slate-100 p-8 flex flex-col items-center">
+          <h1 className="text-2xl font-black text-brand mb-2">Session Expired</h1>
+          <p className="text-base text-slate-700 mb-4 text-center">Your session has expired. Please log in again.</p>
+          <button className="rounded-2xl bg-brand py-2.5 px-6 text-base font-bold text-white shadow-lg transition-all hover:opacity-90" onClick={() => navigate('/login')}>Go to Login</button>
+        </div>
+      </div>
+    );
+  }
 
   const getFormatLabel = (format: GameFormat) => {
     switch (format) {

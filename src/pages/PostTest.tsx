@@ -271,6 +271,29 @@ export default function PostTest() {
     updateSession,
   ]);
 
+  useEffect(() => {
+    if (!session) {
+      return;
+    }
+
+    if (currentStep !== 'questions' || !startTime) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const remaining = Math.max(0, TEST_DURATION_SECONDS - elapsed);
+      setRemainingSeconds(remaining);
+
+      if (remaining === 0) {
+        window.clearInterval(intervalId);
+        submitTest(true);
+      }
+    }, 500);
+
+    return () => window.clearInterval(intervalId);
+  }, [session, currentStep, startTime, selectedOptions, reviewFlags]);
+
   if (!session) return null;
 
   const handleStart = () => {
@@ -388,25 +411,6 @@ export default function PostTest() {
     if (!confirmExit) return;
     navigate('/dashboard');
   };
-
-  useEffect(() => {
-    if (currentStep !== 'questions' || !startTime) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const remaining = Math.max(0, TEST_DURATION_SECONDS - elapsed);
-      setRemainingSeconds(remaining);
-
-      if (remaining === 0) {
-        window.clearInterval(intervalId);
-        submitTest(true);
-      }
-    }, 500);
-
-    return () => window.clearInterval(intervalId);
-  }, [currentStep, startTime, selectedOptions, reviewFlags]);
 
   const computedScore = (answers.filter(a => a).length / postTestQuestions.length) * 100;
   const score = session.postTestScore !== null && currentStep === 'results' && !isReattemptMode

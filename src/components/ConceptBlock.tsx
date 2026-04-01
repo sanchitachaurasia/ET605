@@ -498,6 +498,8 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const questionTags = currentQuestion?.questionTags || [];
   const tagsToShow = referenceTags.length > 0 ? referenceTags : questionTags;
   const visibleHints = getQuestionHints(activeHintLevel);
+  const answeredCorrectly = isCorrectAnswered && isCurrentQuestionCorrect && !showRemediation;
+  const shouldShowReviewBlock = isCorrectAnswered;
   const segmentedVideoUrl = buildSegmentedVideoUrl(concept);
   const hasYouTubeEmbed = concept.videoUrl.includes('youtube.com/embed/');
   const isLocalVideoFile = /\.mp4($|\?)/i.test(concept.videoUrl) || concept.videoUrl.startsWith('/');
@@ -1229,11 +1231,22 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
             </motion.div>
           )}
 
-          {showRemediation && (
+          {shouldShowReviewBlock && (
             <RemediationBlock
-              briefText={currentQuestion.remedialBrief || remediationEntry?.brief || 'Review this concept and try again.'}
+              briefText={
+                answeredCorrectly
+                  ? (currentQuestion.correctAnswerExplanation || currentQuestion.remedialBrief || remediationEntry?.brief || 'Correct. Review the explanation before continuing.')
+                  : (currentQuestion.remedialBrief || remediationEntry?.brief || 'Review this concept and try again.')
+              }
               detailedContent={
                 <div className="space-y-4">
+                  {answeredCorrectly && currentQuestion.correctAnswerExplanation && (
+                    <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3">
+                      <p className="text-xs font-black uppercase tracking-wider text-emerald-700">Why This Is Correct</p>
+                      <p className="mt-1 text-sm font-semibold text-emerald-900">{currentQuestion.correctAnswerExplanation}</p>
+                    </div>
+                  )}
+
                   {tagsToShow.length > 0 && (
                     <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
                       <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-700">Refer Content Tags</p>

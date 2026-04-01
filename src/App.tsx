@@ -15,6 +15,7 @@ import PathAssignment from './pages/PathAssignment';
 import AdminDashboard from './pages/AdminDashboard';
 import ModulePage from './pages/ModulePage';
 import PostTest from './pages/PostTest';
+import { AppErrorBoundary } from './components/AppErrorBoundary';
 
 export default function App() {
   const session = useSessionStore(state => state.session);
@@ -137,17 +138,19 @@ export default function App() {
   }, [session]);
 
   return (
-    <Routes>
-      <Route path="/login" element={!session ? <LoginPage /> : <Navigate to={session.preTestDone ? "/dashboard" : "/pre-test"} />} />
-      <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
-      <Route path="/pre-test" element={session ? <PreTest /> : <Navigate to="/login" />} />
-      <Route path="/path-assignment" element={session ? <PathAssignment /> : <Navigate to="/login" />} />
-      <Route path="/module/:moduleId" element={session ? <ModulePage /> : <Navigate to="/login" />} />
-      <Route path="/post-test" element={session ? <PostTest /> : <Navigate to="/login" />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      
-      {/* Fallback */}
-      <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} />} />
-    </Routes>
+    <AppErrorBoundary>
+      <Routes>
+        <Route path="/login" element={!session ? <LoginPage /> : <Navigate to={session.preTestDone ? "/dashboard" : "/pre-test"} />} />
+        <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="/pre-test" element={session ? <PreTest /> : <Navigate to="/login" />} />
+        <Route path="/path-assignment" element={session ? <PathAssignment /> : <Navigate to="/login" />} />
+        <Route path="/module/:moduleId" element={session ? <ModulePage /> : <Navigate to="/login" />} />
+        <Route path="/post-test" element={session ? <PostTest /> : <Navigate to="/login" />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        
+        <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} />} />
+        <Route path="*" element={<Navigate to={session ? "/dashboard" : "/login"} />} />
+      </Routes>
+    </AppErrorBoundary>
   );
 }

@@ -351,29 +351,11 @@ export default function ModulePage() {
     updateSession({ moduleProgress: newProgress });
   }, [session, moduleId, currentConceptIdx, conceptStage, showFinalAssessment, finalAssessmentIdx, path, updateSession]);
 
-  // Defensive: get module and session, fallback UI if missing
   const moduleCatalog = getChapterDataForPath(path);
   const module = moduleCatalog.find((m) => m.id === moduleId);
-  if (!module || !session) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="rounded-2xl border p-8 text-center shadow-lg bg-white">
-          <h2 className="text-2xl font-black">Module or session not found</h2>
-          <p className="mt-2 text-sm font-semibold text-slate-600">We could not load the module or session data. Please return to the dashboard and try again.</p>
-          <button
-            onClick={() => window.location.assign('/dashboard')}
-            className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
-          >
-            Go to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const filteredConcepts = module.concepts.filter((c) => !c.path || c.path === path);
+  const filteredConcepts = module?.concepts.filter((c) => !c.path || c.path === path) || [];
   const safeConceptIdx = Math.min(currentConceptIdx, Math.max(filteredConcepts.length - 1, 0));
-  const rawSettings = session.settings || ({} as any);
+  const rawSettings = session?.settings || ({} as any);
   const settings = {
     ...rawSettings,
     darkMode: rawSettings.darkMode || false,
@@ -390,70 +372,8 @@ export default function ModulePage() {
   const allQuestions = filteredConcepts
     .flatMap((c) => c.questions.filter((q) => !q.path || q.path === path))
     .filter((q) => !q.adaptiveVariant);
-
-  // Defensive: fallback UI if no concepts or currentConcept is undefined
-  if (filteredConcepts.length === 0 || !currentConcept) {
-    return (
-      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
-        <main className="mx-auto mt-12 max-w-3xl px-4">
-          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
-            <h2 className="text-2xl font-black">No concepts found</h2>
-            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
-              We could not load the concepts for this module. Please try resetting to the first concept or return to the dashboard.
-            </p>
-            <button
-              onClick={() => {
-                setCurrentConceptIdx(0);
-                setConceptStage('content');
-                setConceptEntryStage('content');
-                setConceptEntryQuestionMode('first');
-              }}
-              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
-            >
-              Reset to first concept
-            </button>
-            <button
-              onClick={() => window.location.assign('/dashboard')}
-              className="mt-4 ml-2 rounded-xl bg-slate-500 px-4 py-2 text-sm font-bold text-white"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Defensive: fallback UI if showFinalAssessment but no questions
-  if (showFinalAssessment && allQuestions.length === 0) {
-    return (
-      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
-        <main className="mx-auto mt-12 max-w-3xl px-4">
-          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
-            <h2 className="text-2xl font-black">No assessment questions found</h2>
-            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
-              We could not load the assessment questions for this module. Please return to the concept flow or dashboard.
-            </p>
-            <button
-              onClick={() => {
-                setShowFinalAssessment(false);
-                setFinalAssessmentIdx(0);
-              }}
-              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
-            >
-              Return to concept flow
-            </button>
-            <button
-              onClick={() => window.location.assign('/dashboard')}
-              className="mt-4 ml-2 rounded-xl bg-slate-500 px-4 py-2 text-sm font-bold text-white"
-            >
-              Go to Dashboard
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const isMissingModuleOrSession = !module || !session;
+  const hasNoConcepts = filteredConcepts.length === 0 || !currentConcept;
 
   useEffect(() => {
     if (filteredConcepts.length === 0) {
@@ -506,7 +426,7 @@ export default function ModulePage() {
       })
     : [];
   const reviewedPathLabel = toPathLabel((reviewedPath || 'B') as 'A' | 'B' | 'C');
-  const currentPathLabel = toPathLabel((session.learningPath || 'B') as 'A' | 'B' | 'C');
+  const currentPathLabel = toPathLabel((session?.learningPath || 'B') as 'A' | 'B' | 'C');
   const moduleConfidenceLabel = toConfidenceLabel(moduleProgress?.confidenceRating);
 
   const handleExitClick = () => {
@@ -534,7 +454,17 @@ export default function ModulePage() {
     if (isExiting) return;
     setIsExiting(true);
     try {
-      await submitToMergeTeam('exited_midway');
+      if (session) {
+        trackTelemetryEvent('session_end', {
+          module_id: moduleId,
+          event_data: {
+            status: 'exited_midway',
+            trigger: 'exit_button',
+          }
+        });
+        await flushTrackingEvents();
+        await submitMergePayload(session, 'exited_midway', { isSync: false });
+      }
     } catch (e) {
       // Optionally handle/log error
     } finally {
@@ -866,23 +796,13 @@ export default function ModulePage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 0);
     } else {
-      // No more concepts in this module, try to advance to next module or dashboard
-      applyPathToCurrentModule();
+      // Final in-module concept should complete the module, not jump straight into the next route.
+      applyPathToCurrentModule({
+        currentConceptIdx: activeConceptIdx,
+        currentConceptStage: conceptStage,
+      });
       applyPathToNextModule();
-      if (shouldUpdateGlobalPath) {
-        updateSession({ moduleProgress: existingProgress, learningPath: nextPath, isStruggling: strugglingSignal });
-      } else {
-        updateSession({ moduleProgress: existingProgress, isStruggling: strugglingSignal });
-      }
-      
-      // Schedule navigation to ensure it happens after state updates
-      window.setTimeout(() => {
-        if (nextModuleId) {
-          navigate(`/module/${nextModuleId}`);
-        } else {
-          navigate('/dashboard');
-        }
-      }, 0);
+      handleModuleComplete(existingProgress, shouldUpdateGlobalPath ? nextPath : undefined);
     }
   };
 
@@ -921,6 +841,8 @@ export default function ModulePage() {
   const finalReferenceTags = currentFinalQuestion ? getReferenceTagsForQuestion(currentFinalQuestion.id) : [];
   const finalQuestionTags = currentFinalQuestion?.questionTags || [];
   const finalTagsToShow = finalReferenceTags.length > 0 ? finalReferenceTags : finalQuestionTags;
+  const finalAnsweredCorrectly = isFinalCorrect && !showFinalRemediation && !finalIncorrectFeedback;
+  const shouldShowFinalReview = isFinalCorrect;
 
   const getFinalHints = (): Array<{ level: 1 | 2; text: string }> => {
     if (!currentFinalQuestion || finalHintLevel <= 0) return [];
@@ -1041,6 +963,85 @@ export default function ModulePage() {
     setShowFinalRemediation(false);
   }, [currentFinalQuestion?.id]);
 
+  if (isMissingModuleOrSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="rounded-2xl border p-8 text-center shadow-lg bg-white">
+          <h2 className="text-2xl font-black">Module or session not found</h2>
+          <p className="mt-2 text-sm font-semibold text-slate-600">We could not load the module or session data. Please return to the dashboard and try again.</p>
+          <button
+            onClick={() => window.location.assign('/dashboard')}
+            className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+          >
+            Go to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasNoConcepts) {
+    return (
+      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
+        <main className="mx-auto mt-12 max-w-3xl px-4">
+          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
+            <h2 className="text-2xl font-black">No concepts found</h2>
+            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+              We could not load the concepts for this module. Please try resetting to the first concept or return to the dashboard.
+            </p>
+            <button
+              onClick={() => {
+                setCurrentConceptIdx(0);
+                setConceptStage('content');
+                setConceptEntryStage('content');
+                setConceptEntryQuestionMode('first');
+              }}
+              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+            >
+              Reset to first concept
+            </button>
+            <button
+              onClick={() => window.location.assign('/dashboard')}
+              className="mt-4 ml-2 rounded-xl bg-slate-500 px-4 py-2 text-sm font-bold text-white"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (showFinalAssessment && allQuestions.length === 0) {
+    return (
+      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
+        <main className="mx-auto mt-12 max-w-3xl px-4">
+          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
+            <h2 className="text-2xl font-black">No assessment questions found</h2>
+            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
+              We could not load the assessment questions for this module. Please return to the concept flow or dashboard.
+            </p>
+            <button
+              onClick={() => {
+                setShowFinalAssessment(false);
+                setFinalAssessmentIdx(0);
+              }}
+              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
+            >
+              Return to concept flow
+            </button>
+            <button
+              onClick={() => window.location.assign('/dashboard')}
+              className="mt-4 ml-2 rounded-xl bg-slate-500 px-4 py-2 text-sm font-bold text-white"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   if (showFinalAssessment && !currentFinalQuestion) {
     return (
       <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
@@ -1058,32 +1059,6 @@ export default function ModulePage() {
               className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
             >
               Return to concept flow
-            </button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (!showFinalAssessment && !currentConcept) {
-    return (
-      <div className={cn('min-h-screen pb-20 pt-5 transition-colors duration-500', settings.darkMode ? 'bg-slate-950 text-white' : '')}>
-        <main className="mx-auto mt-12 max-w-3xl px-4">
-          <div className={cn('rounded-3xl border p-8 text-center shadow-lg', settings.darkMode ? 'border-slate-700 bg-slate-900/80' : 'border-slate-200 bg-white')}>
-            <h2 className="text-2xl font-black">Loading concept content...</h2>
-            <p className={cn('mt-2 text-sm font-semibold', settings.darkMode ? 'text-slate-300' : 'text-slate-600')}>
-              We are re-aligning your module position after navigation.
-            </p>
-            <button
-              onClick={() => {
-                setCurrentConceptIdx(0);
-                setConceptStage('content');
-                setConceptEntryStage('content');
-                setConceptEntryQuestionMode('first');
-              }}
-              className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white"
-            >
-              Reset to first concept
             </button>
           </div>
         </main>
@@ -1230,11 +1205,22 @@ export default function ModulePage() {
                 </motion.div>
               )}
 
-              {showFinalRemediation && (
+              {shouldShowFinalReview && (
                 <RemediationBlock
-                  briefText={currentFinalQuestion.remedialBrief || finalRemediationEntry?.brief || 'Review the concept and continue.'}
+                  briefText={
+                    finalAnsweredCorrectly
+                      ? (currentFinalQuestion.correctAnswerExplanation || currentFinalQuestion.remedialBrief || finalRemediationEntry?.brief || 'Correct. Review the explanation before continuing.')
+                      : (currentFinalQuestion.remedialBrief || finalRemediationEntry?.brief || 'Review the concept and continue.')
+                  }
                   detailedContent={
                     <div className="space-y-4">
+                      {finalAnsweredCorrectly && currentFinalQuestion.correctAnswerExplanation && (
+                        <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-3">
+                          <p className="mb-2 text-xs font-black uppercase tracking-wider text-emerald-700">Why This Is Correct</p>
+                          <p className="text-sm font-semibold text-emerald-900">{currentFinalQuestion.correctAnswerExplanation}</p>
+                        </div>
+                      )}
+
                       {finalTagsToShow.length > 0 && (
                         <div className="rounded-xl border border-amber-300 bg-amber-100/60 p-3">
                           <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-700">Refer Content Tags</p>
