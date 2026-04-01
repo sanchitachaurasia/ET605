@@ -298,6 +298,15 @@ export default function PostTest() {
 
   const handleStart = () => {
     hasSubmittedRef.current = false;
+    if (session.postTestScore !== null && !isReattemptMode) {
+      // Clear completed state so hydration effect does not force results view again.
+      updateSession({
+        postTestScore: null,
+        completed: false,
+        journeyComplete: false,
+        postTestProgress: null,
+      });
+    }
     if ((isReattemptMode || isReviewMode) && session.postTestProgress) {
       updateSession({ postTestProgress: null });
     }
