@@ -19,7 +19,7 @@ const rawApiBase = String(import.meta.env.VITE_API_BASE_URL || '').trim().replac
 const isLoopbackApiBase = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(rawApiBase);
 
 export const API_BASE = import.meta.env.DEV
-  ? (rawApiBase || 'http://localhost:3000')
+  ? (rawApiBase || 'http://localhost:3012')
   : (isLoopbackApiBase ? '' : rawApiBase);
 
 const ADMIN_API_KEY = String(import.meta.env.VITE_ADMIN_API_KEY || '').trim();

@@ -7,7 +7,8 @@ import mergeTeamRoutes from "./src/backend/mergeTeamRoutes.ts";
 
 async function startServer() {
   const app = express();
-  const PORT = Number(process.env.PORT) || 3000;
+  const PORT = Number(process.env.PORT) || 3012;
+  const HOST = '0.0.0.0';
   const isDev = process.env.NODE_ENV === "development";
   const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
     .split(",")
@@ -89,8 +90,8 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  app.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
   });
 }
 

@@ -48,10 +48,12 @@ DataQuest is a production-ready, gamified, and adaptive learning platform design
 
 ### Running Locally
 
-Start the development server:
+Start the full app server:
 ```bash
-npm run dev
+npm start
 ```
+
+If you only need the frontend Vite dev server, use `npm run dev` in a separate terminal.
 
 ### Building for Production
 
@@ -63,7 +65,8 @@ npm run build
 
 This app is configured for Render.
 - **Build Command**: `npm run build`
-- **Start Command**: `node server.ts`
+- **Start Command**: `npm start`
+- **App Port**: `3012`
 
 ## 🧠 Adaptive Logic & Features
 
@@ -739,7 +742,7 @@ The following endpoints are implemented, tested, and available for Merge Team in
 
 **Sample Request:**
 ```sh
-curl http://localhost:3000/api/merge/chapter-metadata
+curl http://localhost:3012/api/merge/chapter-metadata
 ```
 **Sample Response (truncated):**
 ```json
@@ -772,7 +775,7 @@ curl http://localhost:3000/api/merge/chapter-metadata
 
 **Sample Request:**
 ```sh
-curl -X POST http://localhost:3000/api/merge/session-submit \
+curl -X POST http://localhost:3012/api/merge/session-submit \
   -H 'Content-Type: application/json' \
   -d '{
     "student_id": "student_1042",
@@ -807,7 +810,7 @@ curl -X POST http://localhost:3000/api/merge/session-submit \
 
 **Sample Request:**
 ```sh
-curl http://localhost:3000/api/merge/health
+curl http://localhost:3012/api/merge/health
 ```
 **Sample Response:**
 ```json
@@ -826,7 +829,7 @@ curl http://localhost:3000/api/merge/health
 
 **Sample Request:**
 ```sh
-curl -X POST http://localhost:3000/api/merge/retry-failed
+curl -X POST http://localhost:3012/api/merge/retry-failed
 ```
 **Sample Response (if no failed submissions):**
 ```json
