@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useSessionStore } from './store/sessionStore';
+import { DEFAULT_SETTINGS, useSessionStore } from './store/sessionStore';
 import { saveStudentProgressToCloud } from './lib/firebaseAuth';
 import {
   flushTrackingEvents,
@@ -16,9 +16,88 @@ import AdminDashboard from './pages/AdminDashboard';
 import ModulePage from './pages/ModulePage';
 import PostTest from './pages/PostTest';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import type { StudentSession } from './types';
 
 export default function App() {
   const session = useSessionStore(state => state.session);
+  const setSession = useSessionStore(state => state.setSession);
+  const updateSession = useSessionStore(state => state.updateSession);
+  const [mergeBootstrapDone, setMergeBootstrapDone] = useState(false);
+
+  const mergeSearch = window.location.search || '';
+  const mergeParams = useMemo(() => new URLSearchParams(mergeSearch), [mergeSearch]);
+  const hasMergeParams = Boolean(
+    mergeParams.get('token') && mergeParams.get('student_id') && mergeParams.get('session_id')
+  );
+  const mergeForcedPretestPath = `/pre-test${mergeSearch}`;
+  const sessionLandingPath = session
+    ? (session.preTestDone ? '/dashboard' : '/pre-test')
+    : '/login';
+  const chapterRedirectTo = hasMergeParams ? mergeForcedPretestPath : `${sessionLandingPath}${mergeSearch}`;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token') || sessionStorage.getItem('token');
+    const studentId = params.get('student_id') || sessionStorage.getItem('student_id');
+    const sessionId = params.get('session_id') || sessionStorage.getItem('session_id');
+
+    if (token) sessionStorage.setItem('token', token);
+    if (studentId) sessionStorage.setItem('student_id', studentId);
+    if (sessionId) sessionStorage.setItem('session_id', sessionId);
+
+    if (!studentId || !sessionId) {
+      setMergeBootstrapDone(true);
+      return;
+    }
+
+    if (!session) {
+      const mergeBootstrapSession: StudentSession = {
+        studentId,
+        pin: 'merge-redirect',
+        name: studentId,
+        school: 'Merge Portal',
+        class: '8',
+        preTestScore: 0,
+        preTestDone: false,
+        learningPath: 'B',
+        settings: DEFAULT_SETTINGS,
+        moduleProgress: [],
+        badgesEarned: [],
+        postTestScore: null,
+        journeyComplete: false,
+        lives: 5,
+        xp: 0,
+        coins: 0,
+        streak: 0,
+        chapterSessionId: sessionId,
+        sessionStatus: 'in_progress',
+      };
+      setSession(mergeBootstrapSession);
+      setMergeBootstrapDone(true);
+      return;
+    }
+
+    if (
+      session.studentId !== studentId ||
+      session.chapterSessionId !== sessionId ||
+      session.name !== studentId ||
+      session.preTestDone !== false
+    ) {
+      updateSession({
+        studentId,
+        name: studentId,
+        chapterSessionId: sessionId,
+        preTestDone: false,
+      });
+    }
+    setMergeBootstrapDone(true);
+  }, [session, setSession, updateSession]);
+
+  useEffect(() => {
+    if (!hasMergeParams) {
+      setMergeBootstrapDone(true);
+    }
+  }, [hasMergeParams]);
 
   useEffect(() => {
     if (!session?.studentId) return;
@@ -139,18 +218,23 @@ export default function App() {
 
   return (
     <AppErrorBoundary>
-      <Routes>
-        <Route path="/login" element={!session ? <LoginPage /> : <Navigate to={session.preTestDone ? "/dashboard" : "/pre-test"} />} />
-        <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/pre-test" element={session ? <PreTest /> : <Navigate to="/login" />} />
-        <Route path="/path-assignment" element={session ? <PathAssignment /> : <Navigate to="/login" />} />
-        <Route path="/module/:moduleId" element={session ? <ModulePage /> : <Navigate to="/login" />} />
-        <Route path="/post-test" element={session ? <PostTest /> : <Navigate to="/login" />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        
-        <Route path="/" element={<Navigate to={session ? "/dashboard" : "/login"} />} />
-        <Route path="*" element={<Navigate to={session ? "/dashboard" : "/login"} />} />
-      </Routes>
+      {!mergeBootstrapDone ? (
+        <div>Loading session...</div>
+      ) : (
+        <Routes>
+          <Route path="/login" element={hasMergeParams ? <Navigate to={mergeForcedPretestPath} replace /> : (!session ? <LoginPage /> : <Navigate to={session.preTestDone ? "/dashboard" : "/pre-test"} />)} />
+          <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
+          <Route path="/pre-test" element={session ? <PreTest /> : <Navigate to="/login" />} />
+          <Route path="/path-assignment" element={session ? <PathAssignment /> : <Navigate to="/login" />} />
+          <Route path="/module/:moduleId" element={session ? <ModulePage /> : <Navigate to="/login" />} />
+          <Route path="/post-test" element={session ? <PostTest /> : <Navigate to="/login" />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/chapter" element={<Navigate to={chapterRedirectTo} replace />} />
+
+          <Route path="/" element={<Navigate to={hasMergeParams ? mergeForcedPretestPath : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
+          <Route path="*" element={<Navigate to={hasMergeParams ? mergeForcedPretestPath : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
+        </Routes>
+      )}
     </AppErrorBoundary>
   );
 }

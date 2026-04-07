@@ -1,4 +1,5 @@
-import { PayloadRetryQueue, MergeSessionPayload } from '../types';
+import { PayloadRetryQueue } from '../types';
+import { MergeSessionPayload } from './mergePayload';
 
 const RETRY_QUEUE_KEY = 'dataquest-payload-retry-queue';
 const FAILED_PAYLOADS_KEY = 'dataquest-failed-payloads';
@@ -125,27 +126,42 @@ export const archiveFailedPayloads = (): void => {
  */
 export const submitPayloadWithRetry = async (
   payload: MergeSessionPayload,
-  endpoint: string
-): Promise<{ success: boolean; payloadId?: string; error?: string }> => {
+  endpoint: string,
+  token?: string
+): Promise<{ success: boolean; payloadId?: string; error?: string; data?: any }> => {
   try {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
+    };
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(payload),
       keepalive: true
     });
 
+    let responseData: any = null;
+    try {
+      responseData = await response.json();
+    } catch {
+      responseData = null;
+    }
+
     if (!response.ok) {
       const error = `HTTP ${response.status}: ${response.statusText}`;
       const payloadId = generatePayloadId();
-      queuePayloadForRetry({ ...payload, failedPayloadId: payloadId });
+      queuePayloadForRetry({ payload, token, failedPayloadId: payloadId });
       return { success: false, payloadId, error };
     }
 
-    return { success: true };
+    return { success: true, data: responseData };
   } catch (err: any) {
     const payloadId = generatePayloadId();
-    queuePayloadForRetry({ ...payload, failedPayloadId: payloadId });
+    queuePayloadForRetry({ payload, token, failedPayloadId: payloadId });
     return {
       success: false,
       payloadId,
@@ -165,10 +181,19 @@ export const processRetryQueue = async (endpoint: string): Promise<void> => {
 
   for (const item of readyForRetry) {
     try {
+      const queuedPayload = item.payload?.payload || item.payload;
+      const queuedToken = item.payload?.token || sessionStorage.getItem('token') || undefined;
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+      if (queuedToken) {
+        headers.Authorization = `Bearer ${queuedToken}`;
+      }
+
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(item.payload),
+        headers,
+        body: JSON.stringify(queuedPayload),
         keepalive: true
       });
 

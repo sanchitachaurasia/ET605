@@ -29,9 +29,11 @@ export const validatePayload = (payload: MergeSessionPayload): { isValid: boolea
     wrong: payload.wrong_answers,
     attempted: payload.questions_attempted,
     total: payload.total_questions,
+    retries: payload.retry_count,
     hintsUsed: payload.hints_used,
     totalHints: payload.total_hints_embedded,
-    completionRatio: payload.topic_completion_ratio
+    completionRatio: payload.topic_completion_ratio,
+    sessionStatus: payload.session_status
   };
 
   const result = validateMetrics(metricsValidation);

@@ -28,15 +28,30 @@ export const submitMergePayload = async (
   options: SubmitMergePayloadOptions = {}
 ) => {
   const { chapterId = 'grade8_data_handling', isSync = false } = options;
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token') || sessionStorage.getItem('token') || '';
+  const redirectStudentId = params.get('student_id') || sessionStorage.getItem('student_id') || '';
+  const redirectSessionId = params.get('session_id') || sessionStorage.getItem('session_id') || '';
+
+  if (token) sessionStorage.setItem('token', token);
+  if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
+  if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
 
   if (!session || !session.chapterSessionId || !session.chapterMetrics) {
     console.warn('Invalid session or metrics for payload submission');
     return;
   }
 
-  // Check for duplicate submission
-  if (isDuplicateSubmission(session.chapterSessionId)) {
-    console.warn(`Duplicate submission detected for session ${session.chapterSessionId}, reusing same session_id`);
+  const finalSessionId = redirectSessionId || session.chapterSessionId;
+  if (!finalSessionId) {
+    console.warn('Missing session_id from redirect URL');
+    return;
+  }
+
+  // Enforce one payload submit per session. Retries are handled via retry queue.
+  if (isDuplicateSubmission(finalSessionId)) {
+    console.warn(`Duplicate submission prevented for session ${finalSessionId}`);
+    return;
   }
 
   const chapterData = getChapterDataForPath(session?.learningPath || 'B');
@@ -63,8 +78,11 @@ export const submitMergePayload = async (
   const timeSpent = m.activeTimeSpent > 0 ? m.activeTimeSpent : computedTotalTime;
 
   const payload: MergeSessionPayload = mergePayloadFormatter(
-    session,
-    session.chapterSessionId,
+    {
+      ...session,
+      studentId: redirectStudentId || session.studentId,
+    },
+    finalSessionId,
     status,
     chapterId,
     {
@@ -80,17 +98,38 @@ export const submitMergePayload = async (
     }
   );
 
-  const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://merge.dataquest.local/api/session';
+  const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
+
+  if (!token) {
+    console.warn('Missing redirect token. Cannot call recommendation API without Authorization header.');
+    return;
+  }
+
+  if (payload.validation_passed === false) {
+    console.warn('Payload validation failed:', payload.validation_errors || []);
+    return;
+  }
+
+  markSessionAsSubmitted(finalSessionId);
 
   // Attempt submission with retry mechanism
-  const result = await submitPayloadWithRetry(payload, endpoint);
+  const result = await submitPayloadWithRetry(payload, endpoint, token);
 
   // Persist final payload in Firebase for user and admin querying
   await saveSessionPayload(payload);
 
   if (result.success) {
-    markSessionAsSubmitted(session.chapterSessionId);
     console.log('✓ Payload submitted successfully');
+
+    const recommendation = result.data;
+    if (!isSync && recommendation?.recommendation) {
+      localStorage.setItem('dataquest-last-recommendation', JSON.stringify(recommendation));
+      const reason = recommendation?.recommendation?.reason;
+      const nextStep = recommendation?.recommendation?.next_steps?.[0];
+      if (reason) {
+        window.alert(nextStep ? `${reason}\nNext: ${nextStep}` : reason);
+      }
+    }
   } else {
     console.warn('Payload queued for retry:', result.error);
   }
@@ -105,8 +144,16 @@ export const submitMergePayload = async (
   localStorage.setItem('dataquest-admin-payloads', JSON.stringify(adminStored));
 
   // Use sendBeacon for sync submissions (e.g., page unload)
-  if (isSync && navigator.sendBeacon) {
-    navigator.sendBeacon(endpoint, new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+  if (isSync) {
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => undefined);
   }
 };
 
@@ -117,8 +164,18 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
   useEffect(() => {
     // Initialize session metrics if not already done
     if (session && !session.chapterSessionId) {
-      const createdSessionId = `s_${session.studentId}_${chapterId}_${Date.now()}`;
+      const params = new URLSearchParams(window.location.search);
+      const redirectStudentId = params.get('student_id') || sessionStorage.getItem('student_id');
+      const redirectSessionId = params.get('session_id') || sessionStorage.getItem('session_id');
+      const token = params.get('token') || sessionStorage.getItem('token');
+
+      if (token) sessionStorage.setItem('token', token);
+      if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
+      if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
+
+      const createdSessionId = redirectSessionId || `s_${session.studentId}_${chapterId}_${Date.now()}`;
       updateSession({
+        studentId: redirectStudentId || session.studentId,
         chapterSessionId: createdSessionId,
         chapterMetrics: {
           startTime: Date.now(),

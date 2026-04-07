@@ -14,26 +14,30 @@ export interface MetricsValidation {
   wrong: number;
   attempted: number;
   total: number;
+  retries: number;
   hintsUsed: number;
   totalHints: number;
   completionRatio: number;
+  sessionStatus?: 'completed' | 'exited_midway';
 }
 
 /**
  * Validates that metrics follow the constraint rules:
- * - correct + wrong ≤ attempted
+ * - correct + wrong == attempted
  * - attempted ≤ total
+ * - retries ≤ attempted
  * - hints_used ≤ total_hints
  * - ratios between 0–1
+ * - if completed, attempted must equal total
  */
 export const validateMetrics = (metrics: MetricsValidation): ValidationResult => {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Rule 1: correct + wrong ≤ attempted
-  if (metrics.correct + metrics.wrong > metrics.attempted) {
+  // Rule 1: correct + wrong == attempted
+  if (metrics.correct + metrics.wrong !== metrics.attempted) {
     errors.push(
-      `Constraint violated: correct (${metrics.correct}) + wrong (${metrics.wrong}) = ${metrics.correct + metrics.wrong} > attempted (${metrics.attempted})`
+      `Constraint violated: correct (${metrics.correct}) + wrong (${metrics.wrong}) = ${metrics.correct + metrics.wrong} must equal attempted (${metrics.attempted})`
     );
   }
 
@@ -44,17 +48,31 @@ export const validateMetrics = (metrics: MetricsValidation): ValidationResult =>
     );
   }
 
-  // Rule 3: hints_used ≤ total_hints
+  // Rule 3: retries ≤ attempted
+  if (metrics.retries > metrics.attempted) {
+    errors.push(
+      `Constraint violated: retry_count (${metrics.retries}) > attempted (${metrics.attempted})`
+    );
+  }
+
+  // Rule 4: hints_used ≤ total_hints
   if (metrics.hintsUsed > metrics.totalHints) {
     errors.push(
       `Constraint violated: hints_used (${metrics.hintsUsed}) > total_hints (${metrics.totalHints})`
     );
   }
 
-  // Rule 4: ratios between 0–1
+  // Rule 5: ratios between 0–1
   if (metrics.completionRatio < 0 || metrics.completionRatio > 1) {
     errors.push(
       `Invalid ratio: topic_completion_ratio (${metrics.completionRatio}) must be between 0 and 1`
+    );
+  }
+
+  // Rule 6: completed session must attempt all questions
+  if (metrics.sessionStatus === 'completed' && metrics.attempted !== metrics.total) {
+    errors.push(
+      `Constraint violated: completed session requires attempted (${metrics.attempted}) == total (${metrics.total})`
     );
   }
 

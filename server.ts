@@ -1,4 +1,5 @@
 import express from "express";
+import { readFile } from "fs/promises";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import authRoutes from "./src/backend/authRoutes.ts";
@@ -43,22 +44,19 @@ async function startServer() {
   app.use(mergeTeamRoutes);
 
   // Chapter Metadata API
-  app.get("/api/chapter/metadata", (req, res) => {
-    res.json({
-      grade: 8,
-      chapter_name: "Data Handling",
-      chapter_id: "grade8_data_handling",
-      chapter_url: "https://dataquest.example.com",
-      chapter_difficulty: 0.6,
-      expected_completion_time_seconds: 3600,
-      subtopics: [
-        { subtopic_id: "data_org", name: "Data Organisation", difficulty: 0.4 },
-        { subtopic_id: "histograms", name: "Grouping Data & Histograms", difficulty: 0.6 },
-        { subtopic_id: "pie_charts", name: "Pie Charts", difficulty: 0.7 },
-        { subtopic_id: "probability", name: "Probability", difficulty: 0.5 },
-      ],
-      prerequisites: ["Basic Arithmetic", "Fractions", "Percentages"],
-    });
+  app.get("/api/chapter/metadata", async (_req, res) => {
+    try {
+      const metadataPath = path.join(process.cwd(), "MERGE_METADATA.json");
+      const metadataRaw = await readFile(metadataPath, "utf-8");
+      const metadata = JSON.parse(metadataRaw);
+      res.json(metadata);
+    } catch (error) {
+      console.error("Failed to load MERGE metadata:", error);
+      res.status(500).json({
+        success: false,
+        error: "Failed to load chapter metadata",
+      });
+    }
   });
 
   // Session Payload Receiver (Mock for Merge Team)
