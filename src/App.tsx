@@ -15,13 +15,16 @@ import PathAssignment from './pages/PathAssignment';
 import AdminDashboard from './pages/AdminDashboard';
 import ModulePage from './pages/ModulePage';
 import PostTest from './pages/PostTest';
+import { getChapterDataForPath } from './data/Standard/pathData';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import type { StudentSession } from './types';
 
 export default function App() {
   const session = useSessionStore(state => state.session);
+  const users = useSessionStore(state => state.users);
   const setSession = useSessionStore(state => state.setSession);
   const updateSession = useSessionStore(state => state.updateSession);
+  const addUser = useSessionStore(state => state.addUser);
   const [mergeBootstrapDone, setMergeBootstrapDone] = useState(false);
 
   const mergeSearch = window.location.search || '';
@@ -29,11 +32,27 @@ export default function App() {
   const hasMergeParams = Boolean(
     mergeParams.get('token') && mergeParams.get('student_id') && mergeParams.get('session_id')
   );
-  const mergeForcedPretestPath = `/pre-test${mergeSearch}`;
-  const sessionLandingPath = session
-    ? (session.preTestDone ? '/dashboard' : '/pre-test')
-    : '/login';
-  const chapterRedirectTo = hasMergeParams ? mergeForcedPretestPath : `${sessionLandingPath}${mergeSearch}`;
+  const chapterRedirectTo = useMemo(() => {
+    if (!session) {
+      return `/login${mergeSearch}`;
+    }
+
+    if (!session.preTestDone) {
+      return `/pre-test${mergeSearch}`;
+    }
+
+    const modules = getChapterDataForPath(session.learningPath || 'B');
+    const nextIncomplete = modules.find((mod) =>
+      !session.moduleProgress?.some((progress) => progress.moduleId === mod.id && progress.completed)
+    );
+    const targetModuleId = nextIncomplete?.id || modules[0]?.id;
+
+    if (targetModuleId) {
+      return `/module/${targetModuleId}${mergeSearch}`;
+    }
+
+    return `/dashboard${mergeSearch}`;
+  }, [mergeSearch, session]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -50,7 +69,9 @@ export default function App() {
       return;
     }
 
-    if (!session) {
+    const existingUser = users.find((user) => user.studentId === studentId);
+
+    if (!session && !existingUser) {
       const mergeBootstrapSession: StudentSession = {
         studentId,
         pin: 'merge-redirect',
@@ -72,26 +93,42 @@ export default function App() {
         chapterSessionId: sessionId,
         sessionStatus: 'in_progress',
       };
+      addUser(mergeBootstrapSession);
       setSession(mergeBootstrapSession);
       setMergeBootstrapDone(true);
       return;
     }
 
-    if (
-      session.studentId !== studentId ||
-      session.chapterSessionId !== sessionId ||
-      session.name !== studentId ||
-      session.preTestDone !== false
-    ) {
-      updateSession({
-        studentId,
-        name: studentId,
+    if (!session && existingUser) {
+      setSession({
+        ...existingUser,
         chapterSessionId: sessionId,
-        preTestDone: false,
+        name: existingUser.name || studentId,
+        sessionStatus: 'in_progress',
+      });
+      setMergeBootstrapDone(true);
+      return;
+    }
+
+    if (session && session.studentId !== studentId && existingUser) {
+      setSession({
+        ...existingUser,
+        chapterSessionId: sessionId,
+        name: existingUser.name || studentId,
+        sessionStatus: 'in_progress',
+      });
+      setMergeBootstrapDone(true);
+      return;
+    }
+
+    if (session && session.studentId === studentId && session.chapterSessionId !== sessionId) {
+      updateSession({
+        chapterSessionId: sessionId,
+        sessionStatus: 'in_progress',
       });
     }
     setMergeBootstrapDone(true);
-  }, [session, setSession, updateSession]);
+  }, [session, users, setSession, updateSession, addUser]);
 
   useEffect(() => {
     if (!hasMergeParams) {
@@ -222,7 +259,10 @@ export default function App() {
         <div>Loading session...</div>
       ) : (
         <Routes>
-          <Route path="/login" element={hasMergeParams ? <Navigate to={mergeForcedPretestPath} replace /> : (!session ? <LoginPage /> : <Navigate to={session.preTestDone ? "/dashboard" : "/pre-test"} />)} />
+          <Route
+            path="/login"
+            element={!session ? <LoginPage /> : <Navigate to={hasMergeParams ? `/chapter${mergeSearch}` : (session.preTestDone ? '/dashboard' : '/pre-test')} replace />}
+          />
           <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/login" />} />
           <Route path="/pre-test" element={session ? <PreTest /> : <Navigate to="/login" />} />
           <Route path="/path-assignment" element={session ? <PathAssignment /> : <Navigate to="/login" />} />
@@ -231,8 +271,8 @@ export default function App() {
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/chapter" element={<Navigate to={chapterRedirectTo} replace />} />
 
-          <Route path="/" element={<Navigate to={hasMergeParams ? mergeForcedPretestPath : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
-          <Route path="*" element={<Navigate to={hasMergeParams ? mergeForcedPretestPath : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
+          <Route path="/" element={<Navigate to={hasMergeParams ? `/chapter${mergeSearch}` : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
+          <Route path="*" element={<Navigate to={hasMergeParams ? `/chapter${mergeSearch}` : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
         </Routes>
       )}
     </AppErrorBoundary>
