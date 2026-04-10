@@ -503,6 +503,13 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
   const segmentedVideoUrl = buildSegmentedVideoUrl(concept);
   const hasYouTubeEmbed = concept.videoUrl.includes('youtube.com/embed/');
   const isLocalVideoFile = /\.mp4($|\?)/i.test(concept.videoUrl) || concept.videoUrl.startsWith('/');
+  const localVideoUrl = React.useMemo(() => {
+    if (!isLocalVideoFile) return concept.videoUrl;
+    const version = import.meta.env.VITE_ASSET_VERSION || '20260411';
+    return concept.videoUrl.includes('?')
+      ? `${concept.videoUrl}&v=${version}`
+      : `${concept.videoUrl}?v=${version}`;
+  }, [concept.videoUrl, isLocalVideoFile]);
 
   const showQuestions = showQuestionsInBlock && questionSequence.length > 0;
   const showExampleStage = conceptStage === 'examples';
@@ -754,7 +761,7 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
           <video
             controls
             className="h-full w-full bg-black"
-            src={concept.videoUrl}
+            src={localVideoUrl}
             preload="metadata"
           />
         ) : (
