@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_2';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -124,7 +124,7 @@ const moduleData: Module = {
         <div class="practice-ans">This is incorrect. The boundary rule states that the upper limit is excluded, not included. So 30 does NOT belong to the 20–30 interval. It belongs to the 30–40 interval because 30 is the lower limit of that interval, and lower limits are always included. The interval 20–30 includes all values from 20 up to (but not including) 30.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -289,7 +289,7 @@ const moduleData: Module = {
         <div class="practice-ans">The student has confused a histogram with a bar graph. In a histogram, bars must always touch — there must be no gap between them. The gap would incorrectly imply that the intervals are separate, disconnected categories (like "cricket" vs "football"), when in fact these are continuous intervals on a number line. The value 20 is the shared boundary between the 10–20 and 20–30 intervals — there is no "gap" between these two groups in the data, so there must be no gap in the histogram.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -395,7 +395,7 @@ const moduleData: Module = {
         <div class="practice-ans">Range = 15 − 2 = 13. Aiming for about 5 intervals: 13 ÷ 5 = 2.6, so we round up to 3. Starting at 0 (convenient value below minimum of 2): intervals are 0–3, 3–6, 6–9, 9–12, 12–15, 15–18. Frequencies: 0–3: 3, 2 = 2. Wait — 3 belongs to 3–6, not 0–3 (boundary rule: lower included, upper excluded). So 0–3: just 2 = 1. 3–6: 3, 5, 4, 6, 5 = 5 (note: 6 goes to 6–9). Let me redo: 0–3: 2 = 1. 3–6: 3, 5, 4, 5 = 4. 6–9: 7, 8, 6, 7 = 4. 9–12: 9, 11, 10, 9, 11 = 5. 12–15: 12, 14, 13 = 3. 15–18: 15 = 1. Total: 1+4+4+5+3+1 = 18 ✓. The modal class is 9–12 years.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -481,7 +481,7 @@ const moduleData: Module = {
         <div class="practice-ans">Disagree. The touching of bars in a histogram is not incidental — it carries meaning. It tells anyone reading the graph that the data is continuous and the intervals share boundaries. For example, the interval 20–30 ends at 30, and the interval 30–40 starts at 30. The number 30 is the boundary between them — there is no gap in the data at 30, so there must be no gap in the histogram. A "bar graph with thinner gaps" would incorrectly imply there is a gap in the data between 30 and 30, which makes no mathematical sense. The no-gap rule in histograms is not cosmetic; it encodes the continuity of the underlying number line.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -607,7 +607,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) Range = 150 − 40 = 110. For 25 data points, aiming for 5–6 intervals: 110 ÷ 5 = 22 → use bin size of 20 (convenient). Start at 40: intervals are 40–60, 60–80, 80–100, 100–120, 120–140, 140–160. That's 6 intervals — good. (b) 40–60: 40, 55, 45, 50 = 4. 60–80: 60, 75, 60, 65, 70 = 5. 80–100: 95, 80, 85, 90, 95 = 5. 100–120: 120, 110, 100, 115, 105 = 5. 120–140: 135, 130, 125 = 3. 140–160: 150, 140, 145 = 3. Total: 4+5+5+5+3+3 = 25 ✓. (c) The histogram rises from 4 (40–60) to 5 (60–80), stays at 5 through 80–100 and 100–120, then drops to 3 in each of the last two intervals. The distribution is roughly symmetric with a flat peak in the middle — slightly left of center. It is not strongly skewed but may lean slightly right (longer tail from 120 onwards). (d) Students who studied more than 100 minutes: 5 + 3 + 3 = 11 students. 11 ÷ 25 = 44%. Conclusion: Nearly half the students studied for over 100 minutes, suggesting moderate to high study engagement on the weekend. (e) Histogram — because study time is measured in minutes (a continuous variable), and the data is grouped into adjacent intervals on a number line. A bar graph would be incorrect here since there are no separate category labels.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -637,7 +637,7 @@ const moduleData: Module = {
   <!-- ══════════════════════════════════════════════
        PATH B
   ══════════════════════════════════════════════ -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

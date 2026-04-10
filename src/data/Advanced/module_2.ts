@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_2';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -89,7 +89,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) Range = 62−35 = 27. With n=25, a class size of 5 gives 6 intervals (35–40, 40–45, 45–50, 50–55, 55–60, 60–65) — appropriate. Intervals and frequencies: 35–40: 35, 38, 36, 39 = 4. 40–45: 42, 40, 41, 44, 43 = 5. 45–50: 47, 45, 48, 46, 49 = 5. 50–55: 51, 53, 52 = 3. 55–60: 55, 58, 57, 59 = 4. 60–65: 60, 62, 61 = 3. Total: 4+5+5+3+4+3 = 24... recheck: 35, 38, 36, 39 | 42, 40, 41, 44, 43 | 47, 45, 48, 46, 49 | 51, 53, 52 | 55, 58, 57, 59 | 60, 62, 61. Count: 4+5+5+3+4+3 = 24. Missing one item — re-examine raw data: 54 was missed — goes in 50–55 (now 4). Total: 4+5+5+4+4+3 = 25 ✓. (b) Cumulative frequencies: 4, 9, 14, 18, 22, 25. (c) Items below 50 kg: intervals 35–40 (4) + 40–45 (5) + 45–50 (5) = 14 items. 14/25 = 56%. (d) The distribution is fairly spread across all intervals with slight concentration in 40–50 range. No strong skew — suggests weights are relatively consistent, which is a positive quality control signal. However, items in the 35–40 and 60–65 ranges represent the extremes — if tolerance limits are tight, these outlier batches warrant investigation.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -141,7 +141,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) Intervals: 10–20: 12, 19, 18, 15, 16 = 5. 20–30: 28, 25, 29, 22, 26, 27, 23 = 7. 30–40: 33, 37, 35, 31, 39, 36, 38, 32 = 8. 40–50: 45, 41, 44, 42, 47 = 5. 50–60: 52, 48, 55, 50 = 4. Wait: 12+19+18+15+16=5 | 28+25+29+22+26+27+23=7 | 33+37+35+31+39+36+38+32=8 | 45+41+44+42+47=5 | 52+48+55+50=4. Hmm 5+7+8+5+4=29 — one value unaccounted. Re-examine: 12,19,18,15,16 — that's 5. Note: all 30 values listed: 12,45,28,33,19,52,41,25,37,18,29,48,35,22,44,31,15,39,26,55,42,21,36,50,27,16,38,23,47,32 — missed 21 in 20–30 group: now 20–30 = 28,25,29,22,26,21,27,23 = 8. Total: 5+8+8+5+4=30 ✓. Relative freq: 16.7%, 26.7%, 26.7%, 16.7%, 13.3%. Cumulative freq: 5, 13, 21, 26, 30. (b) Modal class: 20–30 and 30–40 (tied, frequency 8). Median class: 15th and 16th values — cumulative freq reaches 13 at end of 20–30, so 14th–21st values are in 30–40. Median class: 30–40. (c) The distribution is slightly right-skewed — most workers commute 20–40 minutes, but the tail extends to 50–60 minutes. Real-world explanation: most workers likely live in a moderate distance from the office (20–40 min commute), but a few live far away or face severe traffic, pushing their times significantly higher. The right skew reflects the practical reality that commutes can always get longer (road conditions, distance) but have a minimum floor near zero. (d) Workers commuting more than 40 minutes: 5 + 4 = 9 workers = 30% of the sample. Policy recommendation: 30% is a substantial proportion facing long commutes. The organisation could consider flexible start/end times to help workers avoid peak-hour traffic, or investigate remote work options for the 13.3% (4 workers) with commutes over 50 minutes, as these are likely the most impacted by commute stress and fatigue.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -204,7 +204,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) Range = 244 − 58 = 186 mm. For 24 data points, target 5–6 intervals: 186 ÷ 6 = 31 → round to 30. Start at 50 (below minimum 58). Intervals: 50–80, 80–110, 110–140, 140–170, 170–200, 200–230, 230–260. That's 7 intervals — acceptable. (b) 50–80: 67, 73, 58 = 3. 80–110: 85, 94, 98, 109, 81, 91 = 6. 110–140: 112, 120, 137, 143 (wait 143 ≥ 140 → next interval). 110–140: 112, 120, 137 = 3. 140–170: 145, 156, 165, 143 = 4. 170–200: 178, 189, 172 = 3. 200–230: 203, 231 — wait, 231 ≥ 230 → next interval. 200–230: 203, 202, 216 = 3. 230–260: 231, 244 = 2. Total: 3+6+3+4+3+3+2 = 24 ✓. (c) The distribution peaks strongly in 80–110 mm, suggesting most months have moderate rainfall. The relatively long tail from 170–260 (3+3+2 = 8 values, 33%) indicates a right skew — a meaningful proportion of months have high rainfall. (d) Bin size 50 gives: range 186 ÷ 50 ≈ 4 intervals (50–100, 100–150, 150–200, 200–250). Frequencies: 50–100: 3+6=9 (approx). 100–150: 3+4=7. 150–200: 3. 200–250: 3+2=5. This collapses the detail within each band. The peak at 80–110 is merged with 50–80 data into a 50–100 bar, so the concentration around 80–110 is no longer visible. Information is lost: the specific mode location is obscured, and the skew is harder to detect. Bin size 30 is superior for this dataset.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -265,7 +265,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) Dataset 1 → bar graph. Departments (Service, Billing, etc.) are separate named categories with no shared boundaries. There is no numerical meaning to the "distance" between Billing and Technical. Dataset 2 → histogram. Wait time is a continuous variable; intervals share boundaries (10 is simultaneously the upper limit of 0–10 and the lower limit of 10–20). (b) Dataset 1: yes, reordering by frequency (Pareto chart) is valid and often useful for identifying priority problem areas. Dataset 2: no. The intervals 0–10, 10–20, ... are positions on a time number line. Reordering them (e.g., putting 30–40 before 10–20) would contradict the number line and be mathematically nonsensical — it would imply that longer wait times somehow precede shorter ones on the axis. The x-axis order is fixed by the mathematics of continuous data. (c) The unequal gaps in the histogram for Dataset 1 create a false impression that the "distance" between department categories varies — as if Technical and Delivery are further apart from each other than Service and Billing are. In reality, these are unordered categories and no distance between them is meaningful. More fundamentally, drawing any histogram for this data is wrong: the touching bars suggest that there are values between "Technical" and "Delivery" complaints, which is impossible since these are discrete, named departments, not adjacent intervals on a number line.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -363,7 +363,7 @@ const moduleData: Module = {
     </div>
 
   </div><!-- end panel-c -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -457,7 +457,7 @@ const moduleData: Module = {
     </div>
 
   </div><!-- end panel-c -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

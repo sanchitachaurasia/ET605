@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_3';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -76,7 +76,7 @@ const moduleData: Module = {
     <!-- T2C -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -141,7 +141,7 @@ const moduleData: Module = {
     <!-- T3C -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -190,7 +190,7 @@ const moduleData: Module = {
     <!-- T4C -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -234,7 +234,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) Administration angle = (10/100)×360 = 36°. Agriculture = (15/100)×360 = 54°. Administration (36°) is smaller than Agriculture (54°), so the journalist's claim is mathematically impossible. Agriculture has a larger sector than Administration. The journalist may have misread the chart or compared visual areas incorrectly — a common perceptual error with pie charts when slices are positioned at different angles. (b) Education: 22% × 12,000 = ₹2,640 cr. Health: 18% × 12,000 = ₹2,160 cr. Infrastructure: 30% × 12,000 = ₹3,600 cr. Agriculture: 15% × 12,000 = ₹1,800 cr. Administration: 10% × 12,000 = ₹1,200 cr. Others: 5% × 12,000 = ₹600 cr. Total = 12,000 cr. ✓ (c) New Education budget = 22% × 15,000 = ₹3,300 cr. Increase = 3,300 − 2,640 = ₹660 crore increase. (d) Current Health = 18% = ₹2,160 cr. Required Health = 25% × 12,000 = ₹3,000 cr. Additional needed = 3,000 − 2,160 = ₹840 crore. But: if total stays at ₹12,000 cr and Health increases to 25%, some other category must decrease by 7 percentage points. The chart as-is cannot accommodate this without redistribution. (e) The pie chart does not show: (1) How each allocation compares to previous years — we cannot see if health spending is growing or shrinking. (2) How efficiently each rupee is spent — a large Education allocation tells us nothing about learning outcomes. (3) The distribution within each sector — "Infrastructure" at 30% could mean roads, bridges, or government buildings; the chart cannot distinguish. (4) Per-capita figures — a state with a large population needs proportionally more health spending than the percentage alone conveys.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -288,7 +288,7 @@ const moduleData: Module = {
   </div><!-- end panel-c -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -336,7 +336,7 @@ const moduleData: Module = {
     </div>
 
   </div><!-- end panel-c -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

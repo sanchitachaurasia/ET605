@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_3';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -150,7 +150,7 @@ const moduleData: Module = {
     <!-- ── TOPIC 2 ── -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -279,7 +279,7 @@ const moduleData: Module = {
     <!-- ── TOPIC 3 ── -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -352,7 +352,7 @@ const moduleData: Module = {
     <!-- ── TOPIC 4 ── -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -405,7 +405,7 @@ const moduleData: Module = {
         <div class="practice-ans">(a) First find the angle for 105 marks: (105/540) × 360° = 70°. The subject with a 70° sector is Hindi. So the student scored 105 marks in Hindi. (b) Maths marks = (90/360) × 540 = (1/4) × 540 = 135. Hindi marks = 105 (from above). Difference = 135 − 105 = 30 marks more in Maths. (c) Social Science marks = (65/360) × 540 = 97.5 marks. Maths = 135. Sum of SS + Maths = 232.5. Science = (80/360) × 540 = 120. Hindi = 105. Sum of Science + Hindi = 225. Since 232.5 > 225, yes — the sum of Social Science and Maths marks IS more than Science and Hindi. (Note: you can also compare just the angles without calculating marks: SS + Maths = 65+90=155° vs Science + Hindi = 80+70=150°. Since 155 > 150, the first pair is larger.)</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -461,7 +461,7 @@ const moduleData: Module = {
 </div>
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -518,7 +518,7 @@ const moduleData: Module = {
     </div>
 
 </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

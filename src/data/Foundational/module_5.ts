@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_5';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -61,7 +61,7 @@ const moduleData: Module = {
           <p>If the baker knows that on average, 20 people buy chocolate cupcakes every Monday, baking 100 would be a waste of money, and baking 5 would leave customers unhappy. They use data handling to make this decision. <span class="vcue">[Show data on screen: Monday sales - 18, 22, 19, 21]</span> By looking at these numbers, the baker sees a trend. They can predict with high probability that next Monday, sales will be around 20.</p>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -97,7 +97,7 @@ const moduleData: Module = {
           </div>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -135,7 +135,7 @@ const moduleData: Module = {
           <div class="practice-ans">The probability is 8/10, which is 0.8 or 80%. We use her past data (8/10) to predict her next chance!</div>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -166,7 +166,7 @@ const moduleData: Module = {
           <p>Now, think about your own school performance. If you have taken 5 math tests and scored 80, 85, 82, 88, and 84, what can you predict about your next test? <span class="pcue">(Try to think... would it be likely you'd score a 20? Or more likely you'd score around 83?)</span> You are using data handling to track your own progress!</p>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -196,7 +196,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -222,7 +222,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

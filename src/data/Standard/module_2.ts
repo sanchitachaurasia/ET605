@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_2';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -90,7 +90,7 @@ export const moduleData: Module = {
         <div class="practice-ans">130–140: 138, 136, 139. Frequency: 3. | 140–150: 142, 149, 145, 140, 148, 143, 147. Frequency: 7. | 150–160: 155, 153, 158, 157, 152, 154. Frequency: 6. | 160–170: 161, 162, 165, 160. Frequency: 4. | Total: 20 ✓. Modal class: 140–150 (frequency 7). This means the most common height in the class falls in the 140–150 cm range.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -178,7 +178,7 @@ export const moduleData: Module = {
         <div class="practice-ans">The histogram would rise from a low start (4 students, 0–5 hrs), increase through 5–10 (11) and 10–15 (14), then fall through 15–20 (8) and drop sharply to 20–25 (3). It peaks in the middle — a roughly bell-shaped, right-skewed distribution. Modal class: 10–15 hours (14 students). This means the most common outdoor activity level is 10–15 hrs/week — about 1.5 to 2 hours per day. If these were category labels (Cricket, Football, etc.), a bar graph would be correct — because those are separate, unconnected categories, and gaps between bars would correctly show they are not adjacent on a number line. Hours are continuous; sports categories are not.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -240,7 +240,7 @@ export const moduleData: Module = {
         <div class="practice-ans">(a) Range = 7.3 − 3.2 = 4.1 km. (b) For 18 data points, aiming for 5 intervals: 4.1 ÷ 5 ≈ 0.8. Round to 1.0 for convenience. Start at 3.0 (below minimum of 3.2). Intervals: 3–4, 4–5, 5–6, 6–7, 7–8. Five intervals — appropriate for 18 data points. (c) 3–4: 3.2, 3.7, 3.9 = 3. 4–5: 4.1, 4.9, 4.4, 4.6 = 4. 5–6: 5.8, 5.5, 5.2, 5.7, 5.0 = 5. 6–7: 6.0, 6.8, 6.3, 6.5 = 4. 7–8: 7.3, 7.1 = 2. Total: 3+4+5+4+2 = 18 ✓. (d) Modal class: 5–6 km (frequency 5). Most students ran between 5 and 6 km.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -299,7 +299,7 @@ export const moduleData: Module = {
         <div class="practice-ans">(a) It should be a histogram, since the data is grouped continuous data (marks grouped in intervals). (b) The student has incorrectly drawn gaps between the bars. In a histogram, bars must always touch because the intervals are adjacent and share boundaries. The value 25 is both the upper limit of 0–25 and the lower limit of 25–50 — there is no real gap between them. (c) The gap incorrectly communicates that there are no marks between 25 and 25 — which is meaningless. More broadly, it suggests these intervals are separate categories (like different sports) rather than adjacent ranges on a number line. This misrepresents the nature of the data entirely.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -397,7 +397,7 @@ export const moduleData: Module = {
   <!-- ══════════════════════════════════════════════
        PATH C
   ══════════════════════════════════════════════ -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -491,7 +491,7 @@ export const moduleData: Module = {
   <!-- ══════════════════════════════════════════════
        PATH C
   ══════════════════════════════════════════════ -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_2']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

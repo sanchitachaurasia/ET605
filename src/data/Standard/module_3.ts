@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_3';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -90,7 +90,7 @@ export const moduleData: Module = {
     <!-- T2B -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -169,7 +169,7 @@ export const moduleData: Module = {
     <!-- T3B -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -231,7 +231,7 @@ export const moduleData: Module = {
     <!-- T4B -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -277,7 +277,7 @@ export const moduleData: Module = {
         <div class="practice-ans">(a) Teaching Staff: 40% × 5,00,000 = ₹2,00,000. Infrastructure: 25% × 5,00,000 = ₹1,25,000. Library: 10% × 5,00,000 = ₹50,000. Sports: 15% × 5,00,000 = ₹75,000. Admin: 10% × 5,00,000 = ₹50,000. Total = 2,00,000+1,25,000+50,000+75,000+50,000 = 5,00,000. ✓ (b) New Library budget = ₹60,000. New percentage = (60,000/5,00,000) × 100 = 12%. New angle = (12/100) × 360° = 43.2°. (c) 15% → angle should be (15/100)×360° = 54°. Yes — 54° is consistent with 15%. ✓ (d) Teaching Staff (40%) + Sports (15%) = 55% — not quite half. Teaching Staff (40%) + Infrastructure (25%) = 65% — too much. Library (10%) + Admin (10%) + Sports (15%) + Infrastructure (25%) = 60% — no. Admin (10%) + Infrastructure (25%) + Library (10%) = 45% — no. Actually: Sports (15%) + Admin (10%) + Library (10%) + Infrastructure (25%) = 60%. The exact pair that totals 50% is Teaching Staff (40%) + Library (10%) = 50%.</div>
       </div>
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -331,7 +331,7 @@ export const moduleData: Module = {
     <!-- T6 -->
 
 <hr class="section-divider">`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -377,7 +377,7 @@ export const moduleData: Module = {
     </div>
 
   </div><!-- end panel-b -->`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_3']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

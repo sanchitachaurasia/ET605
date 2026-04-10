@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_5';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -60,7 +60,7 @@ const moduleData: Module = {
           <p>In modern sports, we move beyond simple averages to <strong>Conditional Probability</strong>. We don't just ask, "Will this player score?" We ask, "Given the current weather conditions and the opponent's defensive formation, what is the probability of a successful pass?" This requires analyzing sub-sets of data—filtering the total data set to find the most relevant <strong>Sample Space</strong>. <span class="vcue">[Display graph: Pass completion rates vs Defensive Pressure levels]</span></p>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -102,7 +102,7 @@ const moduleData: Module = {
           <div class="practice-ans">Predicted crashes = 10 days * 0.15 probability = 1.5. This means the firm should prepare for 1 to 2 potential crashes during high-traffic periods.</div>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -132,7 +132,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -162,7 +162,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -192,7 +192,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -218,7 +218,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,

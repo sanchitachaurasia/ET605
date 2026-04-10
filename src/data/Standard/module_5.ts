@@ -1,5 +1,6 @@
 import { Module, GameFormat } from '../../types';
 import * as questionBank from '../questions/module_5';
+import { videoLinks } from '../videoLinks';
 
 
 function getDefaultQuestionStyle(question: { styles?: Record<string, any>; format: GameFormat }): Record<string, any> {
@@ -25,7 +26,6 @@ function buildAdaptiveQuestions(moduleNumber: number, topicNumber: number) {
   });
 }
 
-const MODULE_2_1_SHARED_VIDEO_URL = '/Why_Do_We_Need_to_Organise_Data_.mp4';
 
 function filterModuleByPath(module: Module, path: 'A' | 'B' | 'C'): Module {
   return {
@@ -60,7 +60,7 @@ const moduleData: Module = {
           <p>In business, this is called <strong>Predictive Analytics</strong>. For example, a smartphone company needs to decide how many units to manufacture. If they look at past sales data and see that demand increases by 20% every December, they don't just hope for the best. They use that 1.2x multiplier to stock their inventory. <span class="vcue">[Show data on screen: Dec 2021 sales - 100k, Dec 2022 - 120k, Dec 2023 - 144k]</span></p>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_1'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 0,
       videoEndSeconds: 40,
@@ -100,7 +100,7 @@ const moduleData: Module = {
           <div class="practice-ans">Current Probability of Blue = 300/500 = 0.6. For 1000 shirts, the order should be 0.6 * 1000 = 600 Blue T-shirts.</div>
         </div>
       </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_2'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 40,
       videoEndSeconds: 80,
@@ -130,7 +130,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_3'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 80,
       videoEndSeconds: 120,
@@ -160,7 +160,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_4'],
       estimatedTimeSeconds: 300,
       videoStartSeconds: 120,
       videoEndSeconds: 140,
@@ -190,7 +190,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_5'],
       estimatedTimeSeconds: 400,
       videoStartSeconds: 340,
       videoEndSeconds: 425,
@@ -216,7 +216,7 @@ const moduleData: Module = {
       </div>
 
     </div>`,
-      videoUrl: MODULE_2_1_SHARED_VIDEO_URL,
+      videoUrl: videoLinks['module_5']['topic_6'],
       estimatedTimeSeconds: 600,
       videoStartSeconds: 425,
       videoEndSeconds: 520,
