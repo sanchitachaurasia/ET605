@@ -42,18 +42,16 @@ export function useMergeTeamIntegration() {
     const params = new URLSearchParams(window.location.search);
     const redirectStudentId =
       params.get('student_id') ||
-      sessionStorage.getItem('student_id') ||
       session.studentId ||
       session.student_id ||
       null;
     const redirectSessionId =
       params.get('session_id') ||
-      sessionStorage.getItem('session_id') ||
       session.chapterSessionId ||
       session.session_id ||
       null;
 
-    if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
+    if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
     if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
 
     const safe = (v: any) => (v === undefined || v === null || Number.isNaN(v) ? null : v);

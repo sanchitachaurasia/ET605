@@ -30,11 +30,11 @@ export const submitMergePayload = async (
   const { chapterId = 'grade8_data_handling', isSync = false } = options;
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token') || sessionStorage.getItem('token') || '';
-  const redirectStudentId = params.get('student_id') || sessionStorage.getItem('student_id') || '';
-  const redirectSessionId = params.get('session_id') || sessionStorage.getItem('session_id') || '';
+  const redirectStudentId = params.get('student_id') || session?.studentId || '';
+  const redirectSessionId = params.get('session_id') || session?.chapterSessionId || '';
 
   if (token) sessionStorage.setItem('token', token);
-  if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
+  if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
   if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
 
   if (!session || !session.chapterSessionId || !session.chapterMetrics) {
@@ -165,12 +165,12 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
     // Initialize session metrics if not already done
     if (session && !session.chapterSessionId) {
       const params = new URLSearchParams(window.location.search);
-      const redirectStudentId = params.get('student_id') || sessionStorage.getItem('student_id');
-      const redirectSessionId = params.get('session_id') || sessionStorage.getItem('session_id');
+      const redirectStudentId = params.get('student_id') || session.studentId;
+      const redirectSessionId = params.get('session_id') || session.chapterSessionId;
       const token = params.get('token') || sessionStorage.getItem('token');
 
       if (token) sessionStorage.setItem('token', token);
-      if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
+      if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
       if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
 
       if (!redirectSessionId) {

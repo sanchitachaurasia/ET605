@@ -57,8 +57,8 @@ export default function App() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token') || sessionStorage.getItem('token');
-    const studentId = params.get('student_id') || sessionStorage.getItem('student_id');
-    const sessionId = params.get('session_id') || sessionStorage.getItem('session_id');
+    const studentId = params.get('student_id');
+    const sessionId = params.get('session_id');
 
     if (token) sessionStorage.setItem('token', token);
     if (studentId) sessionStorage.setItem('student_id', studentId);
