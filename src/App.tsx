@@ -99,11 +99,40 @@ export default function App() {
       return;
     }
 
+    if (session && session.studentId !== studentId && !existingUser) {
+      const mergeBootstrapSession: StudentSession = {
+        studentId,
+        pin: 'merge-redirect',
+        name: studentId,
+        school: 'Merge Portal',
+        class: '8',
+        preTestScore: 0,
+        preTestDone: false,
+        learningPath: 'B',
+        settings: DEFAULT_SETTINGS,
+        moduleProgress: [],
+        badgesEarned: [],
+        postTestScore: null,
+        journeyComplete: false,
+        lives: 5,
+        xp: 0,
+        coins: 0,
+        streak: 0,
+        chapterSessionId: sessionId,
+        sessionStatus: 'in_progress',
+      };
+      addUser(mergeBootstrapSession);
+      setSession(mergeBootstrapSession);
+      setMergeBootstrapDone(true);
+      return;
+    }
+
     if (!session && existingUser) {
       setSession({
         ...existingUser,
+        studentId,
         chapterSessionId: sessionId,
-        name: existingUser.name || studentId,
+        name: studentId,
         sessionStatus: 'in_progress',
       });
       setMergeBootstrapDone(true);
@@ -113,8 +142,9 @@ export default function App() {
     if (session && session.studentId !== studentId && existingUser) {
       setSession({
         ...existingUser,
+        studentId,
         chapterSessionId: sessionId,
-        name: existingUser.name || studentId,
+        name: studentId,
         sessionStatus: 'in_progress',
       });
       setMergeBootstrapDone(true);

@@ -938,7 +938,7 @@ export default function PreTest() {
                 "font-black text-slate-900",
                 isMobile ? "text-xl" : "text-2xl"
               )}>Diagnostic Mission</h1>
-              <p className="mt-1 text-xs sm:text-sm text-slate-600">Welcome, <span className="font-bold text-brand">{session?.name}</span>! Let's find your perfect learning path.</p>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600">Welcome, <span className="font-bold text-brand">{session?.studentId || session?.name}</span>! Let's find your perfect learning path.</p>
             </div>
             {/* School/Class info removed for brevity */}
           </div>
