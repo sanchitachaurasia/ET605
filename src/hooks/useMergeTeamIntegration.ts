@@ -39,13 +39,30 @@ export function useMergeTeamIntegration() {
   const buildMergePayload = (): Partial<MergeTeamSessionPayload> | null => {
     if (!session) return null;
 
+    const params = new URLSearchParams(window.location.search);
+    const redirectStudentId =
+      params.get('student_id') ||
+      sessionStorage.getItem('student_id') ||
+      session.studentId ||
+      session.student_id ||
+      null;
+    const redirectSessionId =
+      params.get('session_id') ||
+      sessionStorage.getItem('session_id') ||
+      session.chapterSessionId ||
+      session.session_id ||
+      null;
+
+    if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
+    if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
+
     const safe = (v: any) => (v === undefined || v === null || Number.isNaN(v) ? null : v);
     const completed_concepts = safe(session.conceptsCompleted?.length);
     const total_concepts = 20; // From our expanded curriculum
 
     return {
-      student_id: safe(session.student_id) || 'anonymous',
-      session_id: safe(session.session_id),
+      student_id: safe(redirectStudentId),
+      session_id: safe(redirectSessionId),
       chapter_id: 'grade8_data_handling',
       timestamp: new Date().toISOString(),
       session_status: 'completed',

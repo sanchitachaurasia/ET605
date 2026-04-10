@@ -173,10 +173,13 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
       if (redirectStudentId) sessionStorage.setItem('student_id', redirectStudentId);
       if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
 
-      const createdSessionId = redirectSessionId || `s_${session.studentId}_${chapterId}_${Date.now()}`;
+      if (!redirectSessionId) {
+        console.warn('Missing redirect session_id. Merge payload submission will be disabled for this run.');
+      }
+
       updateSession({
         studentId: redirectStudentId || session.studentId,
-        chapterSessionId: createdSessionId,
+        ...(redirectSessionId ? { chapterSessionId: redirectSessionId } : {}),
         chapterMetrics: {
           startTime: Date.now(),
           correctAnswers: 0,
@@ -198,8 +201,8 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
       });
 
       setTrackingSession({
-        studentId: session.studentId,
-        sessionId: createdSessionId,
+        studentId: redirectStudentId || session.studentId,
+        sessionId: redirectSessionId || `app_${session.studentId}`,
         chapterId,
       });
       trackTelemetryEvent('session_start', {

@@ -12,7 +12,7 @@
 export interface MergeTeamSessionPayload {
   // REQUIRED FIELDS - Student & Session Identity
   student_id: string;           // Type: String (from platform auth)
-  session_id: string;           // Type: String (format: s_{student_id}_{chapter_id}_{timestamp})
+  session_id: string;           // Type: String (exact value from redirect URL)
   chapter_id: string;           // Type: String (canonical: grade8_data_handling)
   
   // REQUIRED FIELDS - Session Metadata
@@ -112,11 +112,11 @@ export class MergeTeamPayloadValidator {
       }
     }
 
-    // 5. SESSION_ID FORMAT VALIDATION
+    // 5. SESSION_ID VALIDATION
     if (payload.session_id !== undefined) {
-      if (!payload.session_id.startsWith('s_')) {
+      if (typeof payload.session_id !== 'string' || payload.session_id.trim().length === 0) {
         errors.push(
-          `session_id must start with "s_", got ${payload.session_id}`
+          `session_id must be a non-empty string from redirect URL, got ${payload.session_id}`
         );
       }
     }
@@ -144,14 +144,7 @@ export class MergeTeamPayloadValidator {
     return new Date().toISOString(); // 2026-03-25T14:30:00.123Z → trim to 2026-03-25T14:30:00Z
   }
 
-  /**
-   * Helper: Generate session_id
-   * Format: s_{student_id}_{chapter_id}_{timestamp_unix}
-   */
-  static generateSessionId(student_id: string, chapter_id: string): string {
-    const timestamp_unix = Date.now();
-    return `s_${student_id}_${chapter_id}_${timestamp_unix}`;
-  }
+  // Do not generate session_id locally. It must come from Merge redirect URL.
 }
 
 /**
