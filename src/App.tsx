@@ -17,6 +17,7 @@ import ModulePage from './pages/ModulePage';
 import PostTest from './pages/PostTest';
 import { getChapterDataForPath } from './data/Standard/pathData';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import RecommendationModal, { RecommendationResponse } from './components/RecommendationModal';
 import type { StudentSession } from './types';
 
 export default function App() {
@@ -26,6 +27,8 @@ export default function App() {
   const updateSession = useSessionStore(state => state.updateSession);
   const addUser = useSessionStore(state => state.addUser);
   const [mergeBootstrapDone, setMergeBootstrapDone] = useState(false);
+  const [recommendationModalOpen, setRecommendationModalOpen] = useState(false);
+  const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
 
   const mergeSearch = window.location.search || '';
   const mergeParams = useMemo(() => new URLSearchParams(mergeSearch), [mergeSearch]);
@@ -301,6 +304,24 @@ export default function App() {
     };
   }, [session?.sessionStatus]);
 
+  useEffect(() => {
+    const handleRecommendationEvent = (event: Event) => {
+      const customEvent = event as CustomEvent<RecommendationResponse>;
+      if (!customEvent.detail?.recommendation) {
+        return;
+      }
+
+      setRecommendationData(customEvent.detail);
+      setRecommendationModalOpen(true);
+    };
+
+    window.addEventListener('dataquest:recommendation', handleRecommendationEvent as EventListener);
+
+    return () => {
+      window.removeEventListener('dataquest:recommendation', handleRecommendationEvent as EventListener);
+    };
+  }, []);
+
   return (
     <AppErrorBoundary>
       {!mergeBootstrapDone ? (
@@ -323,6 +344,11 @@ export default function App() {
           <Route path="*" element={<Navigate to={hasMergeParams ? `/chapter${mergeSearch}` : (session ? (session.preTestDone ? '/dashboard' : '/pre-test') : '/login')} replace />} />
         </Routes>
       )}
+      <RecommendationModal
+        isOpen={recommendationModalOpen}
+        data={recommendationData}
+        onClose={() => setRecommendationModalOpen(false)}
+      />
     </AppErrorBoundary>
   );
 }

@@ -152,11 +152,9 @@ export const submitMergePayload = async (
     const recommendation = result.data;
     if (!isSync && recommendation?.recommendation) {
       localStorage.setItem('dataquest-last-recommendation', JSON.stringify(recommendation));
-      const reason = recommendation?.recommendation?.reason;
-      const nextStep = recommendation?.recommendation?.next_steps?.[0];
-      if (reason) {
-        window.alert(nextStep ? `${reason}\nNext: ${nextStep}` : reason);
-      }
+      window.dispatchEvent(new CustomEvent('dataquest:recommendation', {
+        detail: recommendation,
+      }));
     }
   } else {
     console.warn('Payload queued for retry:', result.error);
