@@ -28,22 +28,25 @@ export const submitMergePayload = async (
   status: 'completed' | 'exited_midway',
   options: SubmitMergePayloadOptions = {}
 ) => {
+  const liveSession = useSessionStore.getState().session;
+  const effectiveSession = liveSession || session;
+
   const { chapterId = 'grade8_data_handling', isSync = false } = options;
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token') || sessionStorage.getItem('token') || '';
-  const redirectStudentId = params.get('student_id') || session?.studentId || '';
-  const redirectSessionId = params.get('session_id') || session?.chapterSessionId || '';
+  const redirectStudentId = params.get('student_id') || effectiveSession?.studentId || '';
+  const redirectSessionId = params.get('session_id') || effectiveSession?.chapterSessionId || '';
 
   if (token) sessionStorage.setItem('token', token);
   if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
   if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
 
-  if (!session || !session.chapterSessionId || !session.chapterMetrics) {
+  if (!effectiveSession || !effectiveSession.chapterSessionId || !effectiveSession.chapterMetrics) {
     console.warn('Invalid session or metrics for payload submission');
     return;
   }
 
-  const finalSessionId = redirectSessionId || session.chapterSessionId;
+  const finalSessionId = redirectSessionId || effectiveSession.chapterSessionId;
   if (!finalSessionId) {
     console.warn('Missing session_id from redirect URL');
     return;
@@ -55,7 +58,7 @@ export const submitMergePayload = async (
     return;
   }
 
-  const chapterData = getChapterDataForPath(session?.learningPath || 'B');
+  const chapterData = getChapterDataForPath(effectiveSession?.learningPath || 'B');
 
   // Compute total questions and hints by tallying from chapterData
   let totalHints = 0;
@@ -70,18 +73,18 @@ export const submitMergePayload = async (
     });
   });
 
-  const completionRatio = session.moduleProgress
-    ? Math.min(session.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterData.length, 1), 1)
+  const completionRatio = effectiveSession.moduleProgress
+    ? Math.min(effectiveSession.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterData.length, 1), 1)
     : 0;
 
-  const m = session.chapterMetrics as SessionMetrics;
+  const m = effectiveSession.chapterMetrics as SessionMetrics;
   const computedTotalTime = Math.floor((Date.now() - m.startTime) / 1000);
   const timeSpent = m.activeTimeSpent > 0 ? m.activeTimeSpent : computedTotalTime;
 
   const payload: MergeSessionPayload = mergePayloadFormatter(
     {
-      ...session,
-      studentId: redirectStudentId || session.studentId,
+      ...effectiveSession,
+      studentId: redirectStudentId || effectiveSession.studentId,
     },
     finalSessionId,
     status,
@@ -113,7 +116,7 @@ export const submitMergePayload = async (
   if (!token) {
     console.warn('[Merge][Submit] Missing redirect token. Cannot call recommendation API without Authorization header.', {
       search: window.location.search,
-      sessionId: redirectSessionId || session?.chapterSessionId,
+        sessionId: redirectSessionId || effectiveSession?.chapterSessionId,
     });
     return;
   }
@@ -193,7 +196,7 @@ export const submitMergePayload = async (
   const adminStored = JSON.parse(localStorage.getItem('dataquest-admin-payloads') || '[]');
   adminStored.push({
     ...payload,
-    student_name: session.name,
+    student_name: effectiveSession.name,
     submission_result: result.success ? 'success' : 'queued_for_retry'
   });
   localStorage.setItem('dataquest-admin-payloads', JSON.stringify(adminStored));
@@ -206,11 +209,16 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
 
   useEffect(() => {
     // Initialize session metrics if not already done
-    if (session && !session.chapterSessionId) {
+    if (session) {
       const params = new URLSearchParams(window.location.search);
       const redirectStudentId = params.get('student_id') || session.studentId;
       const redirectSessionId = params.get('session_id') || session.chapterSessionId;
       const token = params.get('token') || sessionStorage.getItem('token');
+
+      const shouldStartNewChapterSession = Boolean(
+        redirectSessionId && redirectSessionId !== session.chapterSessionId
+      );
+      const shouldInitMetrics = !session.chapterMetrics || shouldStartNewChapterSession;
 
       if (token) sessionStorage.setItem('token', token);
       if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
@@ -220,28 +228,34 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
         console.warn('Missing redirect session_id. Merge payload submission will be disabled for this run.');
       }
 
-      updateSession({
-        studentId: redirectStudentId || session.studentId,
-        ...(redirectSessionId ? { chapterSessionId: redirectSessionId } : {}),
-        chapterMetrics: {
-          startTime: Date.now(),
-          correctAnswers: 0,
-          wrongAnswers: 0,
-          questionsAttempted: [],
-          questionAttemptCounts: {},
-          retryCount: 0,
-          hintsUsed: 0,
-          totalHintsEmbedded: 0,
-          activeTimeSpent: 0,
-          idleTimeSpent: 0,
-          lastActivityTime: Date.now(),
-          optionMarkedCount: 0,
-          optionChangedCount: 0,
-          remedialClicks: 0,
-          settingsChanges: 0,
-        } as SessionMetrics,
-        sessionStatus: 'in_progress'
-      });
+      if (!session.chapterSessionId || shouldStartNewChapterSession) {
+        updateSession({
+          studentId: redirectStudentId || session.studentId,
+          ...(redirectSessionId ? { chapterSessionId: redirectSessionId } : {}),
+          ...(shouldInitMetrics
+            ? {
+                chapterMetrics: {
+                  startTime: Date.now(),
+                  correctAnswers: 0,
+                  wrongAnswers: 0,
+                  questionsAttempted: [],
+                  questionAttemptCounts: {},
+                  retryCount: 0,
+                  hintsUsed: 0,
+                  totalHintsEmbedded: 0,
+                  activeTimeSpent: 0,
+                  idleTimeSpent: 0,
+                  lastActivityTime: Date.now(),
+                  optionMarkedCount: 0,
+                  optionChangedCount: 0,
+                  remedialClicks: 0,
+                  settingsChanges: 0,
+                } as SessionMetrics,
+              }
+            : {}),
+          sessionStatus: 'in_progress'
+        });
+      }
 
       setTrackingSession({
         studentId: redirectStudentId || session.studentId,
