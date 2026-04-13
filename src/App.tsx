@@ -30,6 +30,16 @@ export default function App() {
   const [recommendationModalOpen, setRecommendationModalOpen] = useState(false);
   const [recommendationData, setRecommendationData] = useState<RecommendationResponse | null>(null);
 
+  const handleRecommendationClose = () => {
+    setRecommendationModalOpen(false);
+
+    // Best effort: browsers allow window.close() only for script-opened tabs/windows.
+    window.close();
+
+    // If tab is not closable, take user to a neutral page.
+    window.location.href = '/';
+  };
+
   const mergeSearch = window.location.search || '';
   const mergeParams = useMemo(() => new URLSearchParams(mergeSearch), [mergeSearch]);
   const hasMergeParams = Boolean(
@@ -347,7 +357,7 @@ export default function App() {
       <RecommendationModal
         isOpen={recommendationModalOpen}
         data={recommendationData}
-        onClose={() => setRecommendationModalOpen(false)}
+        onClose={handleRecommendationClose}
       />
     </AppErrorBoundary>
   );
