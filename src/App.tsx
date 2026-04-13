@@ -283,6 +283,24 @@ export default function App() {
     return () => window.clearTimeout(timeoutId);
   }, [session]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!session || session.sessionStatus === 'completed') {
+        return;
+      }
+
+      event.preventDefault();
+      event.returnValue = '';
+      return '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [session?.sessionStatus]);
+
   return (
     <AppErrorBoundary>
       {!mergeBootstrapDone ? (
