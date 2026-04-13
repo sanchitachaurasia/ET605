@@ -112,6 +112,32 @@ export const submitMergePayload = async (
 
   markSessionAsSubmitted(finalSessionId);
 
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+
+  if (isSync) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+        keepalive: true,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      await saveSessionPayload(payload).catch(() => undefined);
+      return;
+    } catch (error) {
+      console.warn('Sync recommendation submission failed:', error);
+      return;
+    }
+  }
+
   // Attempt submission with retry mechanism
   const result = await submitPayloadWithRetry(payload, endpoint, token);
 
@@ -143,18 +169,6 @@ export const submitMergePayload = async (
   });
   localStorage.setItem('dataquest-admin-payloads', JSON.stringify(adminStored));
 
-  // Use sendBeacon for sync submissions (e.g., page unload)
-  if (isSync) {
-    fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-      keepalive: true,
-    }).catch(() => undefined);
-  }
 };
 
 export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') => {
@@ -238,81 +252,12 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
         });
         flushTrackingEvents();
         
-        // Submit with sendBeacon for guaranteed delivery
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token') || sessionStorage.getItem('token') || '';
-        const redirectStudentId = params.get('student_id') || session?.studentId || '';
-        const redirectSessionId = params.get('session_id') || session?.chapterSessionId || '';
-        
-        const chapterDataPath = getChapterDataForPath(session?.learningPath || 'B');
-        let totalHints = 0;
-        let totalQuestions = 0;
-        
-        Object.values(chapterDataPath).forEach(mod => {
-          mod.concepts.forEach(c => {
-            totalQuestions += c.questions?.length || 0;
-            c.questions?.forEach(q => {
-              if (q.hint) totalHints++;
-            });
-          });
-        });
-        
-        const completionRatio = session.moduleProgress
-          ? Math.min(session.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterDataPath.length, 1), 1)
-          : 0;
-        
-        const m = session.chapterMetrics;
-        const computedTotalTime = Math.floor((Date.now() - m.startTime) / 1000);
-        const timeSpent = m.activeTimeSpent > 0 ? m.activeTimeSpent : computedTotalTime;
-        
-        const exitPayload: MergeSessionPayload = mergePayloadFormatter(
-          {
-            ...session,
-            studentId: redirectStudentId || session.studentId,
-          },
-          redirectSessionId || session.chapterSessionId,
-          'exited_midway',
-          chapterId,
-          {
-            correct: m.correctAnswers,
-            wrong: m.wrongAnswers,
-            attempted: m.questionsAttempted.length,
-            total: totalQuestions > 0 ? totalQuestions : 10,
-            retries: m.retryCount,
-            hintsUsed: m.hintsUsed,
-            totalHints: totalHints > 0 ? totalHints : 10,
-            timeSpent,
-            completionRatio
-          }
-        );
-        
-        if (token && exitPayload.validation_passed !== false) {
-          const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
-          
-          // Use sendBeacon for guaranteed delivery during page unload
-          const beaconData = new FormData();
-          beaconData.append('data', JSON.stringify(exitPayload));
-          
-          // Fallback to fetch with keepalive if sendBeacon doesn't work
-          navigator.sendBeacon?.(endpoint, JSON.stringify({
-            ...exitPayload,
-            _token: token
-          })) || fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify(exitPayload),
-            keepalive: true,
-          }).catch(() => {
-            console.error('Failed to submit exit session');
-          });
-        }
+        submitMergePayload(session, 'exited_midway', { chapterId, isSync: true }).catch(() => undefined);
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('pagehide', handleUnload);
     window.addEventListener('unload', handleUnload);
 
     // Periodically process retry queue (check every 30 seconds)
@@ -324,6 +269,7 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handleUnload);
       window.removeEventListener('unload', handleUnload);
       clearInterval(retryInterval);
     };

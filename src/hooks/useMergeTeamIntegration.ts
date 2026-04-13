@@ -8,14 +8,17 @@
  * Features:
  * - Collects all session metrics from Zustand store
  * - Formats payload per Merge Team schema
- * - Submits to /api/merge/session-submit
+ * - Submits to the recommendation API
  * - Handles network failures with local retry queue
  * - Prevents duplicate submissions with session_id reuse
  */
 
 import { useEffect, useState } from 'react';
 import { useSessionStore } from '../store/sessionStore';
-import { MergeTeamSessionPayload, MergeTeamPayloadValidator } from '../backend/mergeTeamPayload';
+import { getChapterDataForPath } from '../data/Standard/pathData';
+import { mergePayloadFormatter, MergeSessionPayload } from '../integration/mergePayload';
+import { markSessionAsSubmitted, isDuplicateSubmission } from '../integration/payloadRetryManager';
+import { SessionMetrics } from '../types';
 
 interface MergeSubmissionStatus {
   submitted: boolean;
@@ -33,56 +36,74 @@ export function useMergeTeamIntegration() {
     timestamp: null
   });
 
+  const getRequestContext = () => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token') || sessionStorage.getItem('token') || '';
+    const studentId = params.get('student_id') || session?.studentId || '';
+    const sessionId = params.get('session_id') || session?.chapterSessionId || '';
+
+    if (params.get('token')) sessionStorage.setItem('token', params.get('token') as string);
+    if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
+    if (params.get('session_id')) sessionStorage.setItem('session_id', params.get('session_id') as string);
+
+    return { token, studentId, sessionId };
+  };
+
   /**
-   * Build Merge Team payload from session metrics
+   * Build recommendation payload from session metrics
    */
-  const buildMergePayload = (): Partial<MergeTeamSessionPayload> | null => {
+  const buildRecommendationPayload = (
+    sessionStatus: 'completed' | 'exited_midway'
+  ): MergeSessionPayload | null => {
     if (!session) return null;
 
-    const params = new URLSearchParams(window.location.search);
-    const redirectStudentId =
-      params.get('student_id') ||
-      session.studentId ||
-      session.student_id ||
-      null;
-    const redirectSessionId =
-      params.get('session_id') ||
-      session.chapterSessionId ||
-      session.session_id ||
-      null;
+    const { studentId, sessionId } = getRequestContext();
+    if (!studentId || !sessionId) return null;
 
-    if (params.get('student_id')) sessionStorage.setItem('student_id', params.get('student_id') as string);
-    if (redirectSessionId) sessionStorage.setItem('session_id', redirectSessionId);
+    const chapterData = getChapterDataForPath(session.learningPath || 'B');
+    let totalHints = 0;
+    let totalQuestions = 0;
 
-    const safe = (v: any) => (v === undefined || v === null || Number.isNaN(v) ? null : v);
-    const completed_concepts = safe(session.conceptsCompleted?.length);
-    const total_concepts = 20; // From our expanded curriculum
+    Object.values(chapterData).forEach(mod => {
+      mod.concepts.forEach(c => {
+        totalQuestions += c.questions?.length || 0;
+        c.questions?.forEach(q => {
+          if (q.hint) totalHints++;
+        });
+      });
+    });
 
-    return {
-      student_id: safe(redirectStudentId),
-      session_id: safe(redirectSessionId),
-      chapter_id: 'grade8_data_handling',
-      timestamp: new Date().toISOString(),
-      session_status: 'completed',
+    const completedConcepts = session.conceptsCompleted?.length || 0;
+    const completionRatio = chapterData.length > 0
+      ? Math.min(1, Math.max(0, completedConcepts / chapterData.length))
+      : 0;
 
-      // Question metrics
-      correct_answers: safe(session.correctAnswers),
-      wrong_answers: safe(session.wrongAnswers),
-      questions_attempted: safe(session.questionsAttempted?.length),
-      total_questions: safe(session.totalQuestions),
+    const metrics = session.chapterMetrics as SessionMetrics | undefined;
+    if (!metrics) return null;
 
-      // Attempt & hint tracking
-      retry_count: safe(session.retryCount),
-      hints_used: safe(session.hintsUsed),
-      total_hints_embedded: safe(session.totalHintsEmbedded),
+    const totalTime = Math.floor((Date.now() - metrics.startTime) / 1000);
+    const timeSpent = metrics.activeTimeSpent > 0 ? metrics.activeTimeSpent : totalTime;
 
-      // Time & progress
-      time_spent_seconds: safe(session.activeTimeSpent) === null ? null : Math.round(session.activeTimeSpent / 1000),
-      topic_completion_ratio:
-        completed_concepts === null || safe(total_concepts) === null || total_concepts === 0
-          ? null
-          : Math.max(0, Math.min(1, completed_concepts / total_concepts))
-    };
+    return mergePayloadFormatter(
+      {
+        ...session,
+        studentId,
+      },
+      sessionId,
+      sessionStatus,
+      'grade8_data_handling',
+      {
+        correct: metrics.correctAnswers,
+        wrong: metrics.wrongAnswers,
+        attempted: metrics.questionsAttempted.length,
+        total: totalQuestions > 0 ? totalQuestions : (session.totalQuestions || 0),
+        retries: metrics.retryCount,
+        hintsUsed: metrics.hintsUsed,
+        totalHints: totalHints > 0 ? totalHints : (session.totalHintsEmbedded || 0),
+        timeSpent,
+        completionRatio,
+      }
+    );
   };
 
   /**
@@ -92,37 +113,43 @@ export function useMergeTeamIntegration() {
     sessionStatus: 'completed' | 'exited_midway' = 'completed'
   ): Promise<boolean> => {
     try {
-      const payload = buildMergePayload();
+      const { token } = getRequestContext();
+      const payload = buildRecommendationPayload(sessionStatus);
       if (!payload) {
         console.warn('[Merge] No session data available');
         return false;
       }
 
-      // Update status before submission
-      payload.session_status = sessionStatus;
-
-      // Validate payload
-      const validation = MergeTeamPayloadValidator.validate(payload);
-      if (!validation.valid) {
-        console.error('[Merge] Validation failed:', validation.errors);
+      if (payload.validation_passed === false) {
+        console.error('[Merge] Validation failed:', payload.validation_errors);
         setStatus({
           submitted: false,
-          error: `Validation failed: ${validation.errors.join(', ')}`,
+          error: `Validation failed: ${(payload.validation_errors || []).join(', ')}`,
           session_id: payload.session_id || null,
           timestamp: null
         });
         return false;
       }
 
-      console.log(`[Merge] Submitting session ${payload.session_id}...`);
+      if (isDuplicateSubmission(payload.session_id)) {
+        console.warn(`[Merge] Duplicate submission prevented for session ${payload.session_id}`);
+        return true;
+      }
 
-      // Submit to backend
-      const response = await fetch('/api/merge/session-submit', {
+      markSessionAsSubmitted(payload.session_id);
+
+      const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
+
+      console.log(`[Merge] Submitting recommendation payload for session ${payload.session_id}...`);
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        keepalive: sessionStatus === 'exited_midway'
       });
 
       if (!response.ok) {
@@ -150,12 +177,12 @@ export function useMergeTeamIntegration() {
       setStatus({
         submitted: false,
         error: errorMessage,
-        session_id: session?.session_id || null,
+        session_id: session?.chapterSessionId || null,
         timestamp: new Date().toISOString()
       });
 
       // Store for local retry queue
-      storeForRetry(buildMergePayload());
+      storeForRetry(buildRecommendationPayload(sessionStatus), getRequestContext().token);
       return false;
     }
   };
@@ -163,7 +190,7 @@ export function useMergeTeamIntegration() {
   /**
    * Store failed payload in localStorage for retry
    */
-  const storeForRetry = (payload: Partial<MergeTeamSessionPayload> | null) => {
+  const storeForRetry = (payload: Partial<MergeSessionPayload> | null, token?: string) => {
     if (!payload) return;
 
     try {
@@ -173,6 +200,7 @@ export function useMergeTeamIntegration() {
 
       retryQueue.push({
         payload,
+        token,
         timestamp: Date.now(),
         attempts: 0,
         lastError: null
@@ -217,9 +245,12 @@ export function useMergeTeamIntegration() {
 
           // Attempt submission
           try {
-            const response = await fetch('/api/merge/session-submit', {
+            const response = await fetch(import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                ...(queued.token || sessionStorage.getItem('token') ? { Authorization: `Bearer ${queued.token || sessionStorage.getItem('token')}` } : {})
+              },
               body: JSON.stringify(queued.payload)
             });
 
@@ -250,7 +281,7 @@ export function useMergeTeamIntegration() {
   return {
     submitToMergeTeam,
     status,
-    payload: buildMergePayload()
+    payload: buildRecommendationPayload('completed')
   };
 }
 
