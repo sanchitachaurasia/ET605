@@ -135,6 +135,7 @@ export const submitPayloadWithRetry = async (
       sessionId: payload.session_id,
       tokenPresent: Boolean(token),
     });
+    console.log('[Merge][Transport] Request payload body', payload);
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
@@ -231,6 +232,7 @@ export const processRetryQueue = async (endpoint: string): Promise<void> => {
         status: response.status,
         ok: response.ok,
       });
+      console.log('[Merge][Retry] Retry payload body', queuedPayload);
 
       if (response.ok) {
         removeFromRetryQueue(item.payloadId);

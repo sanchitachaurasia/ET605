@@ -102,6 +102,24 @@ export const submitMergePayload = async (
     }
   );
 
+  const payloadForDebug = {
+    ...payload,
+    debug_meta: {
+      source: 'submitMergePayload',
+      status,
+      isSync,
+      chapterId,
+      tokenPresent: Boolean(token),
+    }
+  };
+
+  try {
+    localStorage.setItem('dataquest-last-payload', JSON.stringify(payloadForDebug));
+    (window as any).__dataquestLastPayload = payloadForDebug;
+  } catch {
+    // no-op: best effort debug storage
+  }
+
   const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
 
   console.log('[Merge][Submit] Preparing recommendation payload', {
@@ -112,6 +130,7 @@ export const submitMergePayload = async (
     sessionId: redirectSessionId || session?.chapterSessionId,
     tokenPresent: Boolean(token),
   });
+  console.log('[Merge][Submit] Payload body', payloadForDebug);
 
   if (!token) {
     console.warn('[Merge][Submit] Missing redirect token. Cannot call recommendation API without Authorization header.', {
