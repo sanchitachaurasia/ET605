@@ -130,6 +130,12 @@ export const submitPayloadWithRetry = async (
   token?: string
 ): Promise<{ success: boolean; payloadId?: string; error?: string; data?: any }> => {
   try {
+    console.log('[Merge][Transport] Sending recommendation request', {
+      endpoint,
+      sessionId: payload.session_id,
+      tokenPresent: Boolean(token),
+    });
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json'
     };
@@ -142,6 +148,13 @@ export const submitPayloadWithRetry = async (
       headers,
       body: JSON.stringify(payload),
       keepalive: true
+    });
+
+    console.log('[Merge][Transport] Response received', {
+      endpoint,
+      sessionId: payload.session_id,
+      status: response.status,
+      ok: response.ok,
     });
 
     let responseData: any = null;
@@ -189,6 +202,11 @@ export const processRetryQueue = async (endpoint: string): Promise<void> => {
 
   if (readyForRetry.length === 0) return;
 
+  console.log('[Merge][Retry] Processing queued payloads', {
+    count: readyForRetry.length,
+    endpoint,
+  });
+
   for (const item of readyForRetry) {
     try {
       const queuedPayload = item.payload?.payload || item.payload;
@@ -205,6 +223,13 @@ export const processRetryQueue = async (endpoint: string): Promise<void> => {
         headers,
         body: JSON.stringify(queuedPayload),
         keepalive: true
+      });
+
+      console.log('[Merge][Retry] Retry response', {
+        payloadId: item.payloadId,
+        sessionId: queuedPayload?.session_id,
+        status: response.status,
+        ok: response.ok,
       });
 
       if (response.ok) {

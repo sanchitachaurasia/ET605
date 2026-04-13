@@ -101,8 +101,20 @@ export const submitMergePayload = async (
 
   const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
 
+  console.log('[Merge][Submit] Preparing recommendation payload', {
+    status,
+    isSync,
+    endpoint,
+    studentId: redirectStudentId,
+    sessionId: redirectSessionId || session?.chapterSessionId,
+    tokenPresent: Boolean(token),
+  });
+
   if (!token) {
-    console.warn('Missing redirect token. Cannot call recommendation API without Authorization header.');
+    console.warn('[Merge][Submit] Missing redirect token. Cannot call recommendation API without Authorization header.', {
+      search: window.location.search,
+      sessionId: redirectSessionId || session?.chapterSessionId,
+    });
     return;
   }
 
@@ -127,6 +139,11 @@ export const submitMergePayload = async (
         keepalive: true,
       });
 
+      console.log('[Merge][Submit] Sync response received', {
+        status: response.status,
+        ok: response.ok,
+      });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
@@ -147,7 +164,12 @@ export const submitMergePayload = async (
   await saveSessionPayload(payload);
 
   if (result.success) {
-    console.log('✓ Payload submitted successfully');
+    console.log('[Merge][Submit] Payload submitted successfully', {
+      status,
+      sessionId: finalSessionId,
+      hasResponse: Boolean(result.data),
+      response: result.data,
+    });
 
     const recommendation = result.data;
     if (!isSync && recommendation?.recommendation) {
@@ -155,9 +177,16 @@ export const submitMergePayload = async (
       window.dispatchEvent(new CustomEvent('dataquest:recommendation', {
         detail: recommendation,
       }));
+    } else if (!isSync) {
+      console.warn('[Merge][Submit] API response missing recommendation object', {
+        response: recommendation,
+      });
     }
   } else {
-    console.warn('Payload queued for retry:', result.error);
+    console.warn('[Merge][Submit] Payload queued for retry', {
+      error: result.error,
+      sessionId: finalSessionId,
+    });
   }
 
   // Always store it for Admin Dashboard visibility
