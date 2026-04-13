@@ -336,12 +336,38 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
     const nextAttemptCount = activeAttemptCount + 1;
     setActiveAttemptCount(nextAttemptCount);
 
+    const currentMetrics = session?.chapterMetrics;
+    if (currentMetrics && currentQuestion?.id) {
+      const questionId = currentQuestion.id;
+      const existingAttempts = currentMetrics.questionAttemptCounts?.[questionId] || 0;
+      const wasAttempted = (currentMetrics.questionsAttempted || []).includes(questionId);
+
+      updateMetrics({
+        questionsAttempted: wasAttempted
+          ? (currentMetrics.questionsAttempted || [])
+          : [...(currentMetrics.questionsAttempted || []), questionId],
+        questionAttemptCounts: {
+          ...(currentMetrics.questionAttemptCounts || {}),
+          [questionId]: existingAttempts + 1,
+        },
+        retryCount: (currentMetrics.retryCount || 0) + (existingAttempts >= 1 ? 1 : 0),
+        lastActivityTime: Date.now(),
+      });
+    }
+
     if (isCorrect) {
       solvedQuestionIdsRef.current.add(currentQuestion.id);
       setIsCurrentQuestionCorrect(true);
       setIsCorrectAnswered(true);
       setShowRemediation(false);
       setActiveIncorrectFeedback(null);
+
+      if (currentMetrics) {
+        updateMetrics({
+          correctAnswers: (currentMetrics.correctAnswers || 0) + 1,
+          lastActivityTime: Date.now(),
+        });
+      }
 
       if (adaptiveBaseQuestion && currentQuestion.id === adaptiveBaseQuestion.id) {
         pendingAdaptiveVariantSuffixRef.current = computeAdaptiveVariantSuffix(true, nextAttemptCount, activeHintLevel);
@@ -368,6 +394,12 @@ export const ConceptBlock: React.FC<ConceptBlockProps> = ({
 
       remediatedQuestionIdsRef.current.add(currentQuestion.id);
       updateMetrics({ remedialClicks: (session?.chapterMetrics?.remedialClicks || 0) + 1 });
+      if (currentMetrics) {
+        updateMetrics({
+          wrongAnswers: (currentMetrics.wrongAnswers || 0) + 1,
+          lastActivityTime: Date.now(),
+        });
+      }
       trackTelemetryEvent('remedial_opened', {
         module_id: moduleId,
         question_id: currentQuestion.id,

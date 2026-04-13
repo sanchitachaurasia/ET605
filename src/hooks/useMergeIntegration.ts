@@ -60,24 +60,15 @@ export const submitMergePayload = async (
 
   const chapterData = getChapterDataForPath(effectiveSession?.learningPath || 'B');
 
-  // Compute total questions and hints by tallying from chapterData
-  let totalHints = 0;
-  let totalQuestions = 0;
-
-  Object.values(chapterData).forEach(mod => {
-    mod.concepts.forEach(c => {
-      totalQuestions += c.questions?.length || 0;
-      c.questions?.forEach(q => {
-        if (q.hint) totalHints++;
-      });
-    });
-  });
-
   const completionRatio = effectiveSession.moduleProgress
     ? Math.min(effectiveSession.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterData.length, 1), 1)
     : 0;
 
   const m = effectiveSession.chapterMetrics as SessionMetrics;
+  const sessionQuestionCount = m.questionsAttempted?.length || 0;
+  const sessionHintCount = m.hintsUsed || 0;
+  const correctedAnswerCount = Math.min(m.correctAnswers || 0, sessionQuestionCount);
+  const correctedWrongCount = Math.max(0, sessionQuestionCount - correctedAnswerCount);
   const computedTotalTime = Math.floor((Date.now() - m.startTime) / 1000);
   const timeSpent = m.activeTimeSpent > 0 ? m.activeTimeSpent : computedTotalTime;
 
@@ -90,13 +81,13 @@ export const submitMergePayload = async (
     status,
     chapterId,
     {
-      correct: m.correctAnswers,
-      wrong: m.wrongAnswers,
-      attempted: m.questionsAttempted.length,
-      total: totalQuestions > 0 ? totalQuestions : null,
+      correct: correctedAnswerCount,
+      wrong: correctedWrongCount,
+      attempted: sessionQuestionCount,
+      total: sessionQuestionCount,
       retries: m.retryCount,
       hintsUsed: m.hintsUsed,
-      totalHints: totalHints > 0 ? totalHints : null,
+      totalHints: sessionHintCount,
       timeSpent,
       completionRatio
     }
