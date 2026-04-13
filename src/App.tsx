@@ -36,8 +36,12 @@ export default function App() {
     // Best effort: browsers allow window.close() only for script-opened tabs/windows.
     window.close();
 
-    // If tab is not closable, take user to a neutral page.
-    window.location.href = '/';
+    // If blocked by browser policy, keep user on current page and ask manual close.
+    window.setTimeout(() => {
+      if (!window.closed) {
+        window.alert('Please close this browser tab.');
+      }
+    }, 150);
   };
 
   const mergeSearch = window.location.search || '';
