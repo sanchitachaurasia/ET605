@@ -297,24 +297,6 @@ export default function App() {
   }, [session]);
 
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (!session || session.sessionStatus === 'completed') {
-        return;
-      }
-
-      event.preventDefault();
-      event.returnValue = '';
-      return '';
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [session?.sessionStatus]);
-
-  useEffect(() => {
     const handleRecommendationEvent = (event: Event) => {
       const customEvent = event as CustomEvent<RecommendationResponse>;
       if (!customEvent.detail?.recommendation) {

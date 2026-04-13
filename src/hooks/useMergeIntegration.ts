@@ -261,16 +261,6 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
       });
     }
 
-    // Handle page unload - submit as exited_midway
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (session && session.sessionStatus !== 'completed') {
-        e.preventDefault();
-        // Set return value to show browser's default alert
-        e.returnValue = 'Your progress will be saved. Are you sure you want to leave?';
-        return 'Your progress will be saved. Are you sure you want to leave?';
-      }
-    };
-
     const handleUnload = () => {
       if (session && session.sessionStatus !== 'completed') {
         trackTelemetryEvent('session_end', {
@@ -285,9 +275,7 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('pagehide', handleUnload);
-    window.addEventListener('unload', handleUnload);
 
     // Periodically process retry queue (check every 30 seconds)
     const retryInterval = setInterval(() => {
@@ -297,9 +285,7 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
     }, 30000);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('pagehide', handleUnload);
-      window.removeEventListener('unload', handleUnload);
       clearInterval(retryInterval);
     };
   }, [session, updateSession, chapterId]);

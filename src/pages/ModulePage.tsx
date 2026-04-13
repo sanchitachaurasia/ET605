@@ -464,16 +464,12 @@ export default function ModulePage() {
         });
         await flushTrackingEvents();
         await submitMergePayload(session, 'exited_midway', { isSync: false });
-        
-        // Show alert confirming the session has been saved
-        window.alert('Session saved. Your progress has been recorded with status: exited_midway');
       }
     } catch (e) {
       // Optionally handle/log error
       console.error('Error submitting exit session:', e);
     } finally {
       setShowExitConfirm(false);
-      navigate('/dashboard');
       setIsExiting(false);
     }
   };
