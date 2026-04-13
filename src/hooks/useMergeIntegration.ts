@@ -60,6 +60,18 @@ export const submitMergePayload = async (
 
   const chapterData = getChapterDataForPath(effectiveSession?.learningPath || 'B');
 
+  // Chapter-wide totals (all embedded questions/hints for this chapter path)
+  let totalQuestions = 0;
+  let totalHints = 0;
+  Object.values(chapterData).forEach((mod: any) => {
+    mod.concepts.forEach((c: any) => {
+      totalQuestions += c.questions?.length || 0;
+      c.questions?.forEach((q: any) => {
+        if (q.hint) totalHints++;
+      });
+    });
+  });
+
   const completionRatio = effectiveSession.moduleProgress
     ? Math.min(effectiveSession.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterData.length, 1), 1)
     : 0;
@@ -84,10 +96,10 @@ export const submitMergePayload = async (
       correct: correctedAnswerCount,
       wrong: correctedWrongCount,
       attempted: sessionQuestionCount,
-      total: sessionQuestionCount,
+      total: totalQuestions > 0 ? totalQuestions : null,
       retries: m.retryCount,
       hintsUsed: m.hintsUsed,
-      totalHints: sessionHintCount,
+      totalHints: totalHints > 0 ? totalHints : null,
       timeSpent,
       completionRatio
     }
