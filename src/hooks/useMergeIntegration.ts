@@ -220,8 +220,12 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
 
     // Handle page unload - submit as exited_midway
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = '';
+      if (session && session.sessionStatus !== 'completed') {
+        e.preventDefault();
+        // Set return value to show browser's default alert
+        e.returnValue = 'Your progress will be saved. Are you sure you want to leave?';
+        return 'Your progress will be saved. Are you sure you want to leave?';
+      }
     };
 
     const handleUnload = () => {
@@ -233,7 +237,78 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
           }
         });
         flushTrackingEvents();
-        submitMergePayload(session, 'exited_midway', { chapterId, isSync: true });
+        
+        // Submit with sendBeacon for guaranteed delivery
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token') || sessionStorage.getItem('token') || '';
+        const redirectStudentId = params.get('student_id') || session?.studentId || '';
+        const redirectSessionId = params.get('session_id') || session?.chapterSessionId || '';
+        
+        const chapterDataPath = getChapterDataForPath(session?.learningPath || 'B');
+        let totalHints = 0;
+        let totalQuestions = 0;
+        
+        Object.values(chapterDataPath).forEach(mod => {
+          mod.concepts.forEach(c => {
+            totalQuestions += c.questions?.length || 0;
+            c.questions?.forEach(q => {
+              if (q.hint) totalHints++;
+            });
+          });
+        });
+        
+        const completionRatio = session.moduleProgress
+          ? Math.min(session.moduleProgress.filter((m: any) => m.completed).length / Math.max(chapterDataPath.length, 1), 1)
+          : 0;
+        
+        const m = session.chapterMetrics;
+        const computedTotalTime = Math.floor((Date.now() - m.startTime) / 1000);
+        const timeSpent = m.activeTimeSpent > 0 ? m.activeTimeSpent : computedTotalTime;
+        
+        const exitPayload: MergeSessionPayload = mergePayloadFormatter(
+          {
+            ...session,
+            studentId: redirectStudentId || session.studentId,
+          },
+          redirectSessionId || session.chapterSessionId,
+          'exited_midway',
+          chapterId,
+          {
+            correct: m.correctAnswers,
+            wrong: m.wrongAnswers,
+            attempted: m.questionsAttempted.length,
+            total: totalQuestions > 0 ? totalQuestions : 10,
+            retries: m.retryCount,
+            hintsUsed: m.hintsUsed,
+            totalHints: totalHints > 0 ? totalHints : 10,
+            timeSpent,
+            completionRatio
+          }
+        );
+        
+        if (token && exitPayload.validation_passed !== false) {
+          const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
+          
+          // Use sendBeacon for guaranteed delivery during page unload
+          const beaconData = new FormData();
+          beaconData.append('data', JSON.stringify(exitPayload));
+          
+          // Fallback to fetch with keepalive if sendBeacon doesn't work
+          navigator.sendBeacon?.(endpoint, JSON.stringify({
+            ...exitPayload,
+            _token: token
+          })) || fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(exitPayload),
+            keepalive: true,
+          }).catch(() => {
+            console.error('Failed to submit exit session');
+          });
+        }
       }
     };
 
@@ -268,7 +343,11 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
         }
       });
       await flushTrackingEvents();
-      await submitMergePayload(session, 'exited_midway', { chapterId });
+      const result = await submitMergePayload(session, 'exited_midway', { chapterId });
+      
+      // Show alert that session has been saved
+      window.alert('Session saved. Your progress has been recorded with status: exited_midway');
+      
       updateSession({ sessionStatus: 'exited_midway', exitConfirmed: true });
     }
     setShowExitConfirm(false);

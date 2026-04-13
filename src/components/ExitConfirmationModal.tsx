@@ -62,8 +62,11 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationProps> = ({
               try {
                 // Submit session to Merge Team before exiting
                 await submitToMergeTeam('exited_midway');
+                // Show confirmation alert
+                window.alert('Session saved. Your progress has been recorded with status: exited_midway');
               } catch (error) {
                 console.error('Error submitting session to Merge Team:', error);
+                window.alert('Failed to save session. Please try again.');
               } finally {
                 setIsSaving(false);
               }
