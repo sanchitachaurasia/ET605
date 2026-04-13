@@ -171,6 +171,16 @@ export const submitPayloadWithRetry = async (
 };
 
 /**
+ * Queue a payload for retry without attempting to submit immediately.
+ */
+export const queueSubmissionForRetry = (
+  payload: MergeSessionPayload,
+  token?: string
+): void => {
+  queuePayloadForRetry({ payload, token, failedPayloadId: payload.session_id });
+};
+
+/**
  * Processes retry queue - attempts to resubmit failed payloads
  */
 export const processRetryQueue = async (endpoint: string): Promise<void> => {

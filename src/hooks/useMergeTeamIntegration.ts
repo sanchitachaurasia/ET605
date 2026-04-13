@@ -96,10 +96,10 @@ export function useMergeTeamIntegration() {
         correct: metrics.correctAnswers,
         wrong: metrics.wrongAnswers,
         attempted: metrics.questionsAttempted.length,
-        total: totalQuestions > 0 ? totalQuestions : (session.totalQuestions || 0),
+        total: totalQuestions > 0 ? totalQuestions : null,
         retries: metrics.retryCount,
         hintsUsed: metrics.hintsUsed,
-        totalHints: totalHints > 0 ? totalHints : (session.totalHintsEmbedded || 0),
+        totalHints: totalHints > 0 ? totalHints : null,
         timeSpent,
         completionRatio,
       }

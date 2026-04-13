@@ -5,7 +5,8 @@ import {
   submitPayloadWithRetry,
   processRetryQueue,
   markSessionAsSubmitted,
-  isDuplicateSubmission
+  isDuplicateSubmission,
+  queueSubmissionForRetry
 } from '../integration/payloadRetryManager';
 import { getChapterDataForPath } from '../data/Standard/pathData';
 import { SessionMetrics } from '../types';
@@ -89,10 +90,10 @@ export const submitMergePayload = async (
       correct: m.correctAnswers,
       wrong: m.wrongAnswers,
       attempted: m.questionsAttempted.length,
-      total: totalQuestions > 0 ? totalQuestions : 10,
+      total: totalQuestions > 0 ? totalQuestions : null,
       retries: m.retryCount,
       hintsUsed: m.hintsUsed,
-      totalHints: totalHints > 0 ? totalHints : 10,
+      totalHints: totalHints > 0 ? totalHints : null,
       timeSpent,
       completionRatio
     }
@@ -134,6 +135,7 @@ export const submitMergePayload = async (
       return;
     } catch (error) {
       console.warn('Sync recommendation submission failed:', error);
+      queueSubmissionForRetry(payload, token);
       return;
     }
   }
