@@ -1,5 +1,5 @@
 import { PayloadRetryQueue } from '../types';
-import { MergeSessionPayload } from './mergePayload';
+import { MergeApiPayload, MergeSessionPayload } from './mergePayload';
 
 const RETRY_QUEUE_KEY = 'dataquest-payload-retry-queue';
 const FAILED_PAYLOADS_KEY = 'dataquest-failed-payloads';
@@ -125,7 +125,7 @@ export const archiveFailedPayloads = (): void => {
  * Submits payload with retry mechanism
  */
 export const submitPayloadWithRetry = async (
-  payload: MergeSessionPayload,
+  payload: MergeSessionPayload | MergeApiPayload,
   endpoint: string,
   token?: string
 ): Promise<{ success: boolean; payloadId?: string; error?: string; data?: any }> => {
@@ -188,7 +188,7 @@ export const submitPayloadWithRetry = async (
  * Queue a payload for retry without attempting to submit immediately.
  */
 export const queueSubmissionForRetry = (
-  payload: MergeSessionPayload,
+  payload: MergeSessionPayload | MergeApiPayload,
   token?: string
 ): void => {
   queuePayloadForRetry({ payload, token, failedPayloadId: payload.session_id });

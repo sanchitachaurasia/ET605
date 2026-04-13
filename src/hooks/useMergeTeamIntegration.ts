@@ -16,7 +16,7 @@
 import { useEffect, useState } from 'react';
 import { useSessionStore } from '../store/sessionStore';
 import { getChapterDataForPath } from '../data/Standard/pathData';
-import { mergePayloadFormatter, MergeSessionPayload } from '../integration/mergePayload';
+import { mergePayloadFormatter, MergeSessionPayload, toMergeApiPayload } from '../integration/mergePayload';
 import { markSessionAsSubmitted, isDuplicateSubmission } from '../integration/payloadRetryManager';
 import { SessionMetrics } from '../types';
 
@@ -139,6 +139,7 @@ export function useMergeTeamIntegration() {
       markSessionAsSubmitted(payload.session_id);
 
       const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
+      const apiPayload = toMergeApiPayload(payload);
 
       console.log(`[Merge] Submitting recommendation payload for session ${payload.session_id}...`);
 
@@ -148,7 +149,7 @@ export function useMergeTeamIntegration() {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(apiPayload),
         keepalive: sessionStatus === 'exited_midway'
       });
 

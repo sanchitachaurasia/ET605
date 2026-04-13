@@ -20,6 +20,25 @@ export interface MergeSessionPayload {
   validation_errors?: string[];
 }
 
+export type MergeApiPayload = Omit<MergeSessionPayload, 'validation_passed' | 'validation_errors'>;
+
+export const toMergeApiPayload = (payload: MergeSessionPayload): MergeApiPayload => ({
+  student_id: payload.student_id,
+  session_id: payload.session_id,
+  chapter_id: payload.chapter_id,
+  timestamp: payload.timestamp,
+  session_status: payload.session_status,
+  correct_answers: payload.correct_answers,
+  wrong_answers: payload.wrong_answers,
+  questions_attempted: payload.questions_attempted,
+  total_questions: payload.total_questions,
+  retry_count: payload.retry_count,
+  hints_used: payload.hints_used,
+  total_hints_embedded: payload.total_hints_embedded,
+  time_spent_seconds: payload.time_spent_seconds,
+  topic_completion_ratio: payload.topic_completion_ratio,
+});
+
 /**
  * Validates the formatted payload before submission
  */

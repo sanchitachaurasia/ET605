@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSessionStore } from '../store/sessionStore';
-import { mergePayloadFormatter, MergeSessionPayload } from '../integration/mergePayload';
+import { mergePayloadFormatter, MergeSessionPayload, toMergeApiPayload } from '../integration/mergePayload';
 import {
   submitPayloadWithRetry,
   processRetryQueue,
@@ -93,8 +93,10 @@ export const submitMergePayload = async (
     }
   );
 
+  const apiPayload = toMergeApiPayload(payload);
+
   const payloadForDebug = {
-    ...payload,
+    ...apiPayload,
     debug_meta: {
       source: 'submitMergePayload',
       status,
@@ -148,7 +150,7 @@ export const submitMergePayload = async (
       const response = await fetch(endpoint, {
         method: 'POST',
         headers,
-        body: JSON.stringify(payload),
+        body: JSON.stringify(apiPayload),
         keepalive: true,
       });
 
@@ -165,13 +167,13 @@ export const submitMergePayload = async (
       return;
     } catch (error) {
       console.warn('Sync recommendation submission failed:', error);
-      queueSubmissionForRetry(payload, token);
+      queueSubmissionForRetry(apiPayload, token);
       return;
     }
   }
 
   // Attempt submission with retry mechanism
-  const result = await submitPayloadWithRetry(payload, endpoint, token);
+  const result = await submitPayloadWithRetry(apiPayload, endpoint, token);
 
   // Persist final payload in Firebase for user and admin querying
   await saveSessionPayload(payload);
