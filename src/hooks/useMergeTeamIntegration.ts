@@ -61,17 +61,14 @@ export function useMergeTeamIntegration() {
     if (!studentId || !sessionId) return null;
 
     const chapterData = getChapterDataForPath(session.learningPath || 'B');
-    let totalHints = 0;
     let totalQuestions = 0;
 
     Object.values(chapterData).forEach(mod => {
       mod.concepts.forEach(c => {
         totalQuestions += c.questions?.length || 0;
-        c.questions?.forEach(q => {
-          if (q.hint) totalHints++;
-        });
       });
     });
+    const totalHints = totalQuestions * 2;
 
     const completedConcepts = session.conceptsCompleted?.length || 0;
     const completionRatio = chapterData.length > 0
