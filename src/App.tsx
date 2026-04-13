@@ -36,10 +36,10 @@ export default function App() {
     // Best effort: browsers allow window.close() only for script-opened tabs/windows.
     window.close();
 
-    // If blocked by browser policy, keep user on current page and ask manual close.
+    // If blocked by browser policy, redirect to Merge portal dashboard.
     window.setTimeout(() => {
       if (!window.closed) {
-        window.alert('Please close this browser tab.');
+        window.location.href = 'https://kaushik-dev.online/dashboard';
       }
     }, 150);
   };
