@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useMergeTeamIntegration } from '../hooks/useMergeTeamIntegration';
 
 export interface ExitConfirmationProps {
   isOpen: boolean;
@@ -7,7 +6,7 @@ export interface ExitConfirmationProps {
     completed: number;
     total: number;
   };
-  onConfirmExit: () => void;
+  onConfirmExit: () => void | Promise<void>;
   onResume: () => void;
 }
 
@@ -18,8 +17,6 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationProps> = ({
   onResume
 }) => {
   const [isConfirming, setIsConfirming] = useState(false);
-  const { submitToMergeTeam, status: mergeStatus } = useMergeTeamIntegration();
-  const [isSaving, setIsSaving] = useState(false);
 
   if (!isOpen) return null;
 
@@ -58,24 +55,17 @@ export const ExitConfirmationModal: React.FC<ExitConfirmationProps> = ({
           <button
             onClick={async () => {
               setIsConfirming(true);
-              setIsSaving(true);
               try {
-                // Submit session to Merge Team before exiting
-                await submitToMergeTeam('exited_midway');
-                // Show confirmation alert
-                window.alert('Session saved. Your progress has been recorded with status: exited_midway');
+                await onConfirmExit();
               } catch (error) {
-                console.error('Error submitting session to Merge Team:', error);
-                window.alert('Failed to save session. Please try again.');
-              } finally {
-                setIsSaving(false);
+                console.error('Error confirming exit:', error);
+                setIsConfirming(false);
               }
-              setTimeout(() => onConfirmExit(), 500);
             }}
-            disabled={isConfirming || isSaving}
+            disabled={isConfirming}
             className="w-full px-4 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transition disabled:bg-red-300 disabled:cursor-not-allowed"
           >
-            {isSaving ? 'Saving...' : isConfirming ? 'Exiting...' : 'Yes, Exit Chapter'}
+            {isConfirming ? 'Exiting...' : 'Yes, Exit Chapter'}
           </button>
 
           <button
