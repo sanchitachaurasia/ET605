@@ -264,7 +264,7 @@ export const useMergeIntegration = (chapterId: string = 'grade8_data_handling') 
 
     // Periodically process retry queue (check every 30 seconds)
     const retryInterval = setInterval(() => {
-      const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://merge.dataquest.local/api/session';
+      const endpoint = import.meta.env.VITE_MERGE_API_ENDPOINT || 'https://kaushik-dev.online/api/recommend/';
       processRetryQueue(endpoint).catch(err => console.error('Retry queue processing error:', err));
       flushTrackingEvents().catch(err => console.error('Telemetry flush error:', err));
     }, 30000);
