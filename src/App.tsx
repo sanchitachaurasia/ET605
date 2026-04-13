@@ -18,7 +18,25 @@ import PostTest from './pages/PostTest';
 import { getChapterDataForPath } from './data/Standard/pathData';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
 import RecommendationModal, { RecommendationResponse } from './components/RecommendationModal';
-import type { StudentSession } from './types';
+import type { SessionMetrics, StudentSession } from './types';
+
+const createInitialChapterMetrics = (): SessionMetrics => ({
+  startTime: Date.now(),
+  correctAnswers: 0,
+  wrongAnswers: 0,
+  questionsAttempted: [],
+  questionAttemptCounts: {},
+  retryCount: 0,
+  hintsUsed: 0,
+  totalHintsEmbedded: 0,
+  activeTimeSpent: 0,
+  idleTimeSpent: 0,
+  lastActivityTime: Date.now(),
+  optionMarkedCount: 0,
+  optionChangedCount: 0,
+  remedialClicks: 0,
+  settingsChanges: 0,
+});
 
 export default function App() {
   const session = useSessionStore(state => state.session);
@@ -108,6 +126,7 @@ export default function App() {
         coins: 0,
         streak: 0,
         chapterSessionId: sessionId,
+        chapterMetrics: createInitialChapterMetrics(),
         sessionStatus: 'in_progress',
       };
       addUser(mergeBootstrapSession);
@@ -136,6 +155,7 @@ export default function App() {
         coins: 0,
         streak: 0,
         chapterSessionId: sessionId,
+        chapterMetrics: createInitialChapterMetrics(),
         sessionStatus: 'in_progress',
       };
       addUser(mergeBootstrapSession);
@@ -149,8 +169,10 @@ export default function App() {
         ...existingUser,
         studentId,
         chapterSessionId: sessionId,
+        chapterMetrics: createInitialChapterMetrics(),
         name: studentId,
         sessionStatus: 'in_progress',
+        exitConfirmed: false,
       });
       setMergeBootstrapDone(true);
       return;
@@ -161,8 +183,10 @@ export default function App() {
         ...existingUser,
         studentId,
         chapterSessionId: sessionId,
+        chapterMetrics: createInitialChapterMetrics(),
         name: studentId,
         sessionStatus: 'in_progress',
+        exitConfirmed: false,
       });
       setMergeBootstrapDone(true);
       return;
@@ -171,7 +195,9 @@ export default function App() {
     if (session && session.studentId === studentId && session.chapterSessionId !== sessionId) {
       updateSession({
         chapterSessionId: sessionId,
+        chapterMetrics: createInitialChapterMetrics(),
         sessionStatus: 'in_progress',
+        exitConfirmed: false,
       });
     }
     setMergeBootstrapDone(true);
